@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmmArk 小秘書 Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
+    header { background: #1c1c1e; color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 18px; font-weight: 600; }
+    header span { font-size: 13px; color: #98989d; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .stat-card .num { font-size: 32px; font-weight: 700; color: #007aff; }
+    .stat-card .label { font-size: 13px; color: #6e6e73; margin-top: 4px; }
+    .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .filters select, .filters input { padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; background: #fff; }
+    .filters input { flex: 1; min-width: 160px; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
+    .btn-primary { background: #007aff; color: #fff; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; }
+    .btn-done { background: #34c759; color: #fff; }
+    .btn-del { background: #ff3b30; color: #fff; }
+    .btn-undone { background: #ff9500; color: #fff; }
+    table { width: 100%; background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-collapse: collapse; overflow: hidden; }
+    th { background: #f2f2f7; padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #6e6e73; }
+    td { padding: 12px 16px; border-top: 1px solid #f2f2f7; font-size: 14px; vertical-align: middle; }
+    tr:hover td { background: #f9f9fb; }
+    .type-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .type-task { background: #fff3cd; color: #856404; }
+    .type-reminder { background: #f8d7da; color: #721c24; }
+    .type-note { background: #d1ecf1; color: #0c5460; }
+    .type-project_update { background: #d4edda; color: #155724; }
+    .done-row td { opacity: 0.45; text-decoration: line-through; }
+    .done-row:hover td { opacity: 0.6; }
+    .actions { display: flex; gap: 4px; }
+    #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-box { background: #fff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.1); min-width: 280px; }
+    .login-box h2 { margin-bottom: 8px; }
+    .login-box p { color: #6e6e73; font-size: 14px; margin-bottom: 24px; }
+    .login-box input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 15px; margin-bottom: 12px; }
+    .login-box button { width: 100%; padding: 12px; background: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    #main { display: none; }
+    .project-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+    .project-tag { padding: 6px 12px; background: #e5e5ea; border-radius: 20px; font-size: 13px; cursor: pointer; border: 2px solid transparent; }
+    .project-tag.active { border-color: #007aff; background: #e1f0ff; color: #007aff; }
+    .empty { text-align: center; color: #6e6e73; padding: 40px; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <div class="login-box">
+    <h2>EmmArk 小秘書</h2>
+    <p>請輸入 Dashboard 密碼</p>
+    <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" />
+    <button onclick="doLogin()">進入</button>
+  </div>
+</div>
+
+<div id="main">
+  <header>
+    <h1>EmmArk 小秘書 Dashboard</h1>
+    <span id="lastRefresh"></span>
+  </header>
+  <div class="container">
+    <div class="stats" id="stats"></div>
+    <div class="project-tags" id="projectTags"></div>
+    <div class="filters">
+      <select id="filterType" onchange="applyFilters()">
+        <option value="">全部類型</option>
+        <option value="task">待辦</option>
+        <option value="reminder">提醒</option>
+        <option value="note">筆記</option>
+        <option value="project_update">專案更新</option>
+      </select>
+      <select id="filterDone" onchange="applyFilters()">
+        <option value="">全部狀態</option>
+        <option value="false">未完成</option>
+        <option value="true">已完成</option>
+      </select>
+      <input type="text" id="search" placeholder="搜尋..." oninput="applyFilters()" />
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>內容</th>
+          <th>類型</th>
+          <th>專案</th>
+          <th>時間</th>
+          <th>記錄於</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let token = '';
+let allNotes = [];
+let activeProject = '';
+
+const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project_update: '專案更新' };
+const TYPE_CLASS = { task: 'type-task', reminder: 'type-reminder', note: 'type-note', project_update: 'type-project_update' };
+
+function doLogin() {
+  token = document.getElementById('tokenInput').value.trim();
+  if (!token) return alert('請輸入密碼');
+  loadNotes();
+}
+
+async function api(method, body) {
+  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 401) { alert('密碼錯誤'); return null; }
+  return res.json();
+}
+
+async function loadNotes() {
+  const data = await api('GET');
+  if (!data) return;
+  allNotes = data;
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  document.getElementById('lastRefresh').textContent = '更新：' + new Date().toLocaleTimeString('zh-TW');
+  renderStats();
+  renderProjectTags();
+  applyFilters();
+}
+
+function renderStats() {
+  const total = allNotes.length;
+  const done = allNotes.filter(n => n.is_done).length;
+  const pending = allNotes.filter(n => !n.is_done && (n.type === 'task' || n.type === 'reminder')).length;
+  const rate = total ? Math.round(done / allNotes.filter(n => n.type === 'task' || n.type === 'reminder').length * 100) || 0 : 0;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="label">總記錄數</div></div>
+    <div class="stat-card"><div class="num">${pending}</div><div class="label">未完成待辦</div></div>
+    <div class="stat-card"><div class="num">${done}</div><div class="label">已完成</div></div>
+    <div class="stat-card"><div class="num">${rate}%</div><div class="label">完成率</div></div>
+  `;
+}
+
+function renderProjectTags() {
+  const projects = [...new Set(allNotes.map(n => n.project).filter(Boolean))];
+  const container = document.getElementById('projectTags');
+  container.innerHTML = `<span class="project-tag ${activeProject === '' ? 'active' : ''}" onclick="setProject('')">全部</span>` +
+    projects.map(p => `<span class="project-tag ${activeProject === p ? 'active' : ''}" onclick="setProject('${p}')">${p}</span>`).join('');
+}
+
+function setProject(p) {
+  activeProject = p;
+  renderProjectTags();
+  applyFilters();
+}
+
+function applyFilters() {
+  const type = document.getElementById('filterType').value;
+  const done = document.getElementById('filterDone').value;
+  const search = document.getElementById('search').value.toLowerCase();
+
+  let filtered = allNotes.filter(n => {
+    if (type && n.type !== type) return false;
+    if (done !== '' && String(n.is_done) !== done) return false;
+    if (activeProject && n.project !== activeProject) return false;
+    if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('tableBody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">沒有符合的記錄</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(n => {
+    const due = n.due_date ? new Date(n.due_date).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '-';
+    const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+    const doneBtn = n.is_done
+      ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
+      : `<button class="btn-sm btn-done" onclick="toggleDone('${n.id}', true)">完成</button>`;
+    return `<tr class="${n.is_done ? 'done-row' : ''}">
+      <td>${n.content}</td>
+      <td><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
+      <td>${n.project || '-'}</td>
+      <td>${due}</td>
+      <td>${created}</td>
+      <td><div class="actions">${doneBtn}<button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleDone(id, is_done) {
+  await api('PATCH', { id, is_done });
+  const note = allNotes.find(n => n.id === id);
+  if (note) note.is_done = is_done;
+  renderStats();
+  applyFilters();
+}
+
+async function deleteNote(id) {
+  if (!confirm('確定刪除？')) return;
+  await api('DELETE', { id });
+  allNotes = allNotes.filter(n => n.id !== id);
+  renderStats();
+  renderProjectTags();
+  applyFilters();
+}
+
+// Auto refresh every 60s
+setInterval(loadNotes, 60000);
+</script>
+</body>
+</html>

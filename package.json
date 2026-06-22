@@ -1,0 +1,14 @@
+{
+  "name": "emmask-secret",
+  "version": "1.0.0",
+  "description": "EmmArk 小秘書 LINE Bot",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@line/bot-sdk": "^9.4.0",
+    "@supabase/supabase-js": "^2.49.4"
+  }
+}

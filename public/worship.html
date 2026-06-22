@@ -17,7 +17,10 @@
     .btn-primary { background: #007aff; color: #fff; }
     .btn-tab { background: #e5e5ea; color: #1d1d1f; }
     .btn-tab.active { background: #007aff; color: #fff; }
-    select, input { padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; background: #fff; }
+    .btn-manage { background: #5856d6; color: #fff; }
+    select, input[type="text"], input[type="password"], input[type="date"] {
+      padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; background: #fff;
+    }
 
     /* Grid view */
     .grid-wrap { overflow-x: auto; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
@@ -38,10 +41,23 @@
     .person-view table { width: 100%; border-collapse: collapse; }
     .person-view th { background: #f2f2f7; padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #6e6e73; }
     .person-view td { padding: 12px 16px; border-top: 1px solid #f2f2f7; font-size: 14px; }
-    .person-view tr.upcoming td { font-weight: 600; }
     .date-badge { background: #e1f0ff; color: #007aff; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
     .date-badge.soon { background: #ffd60a33; color: #b8860b; }
     .role-badge { display: inline-block; background: #f2f2f7; color: #1d1d1f; padding: 2px 8px; border-radius: 8px; font-size: 12px; margin: 2px; }
+
+    /* Manage view */
+    .manage-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .manage-panels { grid-template-columns: 1fr; } }
+    .manage-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 20px; }
+    .manage-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #1d1d1f; }
+    .manage-add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .manage-add-row input, .manage-add-row select { flex: 1; }
+    .manage-list { display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto; }
+    .manage-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f9f9fb; border-radius: 8px; font-size: 14px; }
+    .manage-item span { color: #1d1d1f; }
+    .manage-item .del-btn { background: none; border: none; color: #ff3b30; font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; }
+    .manage-item .del-btn:hover { color: #c0392b; }
+    .manage-tip { font-size: 12px; color: #8e8e93; margin-top: 8px; }
 
     /* Login */
     #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
@@ -63,6 +79,7 @@
     .btn-cancel { background: #e5e5ea; color: #1d1d1f; }
     .btn-danger { background: #ff3b30; color: #fff; margin-right: auto; }
     .empty { text-align: center; color: #6e6e73; padding: 40px; font-size: 15px; }
+    .loading { text-align: center; color: #6e6e73; padding: 60px; font-size: 15px; }
   </style>
 </head>
 <body>
@@ -71,11 +88,12 @@
   <div class="login-box">
     <h2>⛪ 服事表</h2>
     <p>請輸入 Dashboard 密碼</p>
-    <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" />
+    <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" onkeydown="if(event.key==='Enter')doLogin()" />
     <button onclick="doLogin()">進入</button>
   </div>
 </div>
 
+<!-- Edit entry modal -->
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h3 id="modalTitle">編輯服事</h3>
@@ -83,29 +101,21 @@
     <input type="text" id="editPerson" list="personList" />
     <datalist id="personList"></datalist>
     <div class="modal-actions">
-      <button class="btn btn-danger" id="deleteBtn" onclick="deleteEntry()">刪除</button>
+      <button class="btn btn-danger" onclick="deleteEntry()">刪除</button>
       <button class="btn btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
     </div>
   </div>
 </div>
 
+<!-- Add entry modal -->
 <div class="modal-bg" id="addModal">
   <div class="modal">
     <h3>新增服事</h3>
     <label>日期</label>
     <select id="addDate"></select>
     <label>職位</label>
-    <select id="addRole">
-      <option>信息</option><option>領會</option><option>助唱</option>
-      <option>鍵盤</option><option>吉他</option><option>貝斯</option><option>鼓</option>
-      <option>音控</option><option>PPT</option><option>導播後製</option><option>攝影</option>
-      <option>兒主破冰敬拜</option><option>兒主信息活動</option>
-      <option>第一堂內場招待</option><option>第一堂服務台</option>
-      <option>第二堂內場招待</option><option>第二堂服務台</option>
-      <option>備註</option>
-      <option>VIP新人服事</option><option>教會禱告會</option>
-    </select>
+    <select id="addRole"></select>
     <label>人員名稱</label>
     <input type="text" id="addPerson" list="personList" />
     <div class="modal-actions">
@@ -124,11 +134,13 @@
     <div class="toolbar">
       <button class="btn btn-tab active" id="tabGrid" onclick="switchView('grid')">格狀表格</button>
       <button class="btn btn-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
-      <button class="btn btn-primary" onclick="openAddModal()" style="margin-left:auto">＋ 新增</button>
+      <button class="btn btn-tab" id="tabManage" onclick="switchView('manage')">⚙ 管理</button>
+      <button class="btn btn-primary" id="addEntryBtn" onclick="openAddModal()" style="margin-left:auto">＋ 新增服事</button>
     </div>
 
     <div id="gridView">
-      <div class="grid-wrap" id="gridWrap"></div>
+      <div class="loading" id="gridLoading">載入中…</div>
+      <div class="grid-wrap" id="gridWrap" style="display:none"></div>
     </div>
 
     <div id="personView" style="display:none">
@@ -139,40 +151,79 @@
       </div>
       <div class="person-view" id="personTable"></div>
     </div>
+
+    <div id="manageView" style="display:none">
+      <div class="manage-panels">
+        <!-- Dates panel -->
+        <div class="manage-card">
+          <h3>📅 主日日期管理</h3>
+          <div class="manage-add-row">
+            <input type="date" id="newDateInput" />
+            <button class="btn btn-primary" onclick="addDate()">新增</button>
+          </div>
+          <div class="manage-list" id="datesList"></div>
+          <p class="manage-tip">刪除日期不會刪除該日的服事記錄，僅移除格子顯示。</p>
+        </div>
+        <!-- Roles panel -->
+        <div class="manage-card">
+          <h3>🎼 職位管理</h3>
+          <div class="manage-add-row">
+            <input type="text" id="newRoleInput" placeholder="新職位名稱" onkeydown="if(event.key==='Enter')addRole()" />
+            <button class="btn btn-primary" onclick="addRole()">新增</button>
+          </div>
+          <div class="manage-list" id="rolesList"></div>
+          <p class="manage-tip">新增職位會排在最後，刪除不影響已存在的服事記錄。</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
 let token = '';
-let allData = [];
+let allData = [];   // worship_schedule rows
+let allDates = [];  // worship_dates rows [{id, service_date}]
+let allRoles = [];  // worship_roles rows [{id, role_name, sort_order}]
 let editingId = null;
-
-const ROLE_ORDER = ['信息','領會','助唱','鍵盤','吉他','貝斯','鼓','音控','PPT','導播後製','攝影','兒主破冰敬拜','兒主信息活動','第一堂內場招待','第一堂服務台','第二堂內場招待','第二堂服務台','備註','VIP新人服事','教會禱告會'];
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
   if (!token) return alert('請輸入密碼');
-  loadData();
+  loadAll();
 }
 
-async function api(method, body) {
-  const res = await fetch(`/api/worship/schedule?token=${encodeURIComponent(token)}`, {
-    method, headers: { 'Content-Type': 'application/json' },
+async function apiFetch(path, method = 'GET', body) {
+  const res = await fetch(`${path}${path.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401) { alert('密碼錯誤'); return null; }
   return res.json();
 }
 
-async function loadData() {
-  const data = await api('GET');
-  if (!data) return;
-  allData = data;
+function scheduleApi(method, body) { return apiFetch('/api/worship/schedule', method, body); }
+function configApi(resource, method, body) { return apiFetch(`/api/worship/config?resource=${resource}`, method, body); }
+
+async function loadAll() {
+  const [scheduleData, datesData, rolesData] = await Promise.all([
+    scheduleApi('GET'),
+    configApi('dates', 'GET'),
+    configApi('roles', 'GET'),
+  ]);
+  if (!scheduleData || !datesData || !rolesData) return;
+  allData = scheduleData;
+  allDates = datesData;
+  allRoles = rolesData;
+
   document.getElementById('login').style.display = 'none';
   document.getElementById('main').style.display = 'block';
+
   buildPersonList();
   populateDateSelect();
+  populateRoleSelect();
   renderGridView();
+  renderManageView();
 }
 
 function buildPersonList() {
@@ -185,21 +236,29 @@ function buildPersonList() {
 }
 
 function populateDateSelect() {
-  const dates = [...new Set(allData.map(d => d.service_date))].sort();
   const sel = document.getElementById('addDate');
-  sel.innerHTML = dates.map(d => {
-    const dt = new Date(d + 'T00:00:00+08:00');
+  sel.innerHTML = allDates.map(d => {
+    const dt = new Date(d.service_date + 'T00:00:00+08:00');
     const label = dt.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', weekday: 'short', timeZone: 'Asia/Taipei' });
-    return `<option value="${d}">${label}</option>`;
+    return `<option value="${d.service_date}">${label}</option>`;
   }).join('');
 }
 
+function populateRoleSelect() {
+  const sel = document.getElementById('addRole');
+  sel.innerHTML = allRoles.map(r => `<option value="${r.role_name}">${r.role_name}</option>`).join('');
+}
+
 function renderGridView() {
-  const dates = [...new Set(allData.map(d => d.service_date))].sort();
+  document.getElementById('gridLoading').style.display = 'none';
+  const gridWrap = document.getElementById('gridWrap');
+  gridWrap.style.display = '';
+
+  const dates = allDates.map(d => d.service_date);
+  const roles = allRoles.map(r => r.role_name);
   const today = new Date().toISOString().split('T')[0];
   const todayIdx = dates.findIndex(d => d >= today);
 
-  // Build lookup: role -> date -> [persons]
   const lookup = {};
   allData.forEach(item => {
     if (!lookup[item.role]) lookup[item.role] = {};
@@ -207,8 +266,7 @@ function renderGridView() {
     lookup[item.role][item.service_date].push({ id: item.id, name: item.person_name });
   });
 
-  // Show ALL roles in order (even empty ones), then any extra roles not in the list
-  const roles = [...ROLE_ORDER];
+  // Any roles in data not yet in worship_roles
   Object.keys(lookup).forEach(r => { if (!roles.includes(r)) roles.push(r); });
 
   let html = '<table class="grid"><thead><tr>';
@@ -230,26 +288,26 @@ function renderGridView() {
       const persons = lookup[role] && lookup[role][d] ? lookup[role][d] : [];
       html += `<td class="${cls}">`;
       persons.forEach(p => {
-        html += `<span class="person-chip" onclick="openEditModal('${p.id}','${p.name}','${role}','${d}')">${p.name}</span>`;
+        html += `<span class="person-chip" onclick="openEditModal('${p.id}','${esc(p.name)}','${esc(role)}','${d}')">${esc(p.name)}</span>`;
       });
-      html += `<span class="add-chip" onclick="openAddModalFor('${d}','${role}')">＋</span>`;
+      html += `<span class="add-chip" onclick="openAddModalFor('${d}','${esc(role)}')">＋</span>`;
       html += '</td>';
     });
     html += '</tr>';
   });
 
   html += '</tbody></table>';
-  document.getElementById('gridWrap').innerHTML = html;
+  gridWrap.innerHTML = html;
 }
 
 function renderPersonView() {
   const person = document.getElementById('personSelect').value;
-  if (!person) { document.getElementById('personTable').innerHTML = '<div class="empty">請選擇一位人員</div>'; return; }
+  const el = document.getElementById('personTable');
+  if (!person) { el.innerHTML = '<div class="empty">請選擇一位人員</div>'; return; }
 
   const today = new Date().toISOString().split('T')[0];
   const items = allData.filter(d => d.person_name === person).sort((a, b) => a.service_date.localeCompare(b.service_date));
-
-  if (items.length === 0) { document.getElementById('personTable').innerHTML = '<div class="empty">找不到此人的服事記錄</div>'; return; }
+  if (items.length === 0) { el.innerHTML = '<div class="empty">找不到此人的服事記錄</div>'; return; }
 
   const byDate = {};
   items.forEach(item => {
@@ -266,18 +324,39 @@ function renderPersonView() {
     const badgeCls = isSoon ? 'date-badge soon' : 'date-badge';
     html += `<tr${isPast ? ' style="opacity:.45"' : ''}>`;
     html += `<td><span class="${badgeCls}">${label}</span></td>`;
-    html += `<td>${roles.map(r => `<span class="role-badge">${r}</span>`).join(' ')}</td>`;
+    html += `<td>${roles.map(r => `<span class="role-badge">${esc(r)}</span>`).join(' ')}</td>`;
     html += '</tr>';
   });
   html += '</tbody></table>';
-  document.getElementById('personTable').innerHTML = html;
+  el.innerHTML = html;
+}
+
+function renderManageView() {
+  // Dates list
+  const dl = document.getElementById('datesList');
+  dl.innerHTML = allDates.map(d => {
+    const dt = new Date(d.service_date + 'T00:00:00+08:00');
+    const label = dt.toLocaleDateString('zh-TW', { year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short', timeZone: 'Asia/Taipei' });
+    return `<div class="manage-item">
+      <span>${label}</span>
+      <button class="del-btn" onclick="deleteDate('${d.id}','${d.service_date}')" title="刪除">✕</button>
+    </div>`;
+  }).join('') || '<div class="empty" style="padding:20px">尚無日期</div>';
+
+  // Roles list
+  const rl = document.getElementById('rolesList');
+  rl.innerHTML = allRoles.map((r, idx) => `<div class="manage-item">
+    <span>${idx + 1}. ${esc(r.role_name)}</span>
+    <button class="del-btn" onclick="deleteRole('${r.id}','${esc(r.role_name)}')" title="刪除">✕</button>
+  </div>`).join('') || '<div class="empty" style="padding:20px">尚無職位</div>';
 }
 
 function switchView(view) {
-  document.getElementById('gridView').style.display = view === 'grid' ? '' : 'none';
-  document.getElementById('personView').style.display = view === 'person' ? '' : 'none';
-  document.getElementById('tabGrid').classList.toggle('active', view === 'grid');
-  document.getElementById('tabPerson').classList.toggle('active', view === 'person');
+  ['grid','person','manage'].forEach(v => {
+    document.getElementById(v + 'View').style.display = v === view ? '' : 'none';
+    document.getElementById('tab' + v[0].toUpperCase() + v.slice(1)).classList.toggle('active', v === view);
+  });
+  document.getElementById('addEntryBtn').style.display = view === 'manage' ? 'none' : '';
 }
 
 function openEditModal(id, name, role, date) {
@@ -297,7 +376,8 @@ function closeModal() {
 async function saveEdit() {
   const person_name = document.getElementById('editPerson').value.trim();
   if (!person_name) return alert('請填寫人員名稱');
-  await api('PATCH', { id: editingId, person_name });
+  const res = await scheduleApi('PATCH', { id: editingId, person_name });
+  if (!res) return;
   const item = allData.find(d => d.id === editingId);
   if (item) item.person_name = person_name;
   closeModal();
@@ -307,7 +387,7 @@ async function saveEdit() {
 
 async function deleteEntry() {
   if (!confirm('確定刪除此服事？')) return;
-  await api('DELETE', { id: editingId });
+  await scheduleApi('DELETE', { id: editingId });
   allData = allData.filter(d => d.id !== editingId);
   closeModal();
   buildPersonList();
@@ -331,18 +411,68 @@ async function submitAdd() {
   const role = document.getElementById('addRole').value;
   const person_name = document.getElementById('addPerson').value.trim();
   if (!person_name) return alert('請填寫人員名稱');
-  const data = await api('POST', { service_date, role, person_name });
+  const data = await scheduleApi('POST', { service_date, role, person_name });
   if (!data || data.error) return alert(data?.error || '新增失敗');
   allData.push(data);
   document.getElementById('addModal').classList.remove('open');
   buildPersonList();
-  populateDateSelect();
   renderGridView();
+}
+
+// Management actions
+
+async function addDate() {
+  const val = document.getElementById('newDateInput').value;
+  if (!val) return alert('請選擇日期');
+  const data = await configApi('dates', 'POST', { service_date: val });
+  if (!data || data.error) return alert(data?.error || '新增失敗');
+  allDates.push(data);
+  allDates.sort((a, b) => a.service_date.localeCompare(b.service_date));
+  document.getElementById('newDateInput').value = '';
+  populateDateSelect();
+  renderManageView();
+  renderGridView();
+}
+
+async function deleteDate(id, dateStr) {
+  if (!confirm(`確定刪除 ${dateStr}？`)) return;
+  const res = await configApi('dates', 'DELETE', { id });
+  if (!res) return;
+  allDates = allDates.filter(d => d.id !== id);
+  populateDateSelect();
+  renderManageView();
+  renderGridView();
+}
+
+async function addRole() {
+  const val = document.getElementById('newRoleInput').value.trim();
+  if (!val) return alert('請填寫職位名稱');
+  const data = await configApi('roles', 'POST', { role_name: val });
+  if (!data || data.error) return alert(data?.error || '新增失敗');
+  allRoles.push(data);
+  document.getElementById('newRoleInput').value = '';
+  populateRoleSelect();
+  renderManageView();
+  renderGridView();
+}
+
+async function deleteRole(id, roleName) {
+  if (!confirm(`確定刪除職位「${roleName}」？`)) return;
+  const res = await configApi('roles', 'DELETE', { id });
+  if (!res) return;
+  allRoles = allRoles.filter(r => r.id !== id);
+  populateRoleSelect();
+  renderManageView();
+  renderGridView();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 // Check for token in URL
 const urlToken = new URLSearchParams(location.search).get('token');
-if (urlToken) { token = urlToken; loadData(); }
+if (urlToken) { token = urlToken; loadAll(); }
 </script>
 </body>
 </html>

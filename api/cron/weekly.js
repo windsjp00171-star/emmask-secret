@@ -1,5 +1,6 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
+const { getWeeklyActivity } = require('../../lib/github');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -77,6 +78,16 @@ module.exports = async function handler(req, res) {
       Object.entries(byProject).forEach(([project, updates]) => {
         lines.push(`【${project}】`);
         updates.slice(0, 3).forEach(u => lines.push(`• ${u}`));
+      });
+    }
+
+    // GitHub weekly activity
+    const ghActivity = await getWeeklyActivity(7);
+    if (ghActivity && ghActivity.length > 0) {
+      lines.push('\n📦 GitHub 本週動態');
+      ghActivity.forEach(repo => {
+        lines.push(`• ${repo.name}（${repo.count} commits）`);
+        lines.push(`  └ ${repo.latest}`);
       });
     }
 

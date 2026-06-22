@@ -56,6 +56,7 @@
     .modal textarea { resize: vertical; min-height: 80px; }
     .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
     .btn-cancel { background: #e5e5ea; color: #1d1d1f; }
+    .btn-edit { background: #5856d6; color: #fff; }
   </style>
 </head>
 <body>
@@ -66,6 +67,29 @@
     <p>請輸入 Dashboard 密碼</p>
     <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" />
     <button onclick="doLogin()">進入</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3>編輯記錄</h3>
+    <label>內容 *</label>
+    <textarea id="editContent" style="resize:vertical;min-height:80px"></textarea>
+    <label>類型 *</label>
+    <select id="editType">
+      <option value="task">待辦</option>
+      <option value="reminder">提醒</option>
+      <option value="note">筆記</option>
+      <option value="project_update">專案更新</option>
+    </select>
+    <label>專案（可留空）</label>
+    <input type="text" id="editProject" list="projectList" />
+    <label>到期時間（可留空）</label>
+    <input type="datetime-local" id="editDueDate" />
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
+    </div>
   </div>
 </div>
 
@@ -224,13 +248,15 @@ function applyFilters() {
     const doneBtn = n.is_done
       ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
       : `<button class="btn-sm btn-done" onclick="toggleDone('${n.id}', true)">完成</button>`;
+    const safeContent = n.content.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    const safeProject = (n.project || '').replace(/'/g, '&#39;');
     return `<tr class="${n.is_done ? 'done-row' : ''}">
       <td>${n.content}</td>
       <td><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
       <td>${n.project || '-'}</td>
       <td>${due}</td>
       <td>${created}</td>
-      <td><div class="actions">${doneBtn}<button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
+      <td><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}','${safeContent}','${n.type}','${safeProject}','${n.due_date||''}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -291,6 +317,47 @@ async function submitNote() {
 function updateProjectList() {
   const projects = [...new Set(allNotes.map(n => n.project).filter(Boolean))];
   document.getElementById('projectList').innerHTML = projects.map(p => `<option value="${p}">`).join('');
+}
+
+let editingNoteId = null;
+
+function openEditModal(id, content, type, project, due_date) {
+  editingNoteId = id;
+  document.getElementById('editContent').value = content;
+  document.getElementById('editType').value = type;
+  document.getElementById('editProject').value = project;
+  if (due_date) {
+    const local = new Date(due_date);
+    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+    document.getElementById('editDueDate').value = local.toISOString().slice(0,16);
+  } else {
+    document.getElementById('editDueDate').value = '';
+  }
+  document.getElementById('editModal').classList.add('open');
+  document.getElementById('editContent').focus();
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingNoteId = null;
+}
+
+async function saveEdit() {
+  const content = document.getElementById('editContent').value.trim();
+  const type = document.getElementById('editType').value;
+  const project = document.getElementById('editProject').value.trim();
+  const dueDateLocal = document.getElementById('editDueDate').value;
+  if (!content) return alert('請填寫內容');
+  const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
+  const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date });
+  if (!updated) return;
+  const idx = allNotes.findIndex(n => n.id === editingNoteId);
+  if (idx !== -1) Object.assign(allNotes[idx], { content, type, project: project || null, due_date });
+  closeEditModal();
+  renderStats();
+  renderProjectTags();
+  updateProjectList();
+  applyFilters();
 }
 
 // Auto refresh every 60s

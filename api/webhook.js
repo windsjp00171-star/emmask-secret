@@ -12,10 +12,12 @@ function getRawBody(req) {
 }
 
 function verifySignature(rawBody, signature) {
+  const secret = process.env.LINE_CHANNEL_SECRET || '';
   const hash = crypto
-    .createHmac('sha256', process.env.LINE_CHANNEL_SECRET)
+    .createHmac('sha256', secret)
     .update(rawBody)
     .digest('base64');
+  console.log(`[webhook] bodyLen=${rawBody.length} secretLen=${secret.length} match=${hash === signature}`);
   return hash === signature;
 }
 
@@ -38,10 +40,8 @@ const handler = async function (req, res) {
   await Promise.all(
     events.map(async event => {
       if (event.type !== 'message' || event.message.type !== 'text') return;
-
       const text = event.message.text;
       const replyToken = event.replyToken;
-
       try {
         const reply = await dispatch(text);
         await replyMessage(replyToken, reply);
@@ -55,6 +55,5 @@ const handler = async function (req, res) {
   return res.status(200).json({ ok: true });
 };
 
-// Must be set AFTER module.exports = handler, so it's not overwritten
 module.exports = handler;
 module.exports.config = { api: { bodyParser: false } };

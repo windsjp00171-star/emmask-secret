@@ -96,6 +96,7 @@
 <div id="main">
   <header>
     <h1>EmmArk 小秘書 Dashboard</h1>
+    <a id="worshipLink" href="#" onclick="goWorship()" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">⛪ 服事表</a>
     <span id="lastRefresh"></span>
   </header>
   <div class="container">
@@ -294,6 +295,10 @@ function updateProjectList() {
 
 // Auto refresh every 60s
 setInterval(loadNotes, 60000);
+
+function goWorship() {
+  window.location.href = '/worship.html?token=' + encodeURIComponent(token);
+}
 </script>
 </body>
 </html>

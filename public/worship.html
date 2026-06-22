@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>服事表 - EmmArk</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
+    header { background: #1c1c1e; color: #fff; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    header h1 { font-size: 18px; font-weight: 600; flex: 1; }
+    header a { color: #98989d; font-size: 13px; text-decoration: none; }
+    header a:hover { color: #fff; }
+    .container { max-width: 100%; padding: 20px 16px; }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
+    .btn-primary { background: #007aff; color: #fff; }
+    .btn-tab { background: #e5e5ea; color: #1d1d1f; }
+    .btn-tab.active { background: #007aff; color: #fff; }
+    select, input { padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; background: #fff; }
+
+    /* Grid view */
+    .grid-wrap { overflow-x: auto; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    table.grid { border-collapse: collapse; background: #fff; min-width: 100%; }
+    table.grid th { background: #f2f2f7; padding: 10px 14px; font-size: 12px; font-weight: 600; color: #6e6e73; white-space: nowrap; border: 1px solid #e5e5ea; position: sticky; top: 0; z-index: 2; }
+    table.grid th.role-col { position: sticky; left: 0; z-index: 3; min-width: 90px; }
+    table.grid td { padding: 8px 12px; border: 1px solid #f2f2f7; font-size: 13px; vertical-align: top; min-width: 80px; white-space: nowrap; }
+    table.grid td.role-label { background: #f9f9fb; font-weight: 600; font-size: 12px; color: #6e6e73; position: sticky; left: 0; z-index: 1; border-right: 2px solid #e5e5ea; }
+    table.grid td.today-col { background: #fff8e6; }
+    table.grid th.today-col { background: #ff9500 !important; color: #fff; }
+    .person-chip { display: inline-block; background: #e1f0ff; color: #007aff; border-radius: 12px; padding: 2px 8px; font-size: 12px; margin: 2px; cursor: pointer; }
+    .person-chip:hover { background: #007aff; color: #fff; }
+    .add-chip { display: inline-block; background: #f2f2f7; color: #8e8e93; border-radius: 12px; padding: 2px 8px; font-size: 12px; margin: 2px; cursor: pointer; border: 1px dashed #c7c7cc; }
+    .add-chip:hover { background: #e5e5ea; }
+
+    /* Person view */
+    .person-view { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden; }
+    .person-view table { width: 100%; border-collapse: collapse; }
+    .person-view th { background: #f2f2f7; padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #6e6e73; }
+    .person-view td { padding: 12px 16px; border-top: 1px solid #f2f2f7; font-size: 14px; }
+    .person-view tr.upcoming td { font-weight: 600; }
+    .date-badge { background: #e1f0ff; color: #007aff; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .date-badge.soon { background: #ffd60a33; color: #b8860b; }
+    .role-badge { display: inline-block; background: #f2f2f7; color: #1d1d1f; padding: 2px 8px; border-radius: 8px; font-size: 12px; margin: 2px; }
+
+    /* Login */
+    #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-box { background: #fff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.1); min-width: 280px; }
+    .login-box h2 { margin-bottom: 8px; }
+    .login-box p { color: #6e6e73; font-size: 14px; margin-bottom: 24px; }
+    .login-box input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 15px; margin-bottom: 12px; }
+    .login-box button { width: 100%; padding: 12px; background: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    #main { display: none; }
+
+    /* Modal */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; align-items: center; justify-content: center; }
+    .modal-bg.open { display: flex; }
+    .modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 420px; margin: 16px; }
+    .modal h3 { margin-bottom: 20px; font-size: 17px; }
+    .modal label { display: block; font-size: 13px; color: #6e6e73; margin-bottom: 4px; margin-top: 14px; }
+    .modal input, .modal select { width: 100%; padding: 10px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+    .btn-cancel { background: #e5e5ea; color: #1d1d1f; }
+    .btn-danger { background: #ff3b30; color: #fff; margin-right: auto; }
+    .empty { text-align: center; color: #6e6e73; padding: 40px; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <div class="login-box">
+    <h2>⛪ 服事表</h2>
+    <p>請輸入 Dashboard 密碼</p>
+    <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" />
+    <button onclick="doLogin()">進入</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3 id="modalTitle">編輯服事</h3>
+    <label>人員名稱</label>
+    <input type="text" id="editPerson" list="personList" />
+    <datalist id="personList"></datalist>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteBtn" onclick="deleteEntry()">刪除</button>
+      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <h3>新增服事</h3>
+    <label>日期</label>
+    <select id="addDate"></select>
+    <label>職位</label>
+    <select id="addRole">
+      <option>信息</option><option>領會</option><option>助唱</option>
+      <option>鍵盤</option><option>吉他</option><option>貝斯</option><option>鼓</option>
+      <option>音控</option><option>PPT</option><option>導播後製</option><option>攝影</option>
+      <option>兒主破冰敬拜</option><option>兒主信息活動</option><option>備註</option>
+      <option>VIP新人服事</option><option>教會禱告會</option>
+    </select>
+    <label>人員名稱</label>
+    <input type="text" id="addPerson" list="personList" />
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="document.getElementById('addModal').classList.remove('open')">取消</button>
+      <button class="btn btn-primary" onclick="submitAdd()">新增</button>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+  <header>
+    <h1>⛪ 主日服事表</h1>
+    <a href="/index.html">← 返回 Dashboard</a>
+  </header>
+  <div class="container">
+    <div class="toolbar">
+      <button class="btn btn-tab active" id="tabGrid" onclick="switchView('grid')">格狀表格</button>
+      <button class="btn btn-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
+      <button class="btn btn-primary" onclick="openAddModal()" style="margin-left:auto">＋ 新增</button>
+    </div>
+
+    <div id="gridView">
+      <div class="grid-wrap" id="gridWrap"></div>
+    </div>
+
+    <div id="personView" style="display:none">
+      <div class="toolbar" style="margin-bottom:16px">
+        <select id="personSelect" onchange="renderPersonView()">
+          <option value="">— 選擇人員 —</option>
+        </select>
+      </div>
+      <div class="person-view" id="personTable"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let token = '';
+let allData = [];
+let editingId = null;
+
+const ROLE_ORDER = ['信息','領會','助唱','鍵盤','吉他','貝斯','鼓','音控','PPT','導播後製','攝影','兒主破冰敬拜','兒主信息活動','備註','VIP新人服事','教會禱告會'];
+
+function doLogin() {
+  token = document.getElementById('tokenInput').value.trim();
+  if (!token) return alert('請輸入密碼');
+  loadData();
+}
+
+async function api(method, body) {
+  const res = await fetch(`/api/worship/schedule?token=${encodeURIComponent(token)}`, {
+    method, headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 401) { alert('密碼錯誤'); return null; }
+  return res.json();
+}
+
+async function loadData() {
+  const data = await api('GET');
+  if (!data) return;
+  allData = data;
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  buildPersonList();
+  populateDateSelect();
+  renderGridView();
+}
+
+function buildPersonList() {
+  const people = [...new Set(allData.map(d => d.person_name))].sort();
+  const dl = document.getElementById('personList');
+  dl.innerHTML = people.map(p => `<option value="${p}">`).join('');
+  const sel = document.getElementById('personSelect');
+  sel.innerHTML = '<option value="">— 選擇人員 —</option>' +
+    people.map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+function populateDateSelect() {
+  const dates = [...new Set(allData.map(d => d.service_date))].sort();
+  const sel = document.getElementById('addDate');
+  sel.innerHTML = dates.map(d => {
+    const dt = new Date(d + 'T00:00:00+08:00');
+    const label = dt.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', weekday: 'short', timeZone: 'Asia/Taipei' });
+    return `<option value="${d}">${label}</option>`;
+  }).join('');
+}
+
+function renderGridView() {
+  const dates = [...new Set(allData.map(d => d.service_date))].sort();
+  const today = new Date().toISOString().split('T')[0];
+  const todayIdx = dates.findIndex(d => d >= today);
+
+  // Build lookup: role -> date -> [persons]
+  const lookup = {};
+  allData.forEach(item => {
+    if (!lookup[item.role]) lookup[item.role] = {};
+    if (!lookup[item.role][item.service_date]) lookup[item.role][item.service_date] = [];
+    lookup[item.role][item.service_date].push({ id: item.id, name: item.person_name });
+  });
+
+  const roles = ROLE_ORDER.filter(r => lookup[r]);
+  Object.keys(lookup).forEach(r => { if (!ROLE_ORDER.includes(r) && !roles.includes(r)) roles.push(r); });
+
+  let html = '<table class="grid"><thead><tr>';
+  html += '<th class="role-col">職位 \\ 日期</th>';
+  dates.forEach((d, i) => {
+    const dt = new Date(d + 'T00:00:00+08:00');
+    const label = dt.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', timeZone: 'Asia/Taipei' });
+    const wday = dt.toLocaleDateString('zh-TW', { weekday: 'short', timeZone: 'Asia/Taipei' });
+    const cls = (i === todayIdx) ? 'today-col' : '';
+    html += `<th class="${cls}">${label}<br><small>${wday}</small></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  roles.forEach(role => {
+    html += '<tr>';
+    html += `<td class="role-label">${role}</td>`;
+    dates.forEach((d, i) => {
+      const cls = (i === todayIdx) ? 'today-col' : '';
+      const persons = lookup[role] && lookup[role][d] ? lookup[role][d] : [];
+      html += `<td class="${cls}">`;
+      persons.forEach(p => {
+        html += `<span class="person-chip" onclick="openEditModal('${p.id}','${p.name}','${role}','${d}')">${p.name}</span>`;
+      });
+      html += `<span class="add-chip" onclick="openAddModalFor('${d}','${role}')">＋</span>`;
+      html += '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('gridWrap').innerHTML = html;
+}
+
+function renderPersonView() {
+  const person = document.getElementById('personSelect').value;
+  if (!person) { document.getElementById('personTable').innerHTML = '<div class="empty">請選擇一位人員</div>'; return; }
+
+  const today = new Date().toISOString().split('T')[0];
+  const items = allData.filter(d => d.person_name === person).sort((a, b) => a.service_date.localeCompare(b.service_date));
+
+  if (items.length === 0) { document.getElementById('personTable').innerHTML = '<div class="empty">找不到此人的服事記錄</div>'; return; }
+
+  const byDate = {};
+  items.forEach(item => {
+    if (!byDate[item.service_date]) byDate[item.service_date] = [];
+    byDate[item.service_date].push(item.role);
+  });
+
+  let html = '<table><thead><tr><th>日期</th><th>職位</th></tr></thead><tbody>';
+  Object.entries(byDate).forEach(([date, roles]) => {
+    const dt = new Date(date + 'T00:00:00+08:00');
+    const label = dt.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', weekday: 'short', timeZone: 'Asia/Taipei' });
+    const isPast = date < today;
+    const isSoon = !isPast && date <= new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0];
+    const badgeCls = isSoon ? 'date-badge soon' : 'date-badge';
+    html += `<tr${isPast ? ' style="opacity:.45"' : ''}>`;
+    html += `<td><span class="${badgeCls}">${label}</span></td>`;
+    html += `<td>${roles.map(r => `<span class="role-badge">${r}</span>`).join(' ')}</td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('personTable').innerHTML = html;
+}
+
+function switchView(view) {
+  document.getElementById('gridView').style.display = view === 'grid' ? '' : 'none';
+  document.getElementById('personView').style.display = view === 'person' ? '' : 'none';
+  document.getElementById('tabGrid').classList.toggle('active', view === 'grid');
+  document.getElementById('tabPerson').classList.toggle('active', view === 'person');
+}
+
+function openEditModal(id, name, role, date) {
+  editingId = id;
+  const dt = new Date(date + 'T00:00:00+08:00');
+  const label = dt.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', timeZone: 'Asia/Taipei' });
+  document.getElementById('modalTitle').textContent = `${label} ${role}`;
+  document.getElementById('editPerson').value = name;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
+}
+
+async function saveEdit() {
+  const person_name = document.getElementById('editPerson').value.trim();
+  if (!person_name) return alert('請填寫人員名稱');
+  await api('PATCH', { id: editingId, person_name });
+  const item = allData.find(d => d.id === editingId);
+  if (item) item.person_name = person_name;
+  closeModal();
+  buildPersonList();
+  renderGridView();
+}
+
+async function deleteEntry() {
+  if (!confirm('確定刪除此服事？')) return;
+  await api('DELETE', { id: editingId });
+  allData = allData.filter(d => d.id !== editingId);
+  closeModal();
+  buildPersonList();
+  renderGridView();
+}
+
+function openAddModal() {
+  document.getElementById('addPerson').value = '';
+  document.getElementById('addModal').classList.add('open');
+}
+
+function openAddModalFor(date, role) {
+  document.getElementById('addDate').value = date;
+  document.getElementById('addRole').value = role;
+  document.getElementById('addPerson').value = '';
+  document.getElementById('addModal').classList.add('open');
+}
+
+async function submitAdd() {
+  const service_date = document.getElementById('addDate').value;
+  const role = document.getElementById('addRole').value;
+  const person_name = document.getElementById('addPerson').value.trim();
+  if (!person_name) return alert('請填寫人員名稱');
+  const data = await api('POST', { service_date, role, person_name });
+  if (!data || data.error) return alert(data?.error || '新增失敗');
+  allData.push(data);
+  document.getElementById('addModal').classList.remove('open');
+  buildPersonList();
+  populateDateSelect();
+  renderGridView();
+}
+
+// Check for token in URL
+const urlToken = new URLSearchParams(location.search).get('token');
+if (urlToken) { token = urlToken; loadData(); }
+</script>
+</body>
+</html>

@@ -63,7 +63,7 @@ function generateRichMenuImage() {
 function lineRequest(method, path, body, isBuffer) {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: 'api.line.me',
+      hostname: isBuffer ? 'api-data.line.me' : 'api.line.me',
       path,
       method,
       headers: {

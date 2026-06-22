@@ -2,10 +2,24 @@ const crypto = require('crypto');
 const { dispatch } = require('../lib/commands');
 const { replyMessage } = require('../lib/line');
 
-function verifySignature(body, signature) {
+// Disable Vercel's automatic body parsing so we can verify the raw body signature
+module.exports.config = {
+  api: { bodyParser: false },
+};
+
+function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+function verifySignature(rawBody, signature) {
   const hash = crypto
     .createHmac('sha256', process.env.LINE_CHANNEL_SECRET)
-    .update(body)
+    .update(rawBody)
     .digest('base64');
   return hash === signature;
 }
@@ -15,15 +29,16 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const rawBody = await getRawBody(req);
   const signature = req.headers['x-line-signature'];
-  const rawBody = JSON.stringify(req.body);
 
   if (!verifySignature(rawBody, signature)) {
     console.error('Invalid LINE signature');
     return res.status(403).json({ error: 'Invalid signature' });
   }
 
-  const events = req.body.events || [];
+  const body = JSON.parse(rawBody.toString('utf8'));
+  const events = body.events || [];
 
   await Promise.all(
     events.map(async event => {

@@ -100,7 +100,10 @@
       <option>信息</option><option>領會</option><option>助唱</option>
       <option>鍵盤</option><option>吉他</option><option>貝斯</option><option>鼓</option>
       <option>音控</option><option>PPT</option><option>導播後製</option><option>攝影</option>
-      <option>兒主破冰敬拜</option><option>兒主信息活動</option><option>備註</option>
+      <option>兒主破冰敬拜</option><option>兒主信息活動</option>
+      <option>第一堂內場招待</option><option>第一堂服務台</option>
+      <option>第二堂內場招待</option><option>第二堂服務台</option>
+      <option>備註</option>
       <option>VIP新人服事</option><option>教會禱告會</option>
     </select>
     <label>人員名稱</label>
@@ -144,7 +147,7 @@ let token = '';
 let allData = [];
 let editingId = null;
 
-const ROLE_ORDER = ['信息','領會','助唱','鍵盤','吉他','貝斯','鼓','音控','PPT','導播後製','攝影','兒主破冰敬拜','兒主信息活動','備註','VIP新人服事','教會禱告會'];
+const ROLE_ORDER = ['信息','領會','助唱','鍵盤','吉他','貝斯','鼓','音控','PPT','導播後製','攝影','兒主破冰敬拜','兒主信息活動','第一堂內場招待','第一堂服務台','第二堂內場招待','第二堂服務台','備註','VIP新人服事','教會禱告會'];
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
@@ -204,8 +207,9 @@ function renderGridView() {
     lookup[item.role][item.service_date].push({ id: item.id, name: item.person_name });
   });
 
-  const roles = ROLE_ORDER.filter(r => lookup[r]);
-  Object.keys(lookup).forEach(r => { if (!ROLE_ORDER.includes(r) && !roles.includes(r)) roles.push(r); });
+  // Show ALL roles in order (even empty ones), then any extra roles not in the list
+  const roles = [...ROLE_ORDER];
+  Object.keys(lookup).forEach(r => { if (!roles.includes(r)) roles.push(r); });
 
   let html = '<table class="grid"><thead><tr>';
   html += '<th class="role-col">職位 \\ 日期</th>';

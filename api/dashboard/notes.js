@@ -29,6 +29,20 @@ module.exports = async function handler(req, res) {
     return res.status(200).json(data);
   }
 
+  if (req.method === 'POST') {
+    const { type, project, content, due_date } = req.body;
+    if (!type || !content) return res.status(400).json({ error: 'type and content required' });
+    const { data, error } = await supabase.from('notes').insert({
+      raw_text: content,
+      type,
+      project: project || null,
+      content,
+      due_date: due_date || null,
+    }).select().single();
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+  }
+
   if (req.method === 'PATCH') {
     const { id, is_done } = req.body;
     if (!id) return res.status(400).json({ error: 'id required' });

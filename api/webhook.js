@@ -2,11 +2,6 @@ const crypto = require('crypto');
 const { dispatch } = require('../lib/commands');
 const { replyMessage } = require('../lib/line');
 
-// Disable Vercel's automatic body parsing so we can verify the raw body signature
-module.exports.config = {
-  api: { bodyParser: false },
-};
-
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -24,7 +19,7 @@ function verifySignature(rawBody, signature) {
   return hash === signature;
 }
 
-module.exports = async function handler(req, res) {
+const handler = async function (req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -59,3 +54,7 @@ module.exports = async function handler(req, res) {
 
   return res.status(200).json({ ok: true });
 };
+
+// Must be set AFTER module.exports = handler, so it's not overwritten
+module.exports = handler;
+module.exports.config = { api: { bodyParser: false } };

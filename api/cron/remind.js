@@ -1,6 +1,6 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
-const { buildReminderFlex } = require('../../lib/commands');
+const { buildReminderFlex, nextRecurDue } = require('../../lib/commands');
 const { cronAuth } = require('../../lib/cron-auth');
 
 module.exports = async function handler(req, res) {
@@ -16,8 +16,9 @@ module.exports = async function handler(req, res) {
       .from('notes')
       .select('*')
       .lte('due_date', now)
-      .eq('is_reminded', false)
-      .eq('is_done', false);
+      .not('is_reminded', 'is', true)
+      .not('is_done', 'is', true)
+      .not('due_date', 'is', null);
 
     if (error) throw new Error(`Supabase query error: ${error.message}`);
 
@@ -27,7 +28,13 @@ module.exports = async function handler(req, res) {
 
     for (const note of dueNotes) {
       await pushMessage(buildReminderFlex(note));
-      await supabase.from('notes').update({ is_reminded: true }).eq('id', note.id);
+      if (note.recur) {
+        // 重複提醒：排下一次、保持未提醒狀態
+        const next = nextRecurDue(note.recur, note.due_date);
+        await supabase.from('notes').update({ due_date: next, is_reminded: false }).eq('id', note.id);
+      } else {
+        await supabase.from('notes').update({ is_reminded: true }).eq('id', note.id);
+      }
     }
 
     return res.status(200).json({ reminded: dueNotes.length });

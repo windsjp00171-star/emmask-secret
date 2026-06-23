@@ -97,6 +97,7 @@
     .cal-dot { width: 7px; height: 7px; border-radius: 50%; }
     .cal-dot.reminder { background: #e5544b; }
     .cal-dot.task { background: #e8912f; }
+    .cal-dot.worship { background: var(--brand); }
     .cal-count { font-size: 11px; color: var(--muted); margin-top: 4px; }
     .day-detail { background: var(--surface); border-radius: var(--radius); padding: 18px 22px; margin-top: 16px; box-shadow: var(--shadow); border: 1px solid var(--line); }
     .day-detail h3 { font-size: 15px; margin-bottom: 12px; color: var(--brand-ink); }
@@ -250,6 +251,17 @@ async function loadNotes() {
   const data = await api('GET');
   if (!data) return;
   allNotes = data;
+
+  // 一併載入主日服事表，疊進月曆
+  worshipByDate = {};
+  try {
+    const wres = await fetch(`/api/worship/schedule?token=${encodeURIComponent(token)}`);
+    if (wres.ok) {
+      const wd = await wres.json();
+      (wd || []).forEach(w => { (worshipByDate[w.service_date] = worshipByDate[w.service_date] || []).push(w); });
+    }
+  } catch (e) { /* 服事表載入失敗不影響其他功能 */ }
+
   document.getElementById('login').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   document.getElementById('lastRefresh').textContent = '更新：' + new Date().toLocaleTimeString('zh-TW');
@@ -430,6 +442,7 @@ async function saveEdit() {
 let currentView = 'list';
 let calYear = null, calMonth = null; // calMonth: 0-based
 let selectedKey = null;
+let worshipByDate = {}; // service_date -> [{role, person_name}]
 
 function taipeiKey(iso) {
   // 回傳 due_date 在台北時區的 YYYY-MM-DD
@@ -493,10 +506,14 @@ function renderCalendar() {
     if (key === selectedKey) classes.push('selected');
     const reminders = items.filter(n => n.type === 'reminder').length;
     const tasks = items.filter(n => n.type === 'task').length;
+    const hasWorship = !!worshipByDate[key];
     let dots = '';
     if (reminders) dots += '<span class="cal-dot reminder"></span>';
     if (tasks) dots += '<span class="cal-dot task"></span>';
-    const count = items.length ? `<div class="cal-count">${items.length} 項</div>` : '';
+    if (hasWorship) dots += '<span class="cal-dot worship"></span>';
+    let countTxt = items.length ? `${items.length} 項` : '';
+    if (hasWorship) countTxt = countTxt ? `${countTxt} ⛪` : '⛪ 服事';
+    const count = countTxt ? `<div class="cal-count">${countTxt}</div>` : '';
     html += `<div class="${classes.join(' ')}" onclick="showDay('${key}')">
       <div class="cal-date">${d}</div>
       <div class="cal-dots">${dots}</div>${count}
@@ -516,8 +533,10 @@ function showDay(key) {
     timeZone: 'Asia/Taipei', month: 'long', day: 'numeric', weekday: 'long',
   });
 
+  const worship = worshipByDate[key] || [];
+
   let html = `<h3>${dateLabel}</h3>`;
-  if (items.length === 0) {
+  if (items.length === 0 && worship.length === 0) {
     html += '<div class="empty" style="padding:16px">這天沒有排定事項</div>';
   } else {
     html += items.map(n => {
@@ -529,6 +548,16 @@ function showDay(key) {
         ${n.project ? `<span style="color:#6e6e73;font-size:12px">· ${n.project}</span>` : ''}
       </div>`;
     }).join('');
+
+    if (worship.length) {
+      const byRole = {};
+      worship.forEach(w => { (byRole[w.role] = byRole[w.role] || []).push(w.person_name); });
+      html += `<h3 style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">⛪ 主日服事</h3>`;
+      html += Object.entries(byRole).map(([role, ppl]) => `<div class="day-item">
+        <span class="type-badge" style="background:var(--brand-soft);color:var(--brand-ink)">${role}</span>
+        <span>${ppl.join('、')}</span>
+      </div>`).join('');
+    }
   }
   const detail = document.getElementById('dayDetail');
   detail.innerHTML = html;

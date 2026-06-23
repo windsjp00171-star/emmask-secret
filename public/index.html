@@ -52,7 +52,18 @@
     .type-project_update { background: #d9efe2; color: #1c7a4d; }
     .done-row td { opacity: 0.4; text-decoration: line-through; }
     .done-row:hover td { opacity: 0.6; }
-    .actions { display: flex; gap: 6px; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    @media (max-width: 760px) {
+      table, tbody, tr, td { display: block; width: 100%; }
+      thead { display: none; }
+      table { border: none; box-shadow: none; background: transparent; overflow: visible; }
+      tbody tr { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; padding: 4px 2px; }
+      tbody tr:hover td { background: transparent; }
+      td { border: none; border-top: 1px solid var(--line); padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; font-size: 14px; }
+      td:first-child { border-top: none; }
+      td::before { content: attr(data-label); font-size: 12px; font-weight: 700; color: var(--muted); text-align: left; flex-shrink: 0; }
+      td[data-label="操作"] .actions { justify-content: flex-end; }
+    }
     #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(160deg, #1b4536, #0f2b22); }
     .login-box { background: var(--surface); border-radius: 20px; padding: 44px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.3); min-width: 300px; }
     .login-box h2 { margin-bottom: 8px; color: var(--brand-ink); }
@@ -329,12 +340,12 @@ function applyFilters() {
     const safeContent = n.content.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     const safeProject = (n.project || '').replace(/'/g, '&#39;');
     return `<tr class="${n.is_done ? 'done-row' : ''}">
-      <td>${n.content}</td>
-      <td><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
-      <td>${n.project || '-'}</td>
-      <td>${due}</td>
-      <td>${created}</td>
-      <td><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}','${safeContent}','${n.type}','${safeProject}','${n.due_date||''}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
+      <td data-label="內容">${n.content}</td>
+      <td data-label="類型"><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
+      <td data-label="專案">${n.project || '-'}</td>
+      <td data-label="到期">${due}</td>
+      <td data-label="建立">${created}</td>
+      <td data-label="操作"><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}','${safeContent}','${n.type}','${safeProject}','${n.due_date||''}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
     </tr>`;
   }).join('');
 }

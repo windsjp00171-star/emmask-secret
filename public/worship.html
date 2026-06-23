@@ -35,6 +35,17 @@
     .person-chip:hover { background: #007aff; color: #fff; }
     .add-chip { display: inline-block; background: #f2f2f7; color: #8e8e93; border-radius: 12px; padding: 2px 8px; font-size: 12px; margin: 2px; cursor: pointer; border: 1px dashed #c7c7cc; }
     .add-chip:hover { background: #e5e5ea; }
+    table.grid td.cell { cursor: text; }
+    table.grid td.cell:hover { background: #f2f7ff; }
+    table.grid td.cell.today-col:hover { background: #fff1cc; }
+    .cell-empty { color: #c7c7cc; font-size: 13px; }
+    .cell-input { width: 100%; min-width: 120px; padding: 6px 8px; border: 2px solid #007aff; border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; }
+    .paste-area { width: 100%; min-height: 200px; padding: 10px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 13px; font-family: 'SF Mono', Menlo, monospace; resize: vertical; }
+    .paste-preview { max-height: 240px; overflow: auto; margin-top: 12px; border: 1px solid #f2f2f7; border-radius: 8px; }
+    .paste-preview table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .paste-preview th, .paste-preview td { border: 1px solid #f2f2f7; padding: 4px 8px; text-align: left; }
+    .paste-preview th { background: #f9f9fb; }
+    .modal.wide { max-width: 720px; }
 
     /* Person view */
     .person-view { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden; }
@@ -125,6 +136,24 @@
   </div>
 </div>
 
+<!-- Bulk paste modal -->
+<div class="modal-bg" id="pasteModal">
+  <div class="modal wide">
+    <h3>📋 批次貼上服事表</h3>
+    <p style="font-size:13px;color:#6e6e73;line-height:1.6;margin-bottom:12px">
+      直接從 Excel / Google 試算表複製整塊貼上即可。<br>
+      第一列為日期標題（如 <code>6/22</code>），第一欄為職位名稱；一格多人用 <code>、</code> 或空白分隔。<br>
+      匯入會以「日期＋職位」為單位覆蓋，可重複貼上修正。
+    </p>
+    <textarea class="paste-area" id="pasteArea" placeholder="職位&#9;6/22&#9;6/29&#10;主領&#9;小明&#9;小華&#10;和聲&#9;阿美、阿花&#9;小芳" oninput="renderPastePreview()"></textarea>
+    <div class="paste-preview" id="pastePreview"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="document.getElementById('pasteModal').classList.remove('open')">取消</button>
+      <button class="btn btn-primary" id="pasteImportBtn" onclick="importPaste()">匯入</button>
+    </div>
+  </div>
+</div>
+
 <div id="main">
   <header>
     <h1>⛪ 主日服事表</h1>
@@ -135,7 +164,8 @@
       <button class="btn btn-tab active" id="tabGrid" onclick="switchView('grid')">格狀表格</button>
       <button class="btn btn-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
       <button class="btn btn-tab" id="tabManage" onclick="switchView('manage')">⚙ 管理</button>
-      <button class="btn btn-primary" id="addEntryBtn" onclick="openAddModal()" style="margin-left:auto">＋ 新增服事</button>
+      <button class="btn btn-manage" id="pasteBtn" onclick="openPasteModal()" style="margin-left:auto">📋 批次貼上</button>
+      <button class="btn btn-primary" id="addEntryBtn" onclick="openAddModal()">＋ 新增服事</button>
     </div>
 
     <div id="gridView">
@@ -185,6 +215,9 @@ let allData = [];   // worship_schedule rows
 let allDates = [];  // worship_dates rows [{id, service_date}]
 let allRoles = [];  // worship_roles rows [{id, role_name, sort_order}]
 let editingId = null;
+let gridRoles = [];  // role names as rendered (row order)
+let gridDates = [];  // service_date strings as rendered (column order)
+let currentEdit = null; // { ri, di } cell currently being edited inline
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
@@ -269,6 +302,9 @@ function renderGridView() {
   // Any roles in data not yet in worship_roles
   Object.keys(lookup).forEach(r => { if (!roles.includes(r)) roles.push(r); });
 
+  gridRoles = roles;
+  gridDates = dates;
+
   let html = '<table class="grid"><thead><tr>';
   html += '<th class="role-col">職位 \\ 日期</th>';
   dates.forEach((d, i) => {
@@ -280,24 +316,90 @@ function renderGridView() {
   });
   html += '</tr></thead><tbody>';
 
-  roles.forEach(role => {
+  roles.forEach((role, ri) => {
     html += '<tr>';
-    html += `<td class="role-label">${role}</td>`;
-    dates.forEach((d, i) => {
-      const cls = (i === todayIdx) ? 'today-col' : '';
-      const persons = lookup[role] && lookup[role][d] ? lookup[role][d] : [];
-      html += `<td class="${cls}">`;
-      persons.forEach(p => {
-        html += `<span class="person-chip" onclick="openEditModal('${p.id}','${esc(p.name)}','${esc(role)}','${d}')">${esc(p.name)}</span>`;
-      });
-      html += `<span class="add-chip" onclick="openAddModalFor('${d}','${esc(role)}')">＋</span>`;
-      html += '</td>';
+    html += `<td class="role-label">${esc(role)}</td>`;
+    dates.forEach((d, di) => {
+      const cls = (di === todayIdx) ? 'cell today-col' : 'cell';
+      html += `<td id="c-${ri}-${di}" class="${cls}" onclick="startEdit(${ri},${di})">${cellInner(ri, di)}</td>`;
     });
     html += '</tr>';
   });
 
   html += '</tbody></table>';
   gridWrap.innerHTML = html;
+}
+
+// 取得某格目前的人員名單
+function cellPersons(ri, di) {
+  const role = gridRoles[ri], date = gridDates[di];
+  return allData.filter(d => d.role === role && d.service_date === date).map(d => d.person_name);
+}
+
+// 一格的顯示內容（chips 或空白提示）
+function cellInner(ri, di) {
+  const persons = cellPersons(ri, di);
+  if (persons.length === 0) return '<span class="cell-empty">＋</span>';
+  return persons.map(n => `<span class="person-chip">${esc(n)}</span>`).join('');
+}
+
+function renderCell(ri, di) {
+  const td = document.getElementById(`c-${ri}-${di}`);
+  if (td) td.innerHTML = cellInner(ri, di);
+}
+
+// 點格子 → 變成輸入框直接打字
+function startEdit(ri, di) {
+  if (currentEdit) {
+    if (currentEdit.ri === ri && currentEdit.di === di) return; // already editing this cell
+    return; // let blur of the other cell settle first
+  }
+  const td = document.getElementById(`c-${ri}-${di}`);
+  if (!td) return;
+  const val = cellPersons(ri, di).join('、');
+  currentEdit = { ri, di };
+  td.innerHTML = `<input class="cell-input" id="ci-${ri}-${di}" value="${esc(val)}" />`;
+  const inp = document.getElementById(`ci-${ri}-${di}`);
+  inp.focus();
+  inp.select();
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); commitEdit(ri, di, inp.value, e.shiftKey ? 'up' : 'down'); }
+    else if (e.key === 'Tab') { e.preventDefault(); commitEdit(ri, di, inp.value, e.shiftKey ? 'left' : 'right'); }
+    else if (e.key === 'Escape') { currentEdit = null; renderCell(ri, di); }
+  });
+  inp.addEventListener('blur', () => {
+    if (currentEdit && currentEdit.ri === ri && currentEdit.di === di) commitEdit(ri, di, inp.value, null);
+  });
+}
+
+async function commitEdit(ri, di, value, move) {
+  const role = gridRoles[ri], date = gridDates[di];
+  const names = value.split(/[、,，\s]+/).map(s => s.trim()).filter(Boolean);
+  const before = cellPersons(ri, di);
+  currentEdit = null;
+
+  if (names.join('、') !== before.join('、')) {
+    const res = await scheduleApi('PUT', { service_date: date, role, names });
+    if (res && res.ok) {
+      allData = allData.filter(d => !(d.role === role && d.service_date === date));
+      (res.rows || []).forEach(r => allData.push(r));
+      buildPersonList();
+    } else {
+      alert((res && res.error) || '儲存失敗');
+    }
+  }
+  renderCell(ri, di);
+  if (move) moveEdit(ri, di, move);
+}
+
+function moveEdit(ri, di, dir) {
+  let nr = ri, nd = di;
+  if (dir === 'down') nr++;
+  else if (dir === 'up') nr--;
+  else if (dir === 'right') nd++;
+  else if (dir === 'left') nd--;
+  if (nr < 0 || nr >= gridRoles.length || nd < 0 || nd >= gridDates.length) return;
+  startEdit(nr, nd);
 }
 
 function renderPersonView() {
@@ -357,6 +459,7 @@ function switchView(view) {
     document.getElementById('tab' + v[0].toUpperCase() + v.slice(1)).classList.toggle('active', v === view);
   });
   document.getElementById('addEntryBtn').style.display = view === 'manage' ? 'none' : '';
+  document.getElementById('pasteBtn').style.display = view === 'grid' ? '' : 'none';
 }
 
 function openEditModal(id, name, role, date) {
@@ -464,6 +567,93 @@ async function deleteRole(id, roleName) {
   populateRoleSelect();
   renderManageView();
   renderGridView();
+}
+
+// ---- 批次貼上 ----
+
+function openPasteModal() {
+  document.getElementById('pasteArea').value = '';
+  document.getElementById('pastePreview').innerHTML = '';
+  document.getElementById('pasteModal').classList.add('open');
+  document.getElementById('pasteArea').focus();
+}
+
+// 把標題的日期文字（如「6/22」「6/22 (日)」）對應到實際 service_date
+function matchDate(label) {
+  const m = String(label).match(/(\d{1,2})\D+(\d{1,2})/);
+  if (!m) return null;
+  const mo = parseInt(m[1], 10), dy = parseInt(m[2], 10);
+  const found = allDates.find(d => {
+    const [, mm, dd] = d.service_date.split('-').map(Number);
+    return mm === mo && dd === dy;
+  });
+  return found ? found.service_date : null;
+}
+
+function splitNames(cell) {
+  return String(cell || '').split(/[、,，/\s]+/).map(s => s.trim()).filter(Boolean);
+}
+
+// 解析貼上的表格 → { columns:[{label, date}], rows:[{role, cellsByCol:[names...]}] }
+function parsePaste(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim() !== '');
+  if (lines.length < 2) return null;
+  const splitCols = l => l.includes('\t') ? l.split('\t') : l.split(/ {2,}|,/);
+  const header = splitCols(lines[0]);
+  const columns = header.slice(1).map(label => ({ label: label.trim(), date: matchDate(label) }));
+  const rows = lines.slice(1).map(line => {
+    const cells = splitCols(line);
+    const role = (cells[0] || '').trim();
+    const cellsByCol = columns.map((_, j) => splitNames(cells[j + 1]));
+    return { role, cellsByCol };
+  }).filter(r => r.role);
+  return { columns, rows };
+}
+
+function renderPastePreview() {
+  const parsed = parsePaste(document.getElementById('pasteArea').value);
+  const el = document.getElementById('pastePreview');
+  if (!parsed) { el.innerHTML = ''; return; }
+  const { columns, rows } = parsed;
+  const matched = columns.filter(c => c.date).length;
+  let html = `<div style="padding:6px 10px;font-size:12px;color:#6e6e73">對應到 ${matched}/${columns.length} 個日期欄、${rows.length} 個職位。<span style="color:#ff9500">紅字</span>＝找不到對應日期（會略過）。</div>`;
+  html += '<table><thead><tr><th>職位</th>';
+  columns.forEach(c => {
+    html += `<th${c.date ? '' : ' style="color:#ff9500"'}>${esc(c.label)}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += `<tr><td><b>${esc(r.role)}</b></td>`;
+    r.cellsByCol.forEach(names => { html += `<td>${esc(names.join('、'))}</td>`; });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+async function importPaste() {
+  const parsed = parsePaste(document.getElementById('pasteArea').value);
+  if (!parsed) return alert('沒有可匯入的內容');
+  const bulkSet = [];
+  parsed.rows.forEach(r => {
+    parsed.columns.forEach((c, j) => {
+      if (!c.date) return; // skip unmatched date columns
+      bulkSet.push({ service_date: c.date, role: r.role, names: r.cellsByCol[j] });
+    });
+  });
+  if (bulkSet.length === 0) return alert('沒有對應到任何日期欄，請確認標題列的日期格式（如 6/22），或先到「⚙ 管理」新增日期。');
+
+  const btn = document.getElementById('pasteImportBtn');
+  btn.disabled = true; btn.textContent = '匯入中…';
+  const res = await scheduleApi('POST', { bulkSet });
+  btn.disabled = false; btn.textContent = '匯入';
+  if (!res || res.error) return alert((res && res.error) || '匯入失敗');
+
+  allData = res.all || allData;
+  document.getElementById('pasteModal').classList.remove('open');
+  buildPersonList();
+  renderGridView();
+  alert(`✅ 匯入完成（${bulkSet.length} 格）`);
 }
 
 function esc(s) {

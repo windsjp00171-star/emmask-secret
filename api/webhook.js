@@ -1,6 +1,7 @@
 const crypto = require('crypto');
-const { dispatch } = require('../lib/commands');
-const { replyMessage } = require('../lib/line');
+const { dispatch, handlePostback, handleImageEvents } = require('../lib/commands');
+const { replyMessage, getImageBase64 } = require('../lib/line');
+const { extractEventFromImage } = require('../lib/vision');
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -39,15 +40,34 @@ const handler = async function (req, res) {
 
   await Promise.all(
     events.map(async event => {
-      if (event.type !== 'message' || event.message.type !== 'text') return;
-      const text = event.message.text;
       const replyToken = event.replyToken;
       try {
-        const reply = await dispatch(text);
-        await replyMessage(replyToken, reply);
+        // Flex 按鈕（完成／延後／改明天）
+        if (event.type === 'postback') {
+          const reply = await handlePostback(event.postback.data);
+          if (reply) await replyMessage(replyToken, reply);
+          return;
+        }
+        if (event.type !== 'message') return;
+
+        // 文字訊息
+        if (event.message.type === 'text') {
+          const reply = await dispatch(event.message.text);
+          await replyMessage(replyToken, reply);
+          return;
+        }
+
+        // 圖片訊息 → Claude 視覺擷取活動並建立提醒
+        if (event.message.type === 'image') {
+          const b64 = await getImageBase64(event.message.id);
+          const extracted = await extractEventFromImage(b64, 'image/jpeg');
+          const reply = await handleImageEvents(extracted);
+          await replyMessage(replyToken, reply);
+          return;
+        }
       } catch (err) {
         console.error('Handler error:', err);
-        await replyMessage(replyToken, '❌ 發生錯誤，請稍後再試。');
+        if (replyToken) await replyMessage(replyToken, '❌ 發生錯誤，請稍後再試。');
       }
     })
   );

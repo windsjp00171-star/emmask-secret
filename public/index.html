@@ -59,10 +59,20 @@
       table { border: none; box-shadow: none; background: transparent; overflow: visible; }
       tbody tr { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; padding: 4px 2px; }
       tbody tr:hover td { background: transparent; }
-      td { border: none; border-top: 1px solid var(--line); padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; font-size: 14px; }
+      td { border: none; border-top: 1px solid var(--line); padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; font-size: 14px; overflow-wrap: anywhere; }
       td:first-child { border-top: none; }
       td::before { content: attr(data-label); font-size: 12px; font-weight: 700; color: var(--muted); text-align: left; flex-shrink: 0; }
       td[data-label="操作"] .actions { justify-content: flex-end; }
+    }
+    @media (min-width: 761px) {
+      #listView table { table-layout: fixed; }
+      #listView th, #listView td { word-break: break-word; overflow-wrap: anywhere; white-space: normal; vertical-align: top; }
+      #listView th:nth-child(1), #listView td:nth-child(1) { width: 42%; }
+      #listView th:nth-child(2), #listView td:nth-child(2) { width: 72px; }
+      #listView th:nth-child(3), #listView td:nth-child(3) { width: 12%; }
+      #listView th:nth-child(4), #listView td:nth-child(4) { width: 108px; }
+      #listView th:nth-child(5), #listView td:nth-child(5) { width: 88px; }
+      #listView th:nth-child(6), #listView td:nth-child(6) { width: 158px; }
     }
     #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(160deg, #1b4536, #0f2b22); }
     .login-box { background: var(--surface); border-radius: 20px; padding: 44px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.3); min-width: 300px; }

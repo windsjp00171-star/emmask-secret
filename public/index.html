@@ -57,6 +57,32 @@
     .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
     .btn-cancel { background: #e5e5ea; color: #1d1d1f; }
     .btn-edit { background: #5856d6; color: #fff; }
+    .view-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .view-tab { padding: 8px 18px; border-radius: 8px; border: 1px solid #d2d2d7; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; color: #6e6e73; }
+    .view-tab.active { background: #007aff; color: #fff; border-color: #007aff; }
+    .cal-head { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 16px; }
+    .cal-head h2 { font-size: 18px; font-weight: 600; min-width: 140px; text-align: center; }
+    .cal-nav { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #d2d2d7; background: #fff; cursor: pointer; font-size: 16px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .cal-wd { text-align: center; font-size: 12px; font-weight: 600; color: #6e6e73; padding: 4px 0; }
+    .cal-cell { min-height: 64px; border-radius: 8px; padding: 6px; cursor: pointer; border: 1px solid #f0f0f2; position: relative; transition: background .12s; }
+    .cal-cell:hover { background: #f2f7ff; }
+    .cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+    .cal-cell.today { border-color: #007aff; background: #eef5ff; }
+    .cal-cell.selected { background: #007aff; }
+    .cal-cell.selected .cal-date, .cal-cell.selected .cal-count { color: #fff; }
+    .cal-date { font-size: 13px; color: #1d1d1f; }
+    .cal-dots { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 6px; }
+    .cal-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .cal-dot.reminder { background: #ff3b30; }
+    .cal-dot.task { background: #ff9500; }
+    .cal-count { font-size: 11px; color: #6e6e73; margin-top: 4px; }
+    .day-detail { background: #fff; border-radius: 12px; padding: 16px 20px; margin-top: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .day-detail h3 { font-size: 15px; margin-bottom: 12px; }
+    .day-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid #f2f2f7; font-size: 14px; }
+    .day-item:first-of-type { border-top: none; }
+    .day-item .dtime { font-variant-numeric: tabular-nums; color: #6e6e73; min-width: 44px; }
+    .day-item .dbadge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -125,6 +151,11 @@
   </header>
   <div class="container">
     <div class="stats" id="stats"></div>
+    <div class="view-tabs">
+      <button class="view-tab active" id="tabList" onclick="switchView('list')">📋 列表</button>
+      <button class="view-tab" id="tabCalendar" onclick="switchView('calendar')">📅 日曆</button>
+    </div>
+    <div id="listView">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div class="project-tags" id="projectTags" style="margin-bottom:0"></div>
       <button class="btn btn-primary" onclick="openModal()">＋ 新增記錄</button>
@@ -157,6 +188,16 @@
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
+    </div><!-- /listView -->
+    <div id="calendarView" style="display:none">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="calShift(-1)">‹</button>
+        <h2 id="calTitle"></h2>
+        <button class="cal-nav" onclick="calShift(1)">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="day-detail" id="dayDetail" style="display:none"></div>
+    </div>
   </div>
 </div>
 
@@ -195,6 +236,10 @@ async function loadNotes() {
   renderProjectTags();
   updateProjectList();
   applyFilters();
+  if (currentView === 'calendar') {
+    renderCalendar();
+    if (selectedKey) showDay(selectedKey);
+  }
 }
 
 function renderStats() {
@@ -358,6 +403,115 @@ async function saveEdit() {
   renderProjectTags();
   updateProjectList();
   applyFilters();
+}
+
+// ---- 日曆檢視 ----
+let currentView = 'list';
+let calYear = null, calMonth = null; // calMonth: 0-based
+let selectedKey = null;
+
+function taipeiKey(iso) {
+  // 回傳 due_date 在台北時區的 YYYY-MM-DD
+  return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+}
+function todayKey() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+}
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function switchView(view) {
+  currentView = view;
+  document.getElementById('tabList').classList.toggle('active', view === 'list');
+  document.getElementById('tabCalendar').classList.toggle('active', view === 'calendar');
+  document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+  document.getElementById('calendarView').style.display = view === 'calendar' ? 'block' : 'none';
+  if (view === 'calendar') {
+    if (calYear === null) {
+      const [y, m] = todayKey().split('-').map(Number);
+      calYear = y; calMonth = m - 1;
+    }
+    renderCalendar();
+  }
+}
+
+function calShift(delta) {
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  selectedKey = null;
+  document.getElementById('dayDetail').style.display = 'none';
+  renderCalendar();
+}
+
+function renderCalendar() {
+  document.getElementById('calTitle').textContent = `${calYear} 年 ${calMonth + 1} 月`;
+
+  // 把有 due_date 的事項歸到日期
+  const byDay = {};
+  allNotes.forEach(n => {
+    if (!n.due_date || n.is_done) return;
+    if (n.type !== 'task' && n.type !== 'reminder') return;
+    const key = taipeiKey(n.due_date);
+    (byDay[key] = byDay[key] || []).push(n);
+  });
+
+  const grid = document.getElementById('calGrid');
+  let html = ['日', '一', '二', '三', '四', '五', '六']
+    .map(w => `<div class="cal-wd">${w}</div>`).join('');
+
+  const firstWd = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const tk = todayKey();
+
+  for (let i = 0; i < firstWd; i++) html += '<div class="cal-cell empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${calYear}-${pad2(calMonth + 1)}-${pad2(d)}`;
+    const items = byDay[key] || [];
+    const classes = ['cal-cell'];
+    if (key === tk) classes.push('today');
+    if (key === selectedKey) classes.push('selected');
+    const reminders = items.filter(n => n.type === 'reminder').length;
+    const tasks = items.filter(n => n.type === 'task').length;
+    let dots = '';
+    if (reminders) dots += '<span class="cal-dot reminder"></span>';
+    if (tasks) dots += '<span class="cal-dot task"></span>';
+    const count = items.length ? `<div class="cal-count">${items.length} 項</div>` : '';
+    html += `<div class="${classes.join(' ')}" onclick="showDay('${key}')">
+      <div class="cal-date">${d}</div>
+      <div class="cal-dots">${dots}</div>${count}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function showDay(key) {
+  selectedKey = key;
+  renderCalendar();
+  const items = allNotes
+    .filter(n => n.due_date && !n.is_done && (n.type === 'task' || n.type === 'reminder') && taipeiKey(n.due_date) === key)
+    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+  const dateLabel = new Date(`${key}T00:00:00+08:00`).toLocaleDateString('zh-TW', {
+    timeZone: 'Asia/Taipei', month: 'long', day: 'numeric', weekday: 'long',
+  });
+
+  let html = `<h3>${dateLabel}</h3>`;
+  if (items.length === 0) {
+    html += '<div class="empty" style="padding:16px">這天沒有排定事項</div>';
+  } else {
+    html += items.map(n => {
+      const time = new Date(n.due_date).toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false });
+      return `<div class="day-item">
+        <span class="dtime">${time}</span>
+        <span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span>
+        <span>${n.content}</span>
+        ${n.project ? `<span style="color:#6e6e73;font-size:12px">· ${n.project}</span>` : ''}
+      </div>`;
+    }).join('');
+  }
+  const detail = document.getElementById('dayDetail');
+  detail.innerHTML = html;
+  detail.style.display = 'block';
 }
 
 // Auto refresh every 60s

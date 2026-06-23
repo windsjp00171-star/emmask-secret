@@ -1,10 +1,13 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
+const { buildReminderFlex } = require('../../lib/commands');
+const { cronAuth } = require('../../lib/cron-auth');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
     const now = new Date().toISOString();
@@ -23,20 +26,7 @@ module.exports = async function handler(req, res) {
     }
 
     for (const note of dueNotes) {
-      const timeStr = new Date(note.due_date).toLocaleString('zh-TW', {
-        timeZone: 'Asia/Taipei',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
-      const lines = [`⏰ 提醒到了！`, `📌 ${note.content}`];
-      if (note.project) lines.push(`🗂 ${note.project}`);
-      lines.push(`🕐 ${timeStr}`);
-
-      await pushMessage(lines.join('\n'));
+      await pushMessage(buildReminderFlex(note));
       await supabase.from('notes').update({ is_reminded: true }).eq('id', note.id);
     }
 

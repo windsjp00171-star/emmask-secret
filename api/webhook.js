@@ -59,8 +59,8 @@ const handler = async function (req, res) {
 
         // 圖片訊息 → Claude 視覺擷取活動並建立提醒
         if (event.message.type === 'image') {
-          const b64 = await getImageBase64(event.message.id);
-          const extracted = await extractEventFromImage(b64, 'image/jpeg');
+          const { base64, contentType } = await getImageBase64(event.message.id);
+          const extracted = await extractEventFromImage(base64, contentType);
           const reply = await handleImageEvents(extracted);
           await replyMessage(replyToken, reply);
           return;

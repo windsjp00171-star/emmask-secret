@@ -347,15 +347,14 @@ function applyFilters() {
     const doneBtn = n.is_done
       ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
       : `<button class="btn-sm btn-done" onclick="toggleDone('${n.id}', true)">完成</button>`;
-    const safeContent = n.content.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-    const safeProject = (n.project || '').replace(/'/g, '&#39;');
+    const safeContent = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `<tr class="${n.is_done ? 'done-row' : ''}">
-      <td data-label="內容">${n.content}</td>
+      <td data-label="內容">${safeContent}</td>
       <td data-label="類型"><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
       <td data-label="專案">${n.project || '-'}</td>
       <td data-label="到期">${due}</td>
       <td data-label="建立">${created}</td>
-      <td data-label="操作"><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}','${safeContent}','${n.type}','${safeProject}','${n.due_date||''}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
+      <td data-label="操作"><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -420,13 +419,15 @@ function updateProjectList() {
 
 let editingNoteId = null;
 
-function openEditModal(id, content, type, project, due_date) {
+function openEditModal(id) {
+  const note = allNotes.find(n => n.id === id);
+  if (!note) return;
   editingNoteId = id;
-  document.getElementById('editContent').value = content;
-  document.getElementById('editType').value = type;
-  document.getElementById('editProject').value = project;
-  if (due_date) {
-    const local = new Date(due_date);
+  document.getElementById('editContent').value = note.content || '';
+  document.getElementById('editType').value = note.type;
+  document.getElementById('editProject').value = note.project || '';
+  if (note.due_date) {
+    const local = new Date(note.due_date);
     local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
     document.getElementById('editDueDate').value = local.toISOString().slice(0,16);
   } else {

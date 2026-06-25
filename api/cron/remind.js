@@ -10,12 +10,14 @@ module.exports = async function handler(req, res) {
   if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
-    const now = new Date().toISOString();
+    // 提前提醒：到點前 N 分鐘就發（預設 5 分鐘），避免當下才通知來不及
+    const leadMin = parseInt(process.env.REMIND_LEAD_MINUTES || '5', 10);
+    const threshold = new Date(Date.now() + leadMin * 60 * 1000).toISOString();
 
     const { data: dueNotes, error } = await supabase
       .from('notes')
       .select('*')
-      .lte('due_date', now)
+      .lte('due_date', threshold)
       .not('is_reminded', 'is', true)
       .not('is_done', 'is', true)
       .not('due_date', 'is', null);

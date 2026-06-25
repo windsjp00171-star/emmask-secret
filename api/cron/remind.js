@@ -17,6 +17,7 @@ module.exports = async function handler(req, res) {
     const { data: dueNotes, error } = await supabase
       .from('notes')
       .select('*')
+      .in('type', ['reminder', 'task'])
       .lte('due_date', threshold)
       .not('is_reminded', 'is', true)
       .not('is_done', 'is', true)

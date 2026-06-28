@@ -1,5 +1,6 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
+const { sendDueMonthlyReminders } = require('../../lib/monthly');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -7,6 +8,9 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    // Fire any monthly recurring reminders due today.
+    const monthlyReminded = await sendDueMonthlyReminders(pushMessage);
+
     const now = new Date().toISOString();
 
     const { data: dueNotes, error } = await supabase
@@ -19,7 +23,7 @@ module.exports = async function handler(req, res) {
     if (error) throw new Error(`Supabase query error: ${error.message}`);
 
     if (!dueNotes || dueNotes.length === 0) {
-      return res.status(200).json({ reminded: 0 });
+      return res.status(200).json({ reminded: 0, monthlyReminded });
     }
 
     for (const note of dueNotes) {
@@ -40,7 +44,7 @@ module.exports = async function handler(req, res) {
       await supabase.from('notes').update({ is_reminded: true }).eq('id', note.id);
     }
 
-    return res.status(200).json({ reminded: dueNotes.length });
+    return res.status(200).json({ reminded: dueNotes.length, monthlyReminded });
   } catch (err) {
     console.error('Cron remind error:', err);
     return res.status(500).json({ error: err.message });

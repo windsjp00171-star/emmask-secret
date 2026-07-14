@@ -10,11 +10,14 @@ module.exports = async function handler(req, res) {
   if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
-    // 提前提醒：到點前 N 分鐘就發（預設 5 分鐘），避免當下才通知來不及
-    const leadMin = parseInt(process.env.REMIND_LEAD_MINUTES || '5', 10);
-    const threshold = new Date(Date.now() + leadMin * 60 * 1000).toISOString();
+    // 提前提醒：到點前 N 分鐘就發。每則可各自設定 remind_lead_minutes，
+    // 沒設定的用系統預設（REMIND_LEAD_MINUTES，預設 5 分鐘）
+    const defaultLeadMin = parseInt(process.env.REMIND_LEAD_MINUTES || '5', 10);
+    // 用可能出現的最大提前量抓出候選（目前上限抓 24 小時，超過的批次提醒不會提前這麼多）
+    const MAX_LEAD_MIN = 24 * 60;
+    const threshold = new Date(Date.now() + MAX_LEAD_MIN * 60 * 1000).toISOString();
 
-    const { data: dueNotes, error } = await supabase
+    const { data: candidates, error } = await supabase
       .from('notes')
       .select('*')
       .in('type', ['reminder', 'task'])
@@ -25,7 +28,13 @@ module.exports = async function handler(req, res) {
 
     if (error) throw new Error(`Supabase query error: ${error.message}`);
 
-    if (!dueNotes || dueNotes.length === 0) {
+    const now = Date.now();
+    const dueNotes = (candidates || []).filter((note) => {
+      const leadMin = note.remind_lead_minutes != null ? note.remind_lead_minutes : defaultLeadMin;
+      return new Date(note.due_date).getTime() - leadMin * 60 * 1000 <= now;
+    });
+
+    if (dueNotes.length === 0) {
       return res.status(200).json({ reminded: 0 });
     }
 

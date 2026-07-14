@@ -13,8 +13,8 @@ module.exports = async function handler(req, res) {
     // 提前提醒：到點前 N 分鐘就發。每則可各自設定 remind_lead_minutes，
     // 沒設定的用系統預設（REMIND_LEAD_MINUTES，預設 5 分鐘）
     const defaultLeadMin = parseInt(process.env.REMIND_LEAD_MINUTES || '5', 10);
-    // 用可能出現的最大提前量抓出候選（目前上限抓 24 小時，超過的批次提醒不會提前這麼多）
-    const MAX_LEAD_MIN = 24 * 60;
+    // 用可能出現的最大提前量抓出候選（上限抓 7 天，涵蓋「提前N天」的用法）
+    const MAX_LEAD_MIN = 7 * 24 * 60;
     const threshold = new Date(Date.now() + MAX_LEAD_MIN * 60 * 1000).toISOString();
 
     const { data: candidates, error } = await supabase

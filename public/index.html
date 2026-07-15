@@ -158,8 +158,15 @@
     <input type="text" id="editProject" list="projectList" />
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="editDueDate" />
-    <label>提前幾分鐘提醒（可留空＝用系統預設5分鐘）</label>
-    <input type="number" id="editLeadMinutes" min="0" placeholder="例如 60 = 提前1小時" />
+    <label>提前多久提醒（可留空＝用系統預設5分鐘）</label>
+    <div style="display:flex;gap:8px">
+      <input type="number" id="editLeadValue" min="0" placeholder="例如 1" style="flex:1" />
+      <select id="editLeadUnit" style="width:100px">
+        <option value="1">分鐘</option>
+        <option value="60">小時</option>
+        <option value="1440">天</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
       <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
@@ -184,8 +191,15 @@
     <datalist id="projectList"></datalist>
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="newDueDate" />
-    <label>提前幾分鐘提醒（可留空＝用系統預設5分鐘）</label>
-    <input type="number" id="newLeadMinutes" min="0" placeholder="例如 60 = 提前1小時" />
+    <label>提前多久提醒（可留空＝用系統預設5分鐘）</label>
+    <div style="display:flex;gap:8px">
+      <input type="number" id="newLeadValue" min="0" placeholder="例如 1" style="flex:1" />
+      <select id="newLeadUnit" style="width:100px">
+        <option value="1">分鐘</option>
+        <option value="60">小時</option>
+        <option value="1440">天</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="submitNote()">新增</button>
@@ -283,6 +297,14 @@ function formatLeadMinutes(min) {
   if (min % 1440 === 0) return `${min / 1440}天`;
   if (min % 60 === 0) return `${min / 60}小時`;
   return `${min}分鐘`;
+}
+
+// 把分鐘數拆成「數值＋單位」給下拉選單用（挑最大能整除的單位）
+function minutesToUnit(min) {
+  if (min == null) return { value: '', unit: 1 };
+  if (min % 1440 === 0) return { value: min / 1440, unit: 1440 };
+  if (min % 60 === 0) return { value: min / 60, unit: 60 };
+  return { value: min, unit: 1 };
 }
 
 function doLogin() {
@@ -537,7 +559,8 @@ function openModal() {
   document.getElementById('newType').value = 'task';
   document.getElementById('newProject').value = '';
   document.getElementById('newDueDate').value = '';
-  document.getElementById('newLeadMinutes').value = '';
+  document.getElementById('newLeadValue').value = '';
+  document.getElementById('newLeadUnit').value = '1';
   document.getElementById('addModal').classList.add('open');
   document.getElementById('newContent').focus();
 }
@@ -551,10 +574,11 @@ async function submitNote() {
   const type = document.getElementById('newType').value;
   const project = document.getElementById('newProject').value.trim();
   const dueDateLocal = document.getElementById('newDueDate').value;
-  const leadRaw = document.getElementById('newLeadMinutes').value;
+  const leadRaw = document.getElementById('newLeadValue').value;
+  const leadUnit = Number(document.getElementById('newLeadUnit').value);
   if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
-  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw);
+  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
   const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -592,7 +616,9 @@ function openEditModal(id) {
   } else {
     document.getElementById('editDueDate').value = '';
   }
-  document.getElementById('editLeadMinutes').value = note.remind_lead_minutes ?? '';
+  const leadSplit = minutesToUnit(note.remind_lead_minutes);
+  document.getElementById('editLeadValue').value = leadSplit.value;
+  document.getElementById('editLeadUnit').value = leadSplit.unit;
   document.getElementById('editModal').classList.add('open');
   document.getElementById('editContent').focus();
 }
@@ -607,10 +633,11 @@ async function saveEdit() {
   const type = document.getElementById('editType').value;
   const project = document.getElementById('editProject').value.trim();
   const dueDateLocal = document.getElementById('editDueDate').value;
-  const leadRaw = document.getElementById('editLeadMinutes').value;
+  const leadRaw = document.getElementById('editLeadValue').value;
+  const leadUnit = Number(document.getElementById('editLeadUnit').value);
   if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
-  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw);
+  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
   const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date, remind_lead_minutes });
   if (!updated) return;
   const idx = allNotes.findIndex(n => n.id === editingNoteId);

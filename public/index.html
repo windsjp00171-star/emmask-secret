@@ -155,6 +155,8 @@
     <input type="text" id="editProject" list="projectList" />
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="editDueDate" />
+    <label>提前幾分鐘提醒（可留空＝用系統預設5分鐘）</label>
+    <input type="number" id="editLeadMinutes" min="0" placeholder="例如 60 = 提前1小時" />
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
       <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
@@ -179,6 +181,8 @@
     <datalist id="projectList"></datalist>
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="newDueDate" />
+    <label>提前幾分鐘提醒（可留空＝用系統預設5分鐘）</label>
+    <input type="number" id="newLeadMinutes" min="0" placeholder="例如 60 = 提前1小時" />
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="submitNote()">新增</button>
@@ -251,6 +255,12 @@ let activeProject = '';
 
 const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project_update: '專案更新' };
 const TYPE_CLASS = { task: 'type-task', reminder: 'type-reminder', note: 'type-note', project_update: 'type-project_update' };
+
+function formatLeadMinutes(min) {
+  if (min % 1440 === 0) return `${min / 1440}天`;
+  if (min % 60 === 0) return `${min / 60}小時`;
+  return `${min}分鐘`;
+}
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
@@ -343,6 +353,8 @@ function applyFilters() {
 
   tbody.innerHTML = filtered.map(n => {
     const due = n.due_date ? new Date(n.due_date).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '-';
+    const leadTxt = n.due_date && n.remind_lead_minutes != null ? `<br><span style="font-size:11px;color:var(--muted)">提前${formatLeadMinutes(n.remind_lead_minutes)}</span>` : '';
+    const dueWithLead = due + leadTxt;
     const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
     const doneBtn = n.is_done
       ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
@@ -352,7 +364,7 @@ function applyFilters() {
       <td data-label="內容">${safeContent}</td>
       <td data-label="類型"><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
       <td data-label="專案">${n.project || '-'}</td>
-      <td data-label="到期">${due}</td>
+      <td data-label="到期">${dueWithLead}</td>
       <td data-label="建立">${created}</td>
       <td data-label="操作"><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
     </tr>`;
@@ -381,6 +393,7 @@ function openModal() {
   document.getElementById('newType').value = 'task';
   document.getElementById('newProject').value = '';
   document.getElementById('newDueDate').value = '';
+  document.getElementById('newLeadMinutes').value = '';
   document.getElementById('addModal').classList.add('open');
   document.getElementById('newContent').focus();
 }
@@ -394,12 +407,14 @@ async function submitNote() {
   const type = document.getElementById('newType').value;
   const project = document.getElementById('newProject').value.trim();
   const dueDateLocal = document.getElementById('newDueDate').value;
+  const leadRaw = document.getElementById('newLeadMinutes').value;
   if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
+  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw);
   const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type, project, content, due_date }),
+    body: JSON.stringify({ type, project, content, due_date, remind_lead_minutes }),
   });
   if (res.status === 401) { alert('密碼錯誤'); return; }
   const data = await res.json();
@@ -433,6 +448,7 @@ function openEditModal(id) {
   } else {
     document.getElementById('editDueDate').value = '';
   }
+  document.getElementById('editLeadMinutes').value = note.remind_lead_minutes ?? '';
   document.getElementById('editModal').classList.add('open');
   document.getElementById('editContent').focus();
 }
@@ -447,12 +463,14 @@ async function saveEdit() {
   const type = document.getElementById('editType').value;
   const project = document.getElementById('editProject').value.trim();
   const dueDateLocal = document.getElementById('editDueDate').value;
+  const leadRaw = document.getElementById('editLeadMinutes').value;
   if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
-  const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date });
+  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw);
+  const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date, remind_lead_minutes });
   if (!updated) return;
   const idx = allNotes.findIndex(n => n.id === editingNoteId);
-  if (idx !== -1) Object.assign(allNotes[idx], { content, type, project: project || null, due_date });
+  if (idx !== -1) Object.assign(allNotes[idx], { content, type, project: project || null, due_date, remind_lead_minutes });
   closeEditModal();
   renderStats();
   renderProjectTags();
@@ -566,8 +584,12 @@ function showDay(key) {
       return `<div class="day-item">
         <span class="dtime">${time}</span>
         <span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span>
-        <span>${n.content}</span>
+        <span style="flex:1">${n.content}</span>
         ${n.project ? `<span style="color:#6e6e73;font-size:12px">· ${n.project}</span>` : ''}
+        <div class="actions">
+          <button class="btn-sm btn-done" onclick="dayToggleDone('${n.id}')">完成</button>
+          <button class="btn-sm btn-del" onclick="dayDeleteNote('${n.id}')">刪除</button>
+        </div>
       </div>`;
     }).join('');
 
@@ -584,6 +606,16 @@ function showDay(key) {
   const detail = document.getElementById('dayDetail');
   detail.innerHTML = html;
   detail.style.display = 'block';
+}
+
+async function dayToggleDone(id) {
+  await toggleDone(id, true);
+  if (selectedKey) showDay(selectedKey);
+}
+
+async function dayDeleteNote(id) {
+  await deleteNote(id);
+  if (selectedKey) showDay(selectedKey);
 }
 
 // Auto refresh every 60s

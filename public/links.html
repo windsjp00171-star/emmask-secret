@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>收藏連結 - EmmArk</title>
+<style>
+  :root {
+    --bg: #f4f6f4; --surface: #ffffff; --ink: #1b2420; --muted: #6b7670; --line: #e7ebe8;
+    --brand: #1f6f54; --brand-ink: #16513d; --brand-soft: #e8f2ed; --radius: 14px;
+    --shadow: 0 1px 2px rgba(20,40,30,.05), 0 6px 20px rgba(20,40,30,.05);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  header { background: linear-gradient(135deg, #1b4536, #14352a); color: #fff; padding: 18px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 12px rgba(20,40,30,.12); }
+  header h1 { font-size: 18px; font-weight: 700; flex: 1; letter-spacing: .3px; }
+  header a { color: rgba(255,255,255,.7); font-size: 13px; text-decoration: none; }
+  header a:hover { color: #fff; }
+  .container { max-width: 820px; margin: 0 auto; padding: 24px 20px 60px; }
+  .btn { padding: 9px 18px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .btn-primary { background: var(--brand); color: #fff; }
+  .btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+  .btn-del { background: #e5544b; color: #fff; }
+  .btn-archive { background: #e8912f; color: #fff; }
+  .btn-tab { background: #e9ece9; color: var(--muted); padding: 8px 16px; border-radius: 9px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-tab.active { background: var(--brand); color: #fff; }
+  input[type=text], input[type=password] { padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
+  input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(31,111,84,.15); }
+  .add-row { display: flex; gap: 8px; margin-bottom: 18px; }
+  .add-row input { flex: 1; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+  .card.done { opacity: .5; }
+  .card .content { flex: 1; min-width: 0; word-break: break-word; }
+  .card a { color: var(--brand-ink); font-weight: 600; text-decoration: none; }
+  .card a:hover { text-decoration: underline; }
+  .card .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .empty { text-align: center; color: var(--muted); padding: 48px; font-size: 15px; }
+  #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(160deg, #1b4536, #0f2b22); }
+  .login-box { background: var(--surface); border-radius: 20px; padding: 44px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.3); min-width: 300px; }
+  .login-box h2 { margin-bottom: 8px; color: var(--brand-ink); }
+  .login-box p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .login-box input { width: 100%; padding: 13px; margin-bottom: 14px; }
+  .login-box button { width: 100%; padding: 13px; }
+  #main { display: none; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="login-box">
+    <h2>收藏連結</h2>
+    <p>請輸入 Dashboard 密碼</p>
+    <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn btn-primary" onclick="doLogin()">進入</button>
+  </div>
+</div>
+
+<div id="main">
+  <header>
+    <h1>🔗 收藏連結</h1>
+    <a href="#" onclick="nav('index.html')">📋 Dashboard</a>
+    <a href="#" onclick="nav('worship.html')">⛪ 服事表</a>
+    <a href="#" onclick="nav('songs.html')">🎼 詩歌庫</a>
+    <a href="#" onclick="nav('order.html')">🎵 敬拜順序</a>
+    <a href="#" onclick="nav('meetings.html')">📝 會議記錄</a>
+  </header>
+  <div class="container">
+    <div class="add-row">
+      <input type="text" id="newLink" placeholder="貼上網址或備註..." onkeydown="if(event.key==='Enter')addLink()" />
+      <button class="btn btn-primary" onclick="addLink()">＋ 收藏</button>
+    </div>
+    <div class="tabs">
+      <button class="btn-tab active" id="tabActive" onclick="setFilter('active')">未封存</button>
+      <button class="btn-tab" id="tabDone" onclick="setFilter('done')">已封存</button>
+      <button class="btn-tab" id="tabAll" onclick="setFilter('all')">全部</button>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script>
+let token = '';
+let links = [];
+let filter = 'active';
+
+function nav(page) { window.location.href = '/' + page + '?token=' + encodeURIComponent(token); }
+
+function doLogin() {
+  token = document.getElementById('tokenInput').value.trim();
+  if (!token) return alert('請輸入密碼');
+  load();
+}
+
+async function api(method, body) {
+  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 401) { alert('密碼錯誤'); return null; }
+  return res.json();
+}
+
+async function load() {
+  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}&type=note&project=${encodeURIComponent('收藏')}&limit=200`);
+  if (res.status === 401) { alert('密碼錯誤'); return; }
+  links = await res.json();
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  render();
+}
+
+function setFilter(f) {
+  filter = f;
+  ['active', 'done', 'all'].forEach(k => document.getElementById('tab' + k[0].toUpperCase() + k.slice(1)).classList.toggle('active', k === f));
+  render();
+}
+
+function extractUrl(text) {
+  const m = text.match(/https?:\/\/\S+/);
+  return m ? m[0] : null;
+}
+
+function render() {
+  const list = document.getElementById('list');
+  const filtered = links.filter(n => filter === 'all' ? true : filter === 'done' ? n.is_done : !n.is_done);
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty">沒有收藏的連結</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(n => {
+    const url = extractUrl(n.content || '');
+    const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+    const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const body = url
+      ? `<a href="${url}" target="_blank" rel="noopener">${safe}</a>`
+      : `<span>${safe}</span>`;
+    return `<div class="card ${n.is_done ? 'done' : ''}">
+      <div class="content">${body}<div class="meta">收藏於 ${created}</div></div>
+      <button class="btn-sm btn-archive" onclick="toggleDone('${n.id}', ${!n.is_done})">${n.is_done ? '取消封存' : '封存'}</button>
+      <button class="btn-sm btn-del" onclick="del('${n.id}')">刪除</button>
+    </div>`;
+  }).join('');
+}
+
+async function addLink() {
+  const input = document.getElementById('newLink');
+  const content = input.value.trim();
+  if (!content) return;
+  const data = await api('POST', { type: 'note', project: '收藏', content, is_done: false });
+  if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+  links.unshift(data);
+  input.value = '';
+  render();
+}
+
+async function toggleDone(id, is_done) {
+  await api('PATCH', { id, is_done });
+  const n = links.find(x => x.id === id);
+  if (n) n.is_done = is_done;
+  render();
+}
+
+async function del(id) {
+  if (!confirm('確定刪除這則收藏？')) return;
+  await api('DELETE', { id });
+  links = links.filter(n => n.id !== id);
+  render();
+}
+
+const urlToken = new URLSearchParams(location.search).get('token');
+if (urlToken) { token = urlToken; load(); }
+</script>
+</body>
+</html>

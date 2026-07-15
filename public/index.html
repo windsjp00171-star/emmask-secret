@@ -296,8 +296,13 @@ function doLogin() {
 async function tryStoredLogin() {
   const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
   if (!saved) return;
+  document.getElementById('login').style.display = 'none'; // 先隱藏，避免驗證期間閃一下登入畫面
   const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
-  if (res.status === 401) { localStorage.removeItem('dashboardToken'); return; }
+  if (res.status === 401) {
+    localStorage.removeItem('dashboardToken');
+    document.getElementById('login').style.display = 'flex'; // 驗證失敗才顯示登入畫面
+    return;
+  }
   token = saved;
   localStorage.setItem('dashboardToken', token);
   loadNotes();

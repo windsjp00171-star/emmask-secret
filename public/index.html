@@ -415,7 +415,7 @@ function applyFilters() {
     const due = n.due_date ? new Date(n.due_date).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '-';
     const leadTxt = n.due_date && n.remind_lead_minutes != null ? `<br><span style="font-size:11px;color:var(--muted)">提前${formatLeadMinutes(n.remind_lead_minutes)}</span>` : '';
     const dueWithLead = due + leadTxt;
-    const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+    const created = new Date(n.created_at).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
     const doneBtn = n.is_done
       ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
       : `<button class="btn-sm btn-done" onclick="toggleDone('${n.id}', true)">完成</button>`;

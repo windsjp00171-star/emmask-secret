@@ -44,6 +44,7 @@
     table { width: 100%; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); border-collapse: separate; border-spacing: 0; overflow: hidden; border: 1px solid var(--line); }
     th { background: #f3f6f4; padding: 15px 18px; text-align: left; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .4px; }
     td { padding: 17px 18px; border-top: 1px solid var(--line); font-size: 14.5px; line-height: 1.65; vertical-align: middle; }
+    td[data-label="內容"] { white-space: pre-wrap; }
     tbody tr:hover td { background: #f7faf8; }
     .type-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .type-task { background: #fff1d6; color: #9a6a12; }
@@ -67,12 +68,14 @@
     @media (min-width: 761px) {
       #listView table { table-layout: fixed; }
       #listView th, #listView td { word-break: break-word; overflow-wrap: anywhere; white-space: normal; vertical-align: top; }
-      #listView th:nth-child(1), #listView td:nth-child(1) { width: 42%; }
-      #listView th:nth-child(2), #listView td:nth-child(2) { width: 72px; }
-      #listView th:nth-child(3), #listView td:nth-child(3) { width: 12%; }
-      #listView th:nth-child(4), #listView td:nth-child(4) { width: 108px; }
-      #listView th:nth-child(5), #listView td:nth-child(5) { width: 88px; }
-      #listView th:nth-child(6), #listView td:nth-child(6) { width: 158px; }
+      #listView td[data-label="內容"] { white-space: pre-wrap; }
+      #listView th:nth-child(1), #listView td:nth-child(1) { width: 36px; }
+      #listView th:nth-child(2), #listView td:nth-child(2) { width: 40%; }
+      #listView th:nth-child(3), #listView td:nth-child(3) { width: 72px; }
+      #listView th:nth-child(4), #listView td:nth-child(4) { width: 12%; }
+      #listView th:nth-child(5), #listView td:nth-child(5) { width: 108px; }
+      #listView th:nth-child(6), #listView td:nth-child(6) { width: 88px; }
+      #listView th:nth-child(7), #listView td:nth-child(7) { width: 158px; }
     }
     #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(160deg, #1b4536, #0f2b22); }
     .login-box { background: var(--surface); border-radius: 20px; padding: 44px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.3); min-width: 300px; }
@@ -225,10 +228,25 @@
         <option value="true">已完成</option>
       </select>
       <input type="text" id="search" placeholder="搜尋..." oninput="applyFilters()" />
+      <select id="sortBy" onchange="applyFilters()">
+        <option value="created_desc">建立時間（新→舊）</option>
+        <option value="created_asc">建立時間（舊→新）</option>
+        <option value="due_asc">到期時間（近→遠）</option>
+        <option value="due_desc">到期時間（遠→近）</option>
+        <option value="content_asc">內容（A→Z）</option>
+      </select>
+    </div>
+    <div id="bulkBar" style="display:none;align-items:center;gap:8px;margin-bottom:12px;background:var(--brand-soft);border:1px solid var(--brand);border-radius:10px;padding:10px 14px;">
+      <span id="bulkCount" style="font-weight:600;color:var(--brand-ink);flex:1"></span>
+      <button class="btn-sm btn-done" onclick="bulkDone()">批次完成</button>
+      <button class="btn-sm btn-edit" onclick="bulkSetProject()">改專案</button>
+      <button class="btn-sm btn-del" onclick="bulkDelete()">批次刪除</button>
+      <button class="btn-sm btn-cancel" onclick="clearSelection()">取消選取</button>
     </div>
     <table>
       <thead>
         <tr>
+          <th style="width:36px"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this.checked)" /></th>
           <th>內容</th>
           <th>類型</th>
           <th>專案</th>
@@ -256,6 +274,7 @@
 let token = '';
 let allNotes = [];
 let activeProject = '';
+let selectedIds = new Set();
 
 const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project_update: '專案更新' };
 const TYPE_CLASS = { task: 'type-task', reminder: 'type-reminder', note: 'type-note', project_update: 'type-project_update' };
@@ -277,8 +296,13 @@ function doLogin() {
 async function tryStoredLogin() {
   const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
   if (!saved) return;
+  document.getElementById('login').style.display = 'none'; // 先隱藏，避免驗證期間閃一下登入畫面
   const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
-  if (res.status === 401) { localStorage.removeItem('dashboardToken'); return; }
+  if (res.status === 401) {
+    localStorage.removeItem('dashboardToken');
+    document.getElementById('login').style.display = 'flex'; // 驗證失敗才顯示登入畫面
+    return;
+  }
   token = saved;
   localStorage.setItem('dashboardToken', token);
   loadNotes();
@@ -350,6 +374,22 @@ function setProject(p) {
   applyFilters();
 }
 
+function sortNotes(items, sortBy) {
+  const byDue = (a, b, dir) => {
+    if (!a.due_date && !b.due_date) return 0;
+    if (!a.due_date) return 1; // 沒有到期時間的排最後
+    if (!b.due_date) return -1;
+    return dir * (new Date(a.due_date) - new Date(b.due_date));
+  };
+  const sorted = items.slice();
+  if (sortBy === 'created_asc') sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  else if (sortBy === 'due_asc') sorted.sort((a, b) => byDue(a, b, 1));
+  else if (sortBy === 'due_desc') sorted.sort((a, b) => byDue(a, b, -1));
+  else if (sortBy === 'content_asc') sorted.sort((a, b) => (a.content || '').localeCompare(b.content || '', 'zh-TW'));
+  else sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // created_desc（預設）
+  return sorted;
+}
+
 function applyFilters() {
   const type = document.getElementById('filterType').value;
   const done = document.getElementById('filterDone').value;
@@ -362,10 +402,12 @@ function applyFilters() {
     if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
     return true;
   });
+  filtered = sortNotes(filtered, document.getElementById('sortBy').value);
 
   const tbody = document.getElementById('tableBody');
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">沒有符合的記錄</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">沒有符合的記錄</td></tr>';
+    updateBulkBar();
     return;
   }
 
@@ -378,7 +420,9 @@ function applyFilters() {
       ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
       : `<button class="btn-sm btn-done" onclick="toggleDone('${n.id}', true)">完成</button>`;
     const safeContent = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const checked = selectedIds.has(n.id) ? 'checked' : '';
     return `<tr class="${n.is_done ? 'done-row' : ''}">
+      <td data-label="選取"><input type="checkbox" class="rowCheck" ${checked} onchange="toggleSelect('${n.id}', this.checked)" /></td>
       <td data-label="內容">${safeContent}</td>
       <td data-label="類型"><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
       <td data-label="專案">${n.project || '-'}</td>
@@ -387,6 +431,7 @@ function applyFilters() {
       <td data-label="操作"><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
     </tr>`;
   }).join('');
+  updateBulkBar();
 }
 
 async function toggleDone(id, is_done) {
@@ -403,6 +448,87 @@ async function deleteNote(id) {
   allNotes = allNotes.filter(n => n.id !== id);
   renderStats();
   renderProjectTags();
+  applyFilters();
+}
+
+// ---- 批次選取操作 ----
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar();
+}
+
+function toggleSelectAll(checked) {
+  getShownIds().forEach(id => { if (checked) selectedIds.add(id); else selectedIds.delete(id); });
+  applyFilters();
+}
+
+function getShownIds() {
+  const type = document.getElementById('filterType').value;
+  const done = document.getElementById('filterDone').value;
+  const search = document.getElementById('search').value.toLowerCase();
+  return allNotes.filter(n => {
+    if (type && n.type !== type) return false;
+    if (done !== '' && String(n.is_done) !== done) return false;
+    if (activeProject && n.project !== activeProject) return false;
+    if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
+    return true;
+  }).map(n => n.id);
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  applyFilters();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  const selectAllBox = document.getElementById('selectAllBox');
+  if (selectedIds.size === 0) {
+    bar.style.display = 'none';
+    if (selectAllBox) selectAllBox.checked = false;
+    return;
+  }
+  bar.style.display = 'flex';
+  document.getElementById('bulkCount').textContent = `已選 ${selectedIds.size} 筆`;
+  if (selectAllBox) {
+    const shown = getShownIds();
+    selectAllBox.checked = shown.length > 0 && shown.every(id => selectedIds.has(id));
+  }
+}
+
+async function bulkDone() {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  if (!confirm(`確定將這 ${ids.length} 筆標記為完成？`)) return;
+  await Promise.all(ids.map(id => api('PATCH', { id, is_done: true })));
+  ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = true; });
+  clearSelection();
+  renderStats();
+  applyFilters();
+}
+
+async function bulkDelete() {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  if (!confirm(`確定刪除這 ${ids.length} 筆？無法復原。`)) return;
+  await Promise.all(ids.map(id => api('DELETE', { id })));
+  allNotes = allNotes.filter(n => !selectedIds.has(n.id));
+  clearSelection();
+  renderStats();
+  renderProjectTags();
+  applyFilters();
+}
+
+async function bulkSetProject() {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  const project = prompt(`把這 ${ids.length} 筆改成哪個專案？（留空＝清空專案）`);
+  if (project === null) return;
+  await Promise.all(ids.map(id => api('PATCH', { id, project })));
+  ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.project = project || null; });
+  clearSelection();
+  renderProjectTags();
+  updateProjectList();
   applyFilters();
 }
 

@@ -96,8 +96,13 @@ function doLogin() {
 async function tryStoredLogin() {
   const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
   if (!saved) return;
+  document.getElementById('login').style.display = 'none';
   const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
-  if (res.status === 401) { localStorage.removeItem('dashboardToken'); return; }
+  if (res.status === 401) {
+    localStorage.removeItem('dashboardToken');
+    document.getElementById('login').style.display = 'flex';
+    return;
+  }
   token = saved;
   localStorage.setItem('dashboardToken', token);
   load();

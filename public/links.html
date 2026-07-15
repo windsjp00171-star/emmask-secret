@@ -89,6 +89,17 @@ function nav(page) { window.location.href = '/' + page + '?token=' + encodeURICo
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
   if (!token) return alert('請輸入密碼');
+  localStorage.setItem('dashboardToken', token);
+  load();
+}
+
+async function tryStoredLogin() {
+  const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
+  if (!saved) return;
+  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
+  if (res.status === 401) { localStorage.removeItem('dashboardToken'); return; }
+  token = saved;
+  localStorage.setItem('dashboardToken', token);
   load();
 }
 
@@ -169,8 +180,7 @@ async function del(id) {
   render();
 }
 
-const urlToken = new URLSearchParams(location.search).get('token');
-if (urlToken) { token = urlToken; load(); }
+tryStoredLogin();
 </script>
 </body>
 </html>

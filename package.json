@@ -4,7 +4,8 @@
   "description": "EmmArk 小秘書 LINE Bot",
   "main": "index.js",
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "vercel dev",
+    "test": "node --test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

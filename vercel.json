@@ -8,5 +8,13 @@
       "path": "/api/cron/weekly",
       "schedule": "0 0 * * 5"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, must-revalidate" }
+      ]
+    }
   ]
 }

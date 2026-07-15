@@ -20,7 +20,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
-    header { background: linear-gradient(135deg, #1b4536, #14352a); color: #fff; padding: 18px 28px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 12px rgba(20,40,30,.12); }
+    header { background: linear-gradient(135deg, #1b4536, #14352a); color: #fff; padding: 18px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 12px rgba(20,40,30,.12); }
     header h1 { font-size: 18px; font-weight: 700; flex: 1; letter-spacing: .3px; }
     header a { color: rgba(255,255,255,.7); font-size: 13px; text-decoration: none; }
     header a:hover { color: #fff; }
@@ -174,7 +174,11 @@
 <div id="main">
   <header>
     <h1>⛪ 主日服事表</h1>
-    <a href="/index.html">← 返回 Dashboard</a>
+    <a href="#" onclick="navTo('index.html')">📋 Dashboard</a>
+    <a href="#" onclick="navTo('songs.html')">🎼 詩歌庫</a>
+    <a href="#" onclick="navTo('order.html')">🎵 敬拜順序</a>
+    <a href="#" onclick="navTo('meetings.html')">📝 會議記錄</a>
+    <a href="#" onclick="navTo('links.html')">🔗 收藏</a>
   </header>
   <div class="container">
     <div class="toolbar">
@@ -228,6 +232,7 @@
 
 <script>
 let token = '';
+function navTo(page) { window.location.href = '/' + page + '?token=' + encodeURIComponent(token); }
 let allData = [];   // worship_schedule rows
 let allDates = [];  // worship_dates rows [{id, service_date}]
 let allRoles = [];  // worship_roles rows [{id, role_name, sort_order}]

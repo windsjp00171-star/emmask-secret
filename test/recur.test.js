@@ -4,10 +4,10 @@ const assert = require('node:assert/strict');
 const { parseRecur, nextRecurDue, recurLabel } = require('../lib/commands.js')._test;
 
 test('parseRecur: 每半年，以指定日期為錨點，間隔6個月', () => {
-  const r = parseRecur('提醒 8/1開始 每半年通知一次義全哥來更換飲水機濾心');
+  const r = parseRecur('提醒 12/1開始 每半年通知一次義全哥來更換飲水機濾心');
   assert.ok(r);
   assert.equal(r.recur, 'monthly:1:6');
-  assert.equal(new Date(r.due).toISOString().slice(0, 10), '2026-08-01');
+  assert.equal(new Date(r.due).toISOString().slice(0, 10), '2026-12-01');
 });
 
 test('parseRecur: 每年，間隔12個月', () => {

@@ -1372,6 +1372,7 @@ function extractUrl(text) {
 const Links = {
   items: [],
   filter: 'active',
+  titleCache: {}, // url -> 抓到的網頁標題（或 null 代表抓不到），同一個網址一個 session 只抓一次
 
   async load() {
     const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('收藏')}&limit=200`, { headers: { 'x-dashboard-token': token } });
@@ -1397,8 +1398,11 @@ const Links = {
       const url = extractUrl(n.content || '');
       const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
       const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const title = url ? this.titleCache[url] : null;
+      const escTitle = title ? title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : null;
+      const escUrl = url ? url.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
       const body = url
-        ? `<a href="${url}" target="_blank" rel="noopener">${safe}</a>`
+        ? `<a href="${url}" target="_blank" rel="noopener">${escTitle || escUrl}</a>` + (escTitle ? `<div class="meta" style="margin-top:2px">${escUrl}</div>` : '')
         : `<span>${safe}</span>`;
       return `<div class="card ${n.is_done ? 'done' : ''}">
         <div class="content">${body}<div class="meta">收藏於 ${created}</div></div>
@@ -1406,6 +1410,25 @@ const Links = {
         <button class="btn-sm btn-del" onclick="Links.del('${n.id}')">刪除</button>
       </div>`;
     }).join('');
+
+    // 背景抓還沒快取過標題的連結，抓到後重新渲染一次換成可讀標題
+    const urls = [...new Set(filtered.map(n => extractUrl(n.content || '')).filter(Boolean))];
+    this.fetchTitlesFor(urls).then((fetchedAny) => { if (fetchedAny) this.render(); });
+  },
+
+  async fetchTitlesFor(urls) {
+    const missing = urls.filter(u => !(u in this.titleCache));
+    if (missing.length === 0) return false;
+    await Promise.all(missing.map(async (u) => {
+      try {
+        const res = await fetch(`/api/unfurl?url=${encodeURIComponent(u)}`, { headers: { 'x-dashboard-token': token } });
+        const data = await res.json();
+        this.titleCache[u] = (data && data.title) || null;
+      } catch (e) {
+        this.titleCache[u] = null;
+      }
+    }));
+    return true;
   },
 
   async add() {

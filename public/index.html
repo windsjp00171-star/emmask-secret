@@ -29,6 +29,10 @@
     header { background: linear-gradient(135deg, #1b4536, #14352a); color: #fff; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; box-shadow: 0 2px 12px rgba(20,40,30,.12); }
     header h1 { font-size: 18px; font-weight: 700; letter-spacing: .3px; display: flex; align-items: center; gap: 8px; }
     header span { font-size: 13px; color: rgba(255,255,255,.55); }
+    .tabbar { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab-btn { padding: 7px 14px; border-radius: 8px; border: none; background: rgba(255,255,255,.08); color: rgba(255,255,255,.75); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .12s, color .12s; }
+    .tab-btn:hover { background: rgba(255,255,255,.14); }
+    .tab-btn.active { background: rgba(255,255,255,.2); color: #fff; }
     .container { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 28px; }
     .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 16px; text-align: center; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s; }
@@ -39,6 +43,7 @@
     .filters select, .filters input { padding: 9px 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; background: var(--surface); color: var(--ink); }
     .filters input { flex: 1; min-width: 160px; }
     select:focus, input:focus, textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(31,111,84,.15); }
+    input, textarea { padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; font-family: inherit; width: 100%; }
     .btn { padding: 9px 18px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: filter .12s, transform .05s; }
     .btn:hover { filter: brightness(.95); }
     .btn:active { transform: translateY(1px); }
@@ -47,6 +52,11 @@
     .btn-done { background: #2e9d63; color: #fff; }
     .btn-del { background: #e5544b; color: #fff; }
     .btn-undone { background: #e8912f; color: #fff; }
+    .btn-cancel { background: #eceeec; color: var(--ink); }
+    .btn-edit { background: #5a6f66; color: #fff; }
+    .btn-archive { background: #e8912f; color: #fff; }
+    .btn-tab { background: #e9ece9; color: var(--muted); padding: 8px 16px; border-radius: 9px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-tab.active { background: var(--brand); color: #fff; }
     table { width: 100%; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); border-collapse: separate; border-spacing: 0; overflow: hidden; border: 1px solid var(--line); }
     th { background: #f3f6f4; padding: 15px 18px; text-align: left; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .4px; }
     td { padding: 17px 18px; border-top: 1px solid var(--line); font-size: 14.5px; line-height: 1.65; vertical-align: middle; }
@@ -106,14 +116,17 @@
     .empty { text-align: center; color: var(--muted); padding: 48px; font-size: 15px; }
     .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,30,25,.5); backdrop-filter: blur(2px); z-index: 100; align-items: center; justify-content: center; }
     .modal-bg.open { display: flex; }
-    .modal { background: var(--surface); border-radius: 18px; padding: 28px; width: 100%; max-width: 460px; margin: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.25); }
+    .modal { background: var(--surface); border-radius: 18px; padding: 28px; width: 100%; max-width: 460px; margin: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.25); max-height: 90vh; overflow: auto; }
     .modal h3 { margin-bottom: 20px; font-size: 18px; color: var(--brand-ink); }
     .modal label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; margin-top: 14px; font-weight: 500; }
     .modal input, .modal select, .modal textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; font-family: inherit; }
     .modal textarea { resize: vertical; min-height: 80px; }
+    .modal .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
     .modal-actions { display: flex; gap: 8px; margin-top: 22px; justify-content: flex-end; }
-    .btn-cancel { background: #eceeec; color: var(--ink); }
-    .btn-edit { background: #5a6f66; color: #fff; }
+    #orderFContent, #meetingsFContent { min-height: 220px; }
+    #orderFContent { font-family: 'SF Mono', Menlo, monospace; }
+    #songsFSection { min-height: 120px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     .view-tabs { display: flex; gap: 6px; margin-bottom: 18px; background: #e9ece9; padding: 4px; border-radius: 12px; width: fit-content; }
     .view-tab { padding: 8px 20px; border-radius: 9px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); transition: all .12s; }
     .view-tab.active { background: var(--surface); color: var(--brand-ink); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
@@ -143,6 +156,29 @@
     .day-item:first-of-type { border-top: none; }
     .day-item .dtime { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 44px; }
     .day-item .dbadge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .toolbar { display: flex; gap: 8px; margin-bottom: 18px; }
+    .toolbar input { flex: 1; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 10px; }
+    .card.done { opacity: .5; }
+    .card-head { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .card-head .title { font-weight: 700; flex: 1; }
+    .card-head .date { font-weight: 700; flex: 1; color: var(--brand-ink); }
+    .card-head .tag { font-size: 12px; color: var(--muted); background: #f1f3f1; padding: 2px 8px; border-radius: 8px; }
+    .card-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .card-body.open { display: block; }
+    .lyrics { white-space: pre-wrap; font-size: 13px; color: var(--ink); line-height: 1.6; margin-bottom: 10px; }
+    .history { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .content-pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; font-size: 13px; line-height: 1.6; margin-bottom: 10px; }
+    .action-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; }
+    .action-item.done { opacity: .5; text-decoration: line-through; }
+    .action-item span { flex: 1; }
+    .add-row { display: flex; gap: 8px; margin-bottom: 18px; }
+    .add-row input { flex: 1; }
+    .link-filters { display: flex; gap: 6px; margin-bottom: 16px; }
+    .card .content { flex: 1; min-width: 0; word-break: break-word; }
+    .card a { color: var(--brand-ink); font-weight: 600; text-decoration: none; }
+    .card a:hover { text-decoration: underline; }
+    .card .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -221,17 +257,69 @@
   </div>
 </div>
 
+<div class="modal-bg" id="songsEditModal">
+  <div class="modal">
+    <h3 id="songsModalTitle">編輯歌曲</h3>
+    <label>歌名 *</label>
+    <input type="text" id="songsFTitle" />
+    <div class="row3">
+      <div><label>調性</label><input type="text" id="songsFKey" placeholder="D" /></div>
+      <div><label>BPM</label><input type="text" id="songsFBpm" placeholder="72" /></div>
+      <div><label>連結</label><input type="text" id="songsFLink" placeholder="https://" /></div>
+    </div>
+    <label>歌詞／段落結構</label>
+    <textarea id="songsFSection" placeholder="[verse]&#10;..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="Songs.closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="Songs.save()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="orderEditModal">
+  <div class="modal">
+    <h3 id="orderModalTitle">編輯敬拜順序</h3>
+    <label>日期 *</label>
+    <input type="date" id="orderFDate" />
+    <label>內容（歌單、段落結構、歌詞都可以，換行照原樣保留）</label>
+    <textarea id="orderFContent" placeholder="1.無人能與祢相比(E)&#10;1-PC-C-間奏..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="Order.closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="Order.save()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="meetingsEditModal">
+  <div class="modal">
+    <h3 id="meetingsModalTitle">編輯會議記錄</h3>
+    <label>日期 *</label>
+    <input type="date" id="meetingsFDate" />
+    <label>內容</label>
+    <textarea id="meetingsFContent" placeholder="討論事項...&#10;待辦: 阿德負責音控報價"></textarea>
+    <div class="hint">行首寫「待辦: xxx」「TODO: xxx」會自動變成獨立待辦（新增時才會抓，編輯已存的記錄不會重複建立）</div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="Meetings.closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="Meetings.save()">儲存</button>
+    </div>
+  </div>
+</div>
+
 <div id="main">
   <header>
-    <h1>EmmArk 小秘書 Dashboard</h1>
-    <a id="worshipLink" href="#" onclick="goPage('worship.html')" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">⛪ 服事表</a>
-    <a href="#" onclick="goPage('songs.html')" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">🎼 詩歌庫</a>
-    <a href="#" onclick="goPage('order.html')" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">🎵 敬拜順序</a>
-    <a href="#" onclick="goPage('meetings.html')" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">📝 會議記錄</a>
-    <a href="#" onclick="goPage('links.html')" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">🔗 收藏</a>
+    <h1>EmmArk 小秘書</h1>
+    <nav class="tabbar" id="tabbar">
+      <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">📋 Dashboard</button>
+      <button class="tab-btn" id="tabBtn-songs" onclick="switchTab('songs')">🎼 詩歌庫</button>
+      <button class="tab-btn" id="tabBtn-order" onclick="switchTab('order')">🎵 敬拜順序</button>
+      <button class="tab-btn" id="tabBtn-meetings" onclick="switchTab('meetings')">📝 會議記錄</button>
+      <button class="tab-btn" id="tabBtn-links" onclick="switchTab('links')">🔗 收藏</button>
+    </nav>
+    <a href="#" onclick="goPage('worship.html')" style="color:rgba(255,255,255,.7);font-size:13px;text-decoration:none;white-space:nowrap">⛪ 服事表</a>
     <span id="lastRefresh"></span>
   </header>
-  <div class="container">
+
+  <div id="panel-dashboard" class="tab-panel container">
     <div class="stats" id="stats"></div>
     <div class="view-tabs">
       <button class="view-tab active" id="tabList" onclick="switchView('list')">📋 列表</button>
@@ -296,7 +384,43 @@
       <div class="day-detail" id="dayDetail" style="display:none"></div>
     </div>
   </div>
-  <button class="fab" onclick="openModal()" title="新增記錄" aria-label="新增記錄">＋</button>
+
+  <div id="panel-songs" class="tab-panel container" style="display:none">
+    <div class="toolbar">
+      <input type="text" id="songsSearch" placeholder="搜尋歌名..." oninput="Songs.render()" />
+      <button class="btn btn-primary" onclick="Songs.openAdd()">＋ 新增歌曲</button>
+    </div>
+    <div id="songsList"></div>
+  </div>
+
+  <div id="panel-order" class="tab-panel container" style="display:none">
+    <div class="toolbar" style="justify-content:flex-end">
+      <button class="btn btn-primary" onclick="Order.openAdd()">＋ 新增順序</button>
+    </div>
+    <div id="orderList"></div>
+  </div>
+
+  <div id="panel-meetings" class="tab-panel container" style="display:none">
+    <div class="toolbar" style="justify-content:flex-end">
+      <button class="btn btn-primary" onclick="Meetings.openAdd()">＋ 新增會議記錄</button>
+    </div>
+    <div id="meetingsList"></div>
+  </div>
+
+  <div id="panel-links" class="tab-panel container" style="display:none">
+    <div class="add-row">
+      <input type="text" id="linksNewInput" placeholder="貼上網址或備註..." onkeydown="if(event.key==='Enter')Links.add()" />
+      <button class="btn btn-primary" onclick="Links.add()">＋ 收藏</button>
+    </div>
+    <div class="link-filters">
+      <button class="btn-tab active" id="linksTabActive" onclick="Links.setFilter('active')">未封存</button>
+      <button class="btn-tab" id="linksTabDone" onclick="Links.setFilter('done')">已封存</button>
+      <button class="btn-tab" id="linksTabAll" onclick="Links.setFilter('all')">全部</button>
+    </div>
+    <div id="linksList"></div>
+  </div>
+
+  <button class="fab" onclick="onFabClick()" title="新增" aria-label="新增">＋</button>
 </div>
 
 <script>
@@ -307,6 +431,40 @@ let selectedIds = new Set();
 
 const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project_update: '專案更新' };
 const TYPE_CLASS = { task: 'type-task', reminder: 'type-reminder', note: 'type-note', project_update: 'type-project_update' };
+
+// ---- 分頁籤切換（取代原本 5 個獨立頁面互跳，共用同一個登入 session） ----
+const TABS = ['dashboard', 'songs', 'order', 'meetings', 'links'];
+let currentTab = 'dashboard';
+const loadedTabs = new Set(['dashboard']);
+let hashTabApplied = false;
+
+function switchTab(name) {
+  if (!TABS.includes(name)) name = 'dashboard';
+  currentTab = name;
+  TABS.forEach(t => {
+    document.getElementById('panel-' + t).style.display = t === name ? 'block' : 'none';
+    document.getElementById('tabBtn-' + t).classList.toggle('active', t === name);
+  });
+  if (!loadedTabs.has(name)) {
+    loadedTabs.add(name);
+    if (name === 'songs') Songs.load();
+    else if (name === 'order') Order.load();
+    else if (name === 'meetings') Meetings.load();
+    else if (name === 'links') Links.load();
+  }
+}
+
+function onFabClick() {
+  if (currentTab === 'dashboard') openModal();
+  else if (currentTab === 'songs') Songs.openAdd();
+  else if (currentTab === 'order') Order.openAdd();
+  else if (currentTab === 'meetings') Meetings.openAdd();
+  else if (currentTab === 'links') document.getElementById('linksNewInput').focus();
+}
+
+function goPage(page) {
+  window.location.href = '/' + page;
+}
 
 function formatLeadMinutes(min) {
   if (min % 1440 === 0) return `${min / 1440}天`;
@@ -382,6 +540,13 @@ async function loadNotes() {
   if (currentView === 'calendar') {
     renderCalendar();
     if (selectedKey) showDay(selectedKey);
+  }
+
+  // 網址帶 #songs / #order / #meetings / #links（例如從服事表頁面跳過來）第一次登入完成後自動切過去
+  if (!hashTabApplied) {
+    hashTabApplied = true;
+    const h = (location.hash || '').replace('#', '');
+    if (h && TABS.includes(h) && h !== 'dashboard') switchTab(h);
   }
 }
 
@@ -755,13 +920,13 @@ function showDay(key) {
     .filter(n => n.due_date && !n.is_done && (n.type === 'task' || n.type === 'reminder') && taipeiKey(n.due_date) === key)
     .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
 
-  const dateLabel = new Date(`${key}T00:00:00+08:00`).toLocaleDateString('zh-TW', {
+  const dateLabel2 = new Date(`${key}T00:00:00+08:00`).toLocaleDateString('zh-TW', {
     timeZone: 'Asia/Taipei', month: 'long', day: 'numeric', weekday: 'long',
   });
 
   const worship = worshipByDate[key] || [];
 
-  let html = `<h3>${dateLabel}</h3>`;
+  let html = `<h3>${dateLabel2}</h3>`;
   if (items.length === 0 && worship.length === 0) {
     html += '<div class="empty" style="padding:16px">這天沒有排定事項</div>';
   } else {
@@ -807,9 +972,467 @@ async function dayDeleteNote(id) {
 // Auto refresh every 60s
 setInterval(loadNotes, 60000);
 
-function goPage(page) {
-  window.location.href = '/' + page;
+// ---- 共用小工具（詩歌庫／敬拜順序／會議記錄共用） ----
+function dateKey(iso) { return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' }); }
+function dateLabel(iso) {
+  return new Date(iso).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', weekday: 'short' });
 }
+
+// ---- 詩歌庫 ----
+// 把 YouTube 網址（watch/youtu.be/shorts/embed 都支援）轉成可嵌入的 embed 網址，不是 YouTube 就回傳 null
+function youtubeEmbedUrl(url) {
+  let u;
+  try { u = new URL(url); } catch (e) { return null; }
+  const host = u.hostname.replace(/^www\./, '');
+  let id = null;
+  if (host === 'youtu.be') {
+    id = u.pathname.slice(1);
+  } else if (host === 'youtube.com' || host === 'm.youtube.com') {
+    if (u.pathname === '/watch') id = u.searchParams.get('v');
+    else if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
+    else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/')[2];
+  }
+  return id ? `https://www.youtube.com/embed/${id}` : null;
+}
+
+// 跟 lib/commands.js 的 parseSongEntry 邏輯一致：只解析前4個欄位，其餘原文保留
+function parseSongEntry(content) {
+  const [main, ...histParts] = content.trim().split(/｜版本紀錄[:：]/);
+  const history = histParts.join('｜版本紀錄:');
+  const m = main.trim().match(/^(\S+)(?:\s+(\S+))?(?:\s+(\S+))?(?:\s+(\S+))?(?:\s+([\s\S]*))?$/);
+  if (!m) return { title: '', key: '', bpm: '', link: '', section: '', history };
+  return { title: m[1] || '', key: m[2] || '', bpm: m[3] || '', link: m[4] || '', section: (m[5] || '').trim(), history };
+}
+
+const Songs = {
+  items: [],
+  editingId: null,
+  openCardId: null,
+
+  async load() {
+    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('詩歌')}&limit=200`, { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    this.items = await res.json();
+    this.render();
+  },
+
+  render() {
+    const kw = document.getElementById('songsSearch').value.trim().toLowerCase();
+    const list = document.getElementById('songsList');
+    const parsed = this.items.map(n => ({ note: n, entry: parseSongEntry(n.content || '') }))
+      .filter(x => !kw || x.entry.title.toLowerCase().includes(kw));
+    if (parsed.length === 0) {
+      list.innerHTML = '<div class="empty">詩歌庫還沒有資料</div>';
+      return;
+    }
+    list.innerHTML = parsed.map(({ note, entry }) => {
+      const open = this.openCardId === note.id;
+      const tag = [entry.key, entry.bpm].filter(Boolean).join(' · ');
+      // 只有展開的卡片才嵌入播放器，避免一次載入一堆 iframe
+      const ytEmbed = (open && entry.link) ? youtubeEmbedUrl(entry.link) : null;
+      const linkHtml = entry.link
+        ? (ytEmbed
+            ? `<div style="position:relative;width:100%;padding-top:56.25%;margin-bottom:10px;border-radius:10px;overflow:hidden">
+                 <iframe src="${ytEmbed}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" allowfullscreen loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+               </div>
+               <a href="${entry.link}" target="_blank" rel="noopener" style="font-size:12px;color:var(--muted)">${entry.link}</a><br>`
+            : `<a href="${entry.link}" target="_blank" rel="noopener">${entry.link}</a><br>`)
+        : '';
+      const safeLyrics = (entry.section || '（沒有歌詞／段落資料）').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const historyHtml = entry.history ? `<div class="history">📜 版本紀錄：${entry.history}</div>` : '';
+      return `<div class="card">
+        <div class="card-head" onclick="Songs.toggleCard('${note.id}')">
+          <span class="title">🎼 ${entry.title || '(未命名)'}</span>
+          ${tag ? `<span class="tag">${tag}</span>` : ''}
+        </div>
+        <div class="card-body ${open ? 'open' : ''}" id="songs-body-${note.id}">
+          ${linkHtml}
+          ${historyHtml}
+          <div class="lyrics">${safeLyrics}</div>
+          <div class="actions">
+            <button class="btn-sm btn-edit" onclick="Songs.openEdit('${note.id}')">編輯</button>
+            <button class="btn-sm btn-del" onclick="Songs.del('${note.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  toggleCard(id) {
+    this.openCardId = this.openCardId === id ? null : id;
+    this.render();
+  },
+
+  openAdd() {
+    this.editingId = null;
+    document.getElementById('songsModalTitle').textContent = '新增歌曲';
+    document.getElementById('songsFTitle').value = '';
+    document.getElementById('songsFKey').value = '';
+    document.getElementById('songsFBpm').value = '';
+    document.getElementById('songsFLink').value = '';
+    document.getElementById('songsFSection').value = '';
+    document.getElementById('songsEditModal').classList.add('open');
+  },
+
+  openEdit(id) {
+    const note = this.items.find(n => n.id === id);
+    if (!note) return;
+    const entry = parseSongEntry(note.content || '');
+    this.editingId = id;
+    document.getElementById('songsModalTitle').textContent = '編輯歌曲';
+    document.getElementById('songsFTitle').value = entry.title;
+    document.getElementById('songsFKey').value = entry.key;
+    document.getElementById('songsFBpm').value = entry.bpm;
+    document.getElementById('songsFLink').value = entry.link;
+    document.getElementById('songsFSection').value = entry.section;
+    document.getElementById('songsEditModal').classList.add('open');
+  },
+
+  closeModal() {
+    document.getElementById('songsEditModal').classList.remove('open');
+  },
+
+  async save() {
+    const title = document.getElementById('songsFTitle').value.trim();
+    if (!title) return alert('請填寫歌名');
+    const key = document.getElementById('songsFKey').value.trim();
+    const bpm = document.getElementById('songsFBpm').value.trim();
+    const link = document.getElementById('songsFLink').value.trim();
+    const section = document.getElementById('songsFSection').value.trim();
+    const header = [title, key, bpm, link].filter(Boolean).join(' ');
+    // 編輯時保留原本的版本紀錄字串，不從後台這邊動它
+    let history = '';
+    if (this.editingId) {
+      const note = this.items.find(n => n.id === this.editingId);
+      const parsed = parseSongEntry(note.content || '');
+      if (parsed.history) history = `\n｜版本紀錄:${parsed.history}`;
+    }
+    const content = [header, section].filter(Boolean).join('\n') + history;
+
+    if (this.editingId) {
+      const updated = await api('PATCH', { id: this.editingId, content });
+      if (!updated) return;
+      const idx = this.items.findIndex(n => n.id === this.editingId);
+      if (idx !== -1) this.items[idx].content = content;
+    } else {
+      const data = await api('POST', { type: 'note', project: '詩歌', content });
+      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      this.items.unshift(data);
+    }
+    this.closeModal();
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這首歌？')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+};
+
+// ---- 敬拜順序 ----
+const Order = {
+  items: [],
+  editingId: null,
+  openCardId: null,
+
+  async load() {
+    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('敬拜順序')}&limit=200`, { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    this.items = (await res.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.render();
+  },
+
+  render() {
+    const list = document.getElementById('orderList');
+    if (this.items.length === 0) {
+      list.innerHTML = '<div class="empty">還沒有任何敬拜順序記錄</div>';
+      return;
+    }
+    list.innerHTML = this.items.map(n => {
+      const open = this.openCardId === n.id;
+      const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<div class="card">
+        <div class="card-head" onclick="Order.toggleCard('${n.id}')">
+          <span class="date">${dateLabel(n.due_date)}</span>
+        </div>
+        <div class="card-body ${open ? 'open' : ''}">
+          <div class="content-pre">${safe}</div>
+          <div class="actions">
+            <button class="btn-sm btn-edit" onclick="Order.openEdit('${n.id}')">編輯</button>
+            <button class="btn-sm btn-del" onclick="Order.del('${n.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  toggleCard(id) {
+    this.openCardId = this.openCardId === id ? null : id;
+    this.render();
+  },
+
+  openAdd() {
+    this.editingId = null;
+    document.getElementById('orderModalTitle').textContent = '新增敬拜順序';
+    document.getElementById('orderFDate').value = dateKey(new Date().toISOString());
+    document.getElementById('orderFContent').value = '';
+    document.getElementById('orderEditModal').classList.add('open');
+  },
+
+  openEdit(id) {
+    const n = this.items.find(x => x.id === id);
+    if (!n) return;
+    this.editingId = id;
+    document.getElementById('orderModalTitle').textContent = '編輯敬拜順序';
+    document.getElementById('orderFDate').value = dateKey(n.due_date);
+    document.getElementById('orderFContent').value = n.content || '';
+    document.getElementById('orderEditModal').classList.add('open');
+  },
+
+  closeModal() {
+    document.getElementById('orderEditModal').classList.remove('open');
+  },
+
+  async save() {
+    const dateStr = document.getElementById('orderFDate').value;
+    const content = document.getElementById('orderFContent').value.trim();
+    if (!dateStr) return alert('請選擇日期');
+    if (!content) return alert('請填寫內容');
+    const due_date = new Date(`${dateStr}T09:00:00+08:00`).toISOString();
+
+    if (this.editingId) {
+      const updated = await api('PATCH', { id: this.editingId, content, due_date });
+      if (!updated) return;
+      const idx = this.items.findIndex(n => n.id === this.editingId);
+      if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
+    } else {
+      const data = await api('POST', { type: 'note', project: '敬拜順序', content, due_date });
+      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      this.items.unshift(data);
+    }
+    this.items.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.closeModal();
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這份敬拜順序？')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+};
+
+// ---- 會議記錄 ----
+// 跟 lib/commands.js 的 extractActionItems 邏輯一致
+function extractActionItems(content) {
+  const items = [];
+  content.split('\n').forEach((line) => {
+    const m = line.match(/^\s*(?:待辦|待辦事項|todo|to-?do|行動項目|action)[:：]\s*(.+)$/i);
+    if (m && m[1].trim()) items.push(m[1].trim());
+  });
+  return items;
+}
+
+const Meetings = {
+  items: [],
+  actionItems: [],
+  editingId: null,
+  openCardId: null,
+
+  async load() {
+    const [mRes, tRes] = await Promise.all([
+      fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
+      fetch(`/api/dashboard/notes?type=task&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
+    ]);
+    if (mRes.status === 401) { alert('密碼錯誤'); return; }
+    this.items = (await mRes.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.actionItems = await tRes.json();
+    this.render();
+  },
+
+  render() {
+    const list = document.getElementById('meetingsList');
+    if (this.items.length === 0) {
+      list.innerHTML = '<div class="empty">還沒有任何會議記錄</div>';
+      return;
+    }
+    list.innerHTML = this.items.map(n => {
+      const open = this.openCardId === n.id;
+      const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // 用建立時間相近（同一天）粗略歸屬待辦項目給該次會議
+      const dayItems = this.actionItems.filter(t => dateKey(t.created_at) === dateKey(n.created_at));
+      const itemsHtml = dayItems.map(t => `<div class="action-item ${t.is_done ? 'done' : ''}">
+        <span>${(t.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+        ${!t.is_done ? `<button class="btn-sm btn-done" onclick="Meetings.doneItem('${t.id}')">完成</button>` : ''}
+        <button class="btn-sm btn-del" onclick="Meetings.delItem('${t.id}')">刪除</button>
+      </div>`).join('');
+      return `<div class="card">
+        <div class="card-head" onclick="Meetings.toggleCard('${n.id}')">
+          <span class="date">${dateLabel(n.due_date)}</span>
+          ${dayItems.length ? `<span class="tag">📌 ${dayItems.length} 個待辦</span>` : ''}
+        </div>
+        <div class="card-body ${open ? 'open' : ''}">
+          <div class="content-pre">${safe}</div>
+          ${itemsHtml}
+          <div class="actions">
+            <button class="btn-sm btn-edit" onclick="Meetings.openEdit('${n.id}')">編輯</button>
+            <button class="btn-sm btn-del" onclick="Meetings.del('${n.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  toggleCard(id) {
+    this.openCardId = this.openCardId === id ? null : id;
+    this.render();
+  },
+
+  openAdd() {
+    this.editingId = null;
+    document.getElementById('meetingsModalTitle').textContent = '新增會議記錄';
+    document.getElementById('meetingsFDate').value = dateKey(new Date().toISOString());
+    document.getElementById('meetingsFContent').value = '';
+    document.getElementById('meetingsEditModal').classList.add('open');
+  },
+
+  openEdit(id) {
+    const n = this.items.find(x => x.id === id);
+    if (!n) return;
+    this.editingId = id;
+    document.getElementById('meetingsModalTitle').textContent = '編輯會議記錄';
+    document.getElementById('meetingsFDate').value = dateKey(n.due_date);
+    document.getElementById('meetingsFContent').value = n.content || '';
+    document.getElementById('meetingsEditModal').classList.add('open');
+  },
+
+  closeModal() {
+    document.getElementById('meetingsEditModal').classList.remove('open');
+  },
+
+  async save() {
+    const dateStr = document.getElementById('meetingsFDate').value;
+    const content = document.getElementById('meetingsFContent').value.trim();
+    if (!dateStr) return alert('請選擇日期');
+    if (!content) return alert('請填寫內容');
+    const due_date = new Date(`${dateStr}T09:00:00+08:00`).toISOString();
+
+    if (this.editingId) {
+      const updated = await api('PATCH', { id: this.editingId, content, due_date });
+      if (!updated) return;
+      const idx = this.items.findIndex(n => n.id === this.editingId);
+      if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
+    } else {
+      const data = await api('POST', { type: 'note', project: '會議記錄', content, due_date });
+      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      this.items.unshift(data);
+
+      const actionTexts = extractActionItems(content);
+      for (const it of actionTexts) {
+        const task = await api('POST', { type: 'task', project: '會議記錄', content: it });
+        if (task && !task.error) this.actionItems.push(task);
+      }
+    }
+    this.items.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.closeModal();
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這則會議記錄？（不會一併刪除已拆出的待辦）')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+
+  async doneItem(id) {
+    await api('PATCH', { id, is_done: true });
+    const t = this.actionItems.find(x => x.id === id);
+    if (t) t.is_done = true;
+    this.render();
+  },
+
+  async delItem(id) {
+    if (!confirm('確定刪除這個待辦？')) return;
+    await api('DELETE', { id });
+    this.actionItems = this.actionItems.filter(t => t.id !== id);
+    this.render();
+  },
+};
+
+// ---- 收藏連結 ----
+function extractUrl(text) {
+  const m = text.match(/https?:\/\/\S+/);
+  return m ? m[0] : null;
+}
+
+const Links = {
+  items: [],
+  filter: 'active',
+
+  async load() {
+    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('收藏')}&limit=200`, { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    this.items = await res.json();
+    this.render();
+  },
+
+  setFilter(f) {
+    this.filter = f;
+    ['active', 'done', 'all'].forEach(k => document.getElementById('linksTab' + k[0].toUpperCase() + k.slice(1)).classList.toggle('active', k === f));
+    this.render();
+  },
+
+  render() {
+    const list = document.getElementById('linksList');
+    const filtered = this.items.filter(n => this.filter === 'all' ? true : this.filter === 'done' ? n.is_done : !n.is_done);
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty">沒有收藏的連結</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(n => {
+      const url = extractUrl(n.content || '');
+      const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+      const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const body = url
+        ? `<a href="${url}" target="_blank" rel="noopener">${safe}</a>`
+        : `<span>${safe}</span>`;
+      return `<div class="card ${n.is_done ? 'done' : ''}">
+        <div class="content">${body}<div class="meta">收藏於 ${created}</div></div>
+        <button class="btn-sm btn-archive" onclick="Links.toggleDone('${n.id}', ${!n.is_done})">${n.is_done ? '取消封存' : '封存'}</button>
+        <button class="btn-sm btn-del" onclick="Links.del('${n.id}')">刪除</button>
+      </div>`;
+    }).join('');
+  },
+
+  async add() {
+    const input = document.getElementById('linksNewInput');
+    const content = input.value.trim();
+    if (!content) return;
+    const data = await api('POST', { type: 'note', project: '收藏', content, is_done: false });
+    if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+    this.items.unshift(data);
+    input.value = '';
+    this.render();
+  },
+
+  async toggleDone(id, is_done) {
+    await api('PATCH', { id, is_done });
+    const n = this.items.find(x => x.id === id);
+    if (n) n.is_done = is_done;
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這則收藏？')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+};
 </script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body>

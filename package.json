@@ -1,6 +1,6 @@
 {
   "name": "emmask-secret",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "EmmArk 小秘書 LINE Bot",
   "main": "index.js",
   "scripts": {

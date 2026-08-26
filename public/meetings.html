@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>會議記錄 - EmmArk</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1f6f54">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="小秘書">
 <style>
   :root {
     --bg: #f4f6f4; --surface: #ffffff; --ink: #1b2420; --muted: #6b7670; --line: #e7ebe8;
@@ -279,5 +285,6 @@ async function delItem(id) {
 
 tryStoredLogin();
 </script>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body>
 </html>

@@ -90,7 +90,7 @@ let token = '';
 let links = [];
 let filter = 'active';
 
-function nav(page) { window.location.href = '/' + page + '?token=' + encodeURIComponent(token); }
+function nav(page) { window.location.href = '/' + page; }
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
@@ -103,7 +103,7 @@ async function tryStoredLogin() {
   const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
   if (!saved) return;
   document.getElementById('login').style.display = 'none';
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
+  const res = await fetch(`/api/dashboard/notes?limit=1`, { headers: { 'x-dashboard-token': saved } });
   if (res.status === 401) {
     localStorage.removeItem('dashboardToken');
     document.getElementById('login').style.display = 'flex';
@@ -115,9 +115,9 @@ async function tryStoredLogin() {
 }
 
 async function api(method, body) {
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+  const res = await fetch(`/api/dashboard/notes`, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401) { alert('密碼錯誤'); return null; }
@@ -125,7 +125,7 @@ async function api(method, body) {
 }
 
 async function load() {
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}&type=note&project=${encodeURIComponent('收藏')}&limit=200`);
+  const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('收藏')}&limit=200`, { headers: { 'x-dashboard-token': token } });
   if (res.status === 401) { alert('密碼錯誤'); return; }
   links = await res.json();
   document.getElementById('login').style.display = 'none';

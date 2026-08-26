@@ -325,7 +325,7 @@ async function tryStoredLogin() {
   const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
   if (!saved) return;
   document.getElementById('login').style.display = 'none'; // 先隱藏，避免驗證期間閃一下登入畫面
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
+  const res = await fetch(`/api/dashboard/notes?limit=1`, { headers: { 'x-dashboard-token': saved } });
   if (res.status === 401) {
     localStorage.removeItem('dashboardToken');
     document.getElementById('login').style.display = 'flex'; // 驗證失敗才顯示登入畫面
@@ -338,9 +338,9 @@ async function tryStoredLogin() {
 tryStoredLogin();
 
 async function api(method, body) {
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+  const res = await fetch(`/api/dashboard/notes`, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401) { alert('密碼錯誤'); return null; }
@@ -356,7 +356,7 @@ async function loadNotes() {
   // 一併載入主日服事表，疊進月曆
   worshipByDate = {};
   try {
-    const wres = await fetch(`/api/worship/schedule?token=${encodeURIComponent(token)}`);
+    const wres = await fetch(`/api/worship/schedule`, { headers: { 'x-dashboard-token': token } });
     if (wres.ok) {
       const wd = await wres.json();
       (wd || []).forEach(w => { (worshipByDate[w.service_date] = worshipByDate[w.service_date] || []).push(w); });
@@ -585,9 +585,9 @@ async function submitNote() {
   if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
   const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+  const res = await fetch(`/api/dashboard/notes`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: JSON.stringify({ type, project, content, due_date, remind_lead_minutes }),
   });
   if (res.status === 401) { alert('密碼錯誤'); return; }
@@ -799,7 +799,7 @@ async function dayDeleteNote(id) {
 setInterval(loadNotes, 60000);
 
 function goPage(page) {
-  window.location.href = '/' + page + '?token=' + encodeURIComponent(token);
+  window.location.href = '/' + page;
 }
 </script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>

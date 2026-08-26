@@ -238,7 +238,7 @@
 
 <script>
 let token = '';
-function navTo(page) { window.location.href = '/' + page + '?token=' + encodeURIComponent(token); }
+function navTo(page) { window.location.href = '/' + page; }
 let allData = [];   // worship_schedule rows
 let allDates = [];  // worship_dates rows [{id, service_date}]
 let allRoles = [];  // worship_roles rows [{id, role_name, sort_order}]
@@ -258,7 +258,7 @@ async function tryStoredLogin() {
   const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
   if (!saved) return;
   document.getElementById('login').style.display = 'none';
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
+  const res = await fetch(`/api/dashboard/notes?limit=1`, { headers: { 'x-dashboard-token': saved } });
   if (res.status === 401) {
     localStorage.removeItem('dashboardToken');
     document.getElementById('login').style.display = 'flex';
@@ -271,9 +271,9 @@ async function tryStoredLogin() {
 tryStoredLogin();
 
 async function apiFetch(path, method = 'GET', body) {
-  const res = await fetch(`${path}${path.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`, {
+  const res = await fetch(path, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401) { alert('密碼錯誤'); return null; }

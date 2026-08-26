@@ -91,6 +91,14 @@
     .login-box button { width: 100%; padding: 13px; background: var(--brand); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
     .login-box button:hover { filter: brightness(.95); }
     #main { display: none; }
+    .fab {
+      position: fixed; right: 22px; bottom: 22px; width: 56px; height: 56px; border-radius: 50%;
+      background: var(--brand); color: #fff; border: none; font-size: 28px; line-height: 1;
+      box-shadow: 0 6px 20px rgba(20,40,30,.25); cursor: pointer; z-index: 50;
+      display: flex; align-items: center; justify-content: center; transition: transform .12s, filter .12s;
+    }
+    .fab:hover { filter: brightness(.95); }
+    .fab:active { transform: scale(.94); }
     .project-tags { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
     .project-tag { padding: 6px 14px; background: var(--surface); border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid var(--line); color: var(--muted); transition: all .12s; }
     .project-tag:hover { border-color: var(--brand); color: var(--brand); }
@@ -288,6 +296,7 @@
       <div class="day-detail" id="dayDetail" style="display:none"></div>
     </div>
   </div>
+  <button class="fab" onclick="openModal()" title="新增記錄" aria-label="新增記錄">＋</button>
 </div>
 
 <script>

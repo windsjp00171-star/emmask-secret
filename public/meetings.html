@@ -112,7 +112,7 @@ let actionItems = [];
 let editingId = null;
 let openCard = null;
 
-function nav(page) { window.location.href = '/' + page + '?token=' + encodeURIComponent(token); }
+function nav(page) { window.location.href = '/' + page; }
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
@@ -125,7 +125,7 @@ async function tryStoredLogin() {
   const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
   if (!saved) return;
   document.getElementById('login').style.display = 'none';
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(saved)}&limit=1`);
+  const res = await fetch(`/api/dashboard/notes?limit=1`, { headers: { 'x-dashboard-token': saved } });
   if (res.status === 401) {
     localStorage.removeItem('dashboardToken');
     document.getElementById('login').style.display = 'flex';
@@ -137,9 +137,9 @@ async function tryStoredLogin() {
 }
 
 async function api(method, body) {
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+  const res = await fetch(`/api/dashboard/notes`, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401) { alert('密碼錯誤'); return null; }
@@ -163,8 +163,8 @@ function dateLabel(iso) {
 
 async function load() {
   const [mRes, tRes] = await Promise.all([
-    fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}&type=note&project=${encodeURIComponent('會議記錄')}&limit=200`),
-    fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}&type=task&project=${encodeURIComponent('會議記錄')}&limit=200`),
+    fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
+    fetch(`/api/dashboard/notes?type=task&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
   ]);
   if (mRes.status === 401) { alert('密碼錯誤'); return; }
   meetings = (await mRes.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));

@@ -2,12 +2,14 @@ const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
 const { buildReminderFlex, nextRecurDue } = require('../../lib/commands');
 const { cronAuth } = require('../../lib/cron-auth');
+const { recordHeartbeat } = require('../../lib/heartbeat');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+  await recordHeartbeat('remind');
 
   try {
     // 提前提醒：到點前 N 分鐘就發。每則可各自設定 remind_lead_minutes，

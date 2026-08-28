@@ -2,6 +2,7 @@ const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
 const { getWeeklyActivity } = require('../../lib/github');
 const { cronAuth } = require('../../lib/cron-auth');
+const { writeSummary } = require('../../lib/summarize');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -92,6 +93,17 @@ module.exports = async function handler(req, res) {
         lines.push(`  └ ${repo.latest}`);
       });
     }
+
+    // AI 寫的一段回顧，放在最前面當開場。失敗就回 null，週報照常送出。
+    const summary = await writeSummary('week', {
+      weekStr,
+      doneCount: done ? done.length : 0,
+      pendingCount: pending ? pending.length : 0,
+      done: (done || []).map(r => r.content),
+      updates: (allUpdates || []).map(r => (r.project ? `[${r.project}] ${r.content}` : r.content)),
+      stalledProjects,
+    });
+    if (summary) lines.splice(1, 0, '', summary);
 
     await pushMessage(lines.join('\n'));
     return res.status(200).json({ ok: true });

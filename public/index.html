@@ -192,6 +192,29 @@
     .add-row { display: flex; gap: 8px; margin-bottom: 18px; }
     .add-row input { flex: 1; }
     .link-filters { display: flex; gap: 6px; margin-bottom: 16px; }
+
+    /* 相簿 */
+    .album-hint { color: #8e8e93; font-size: 13px; margin: 0 0 14px; line-height: 1.5; }
+    .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .album-item { position: relative; border-radius: 12px; overflow: hidden; background: #f2f2f7; aspect-ratio: 1; }
+    .album-item img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
+    .album-item .album-meta {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 8px 6px;
+      background: linear-gradient(transparent, rgba(0,0,0,.72));
+      color: #fff; font-size: 11px; line-height: 1.35;
+    }
+    .album-item .album-del {
+      position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
+      border: none; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff;
+      font-size: 14px; line-height: 1; cursor: pointer;
+    }
+    .album-item .album-del:hover { background: rgba(255,59,48,.9); }
+    .album-empty { color: #8e8e93; text-align: center; padding: 48px 16px; }
+    .lightbox {
+      position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.88);
+      display: flex; align-items: center; justify-content: center; padding: 20px; cursor: zoom-out;
+    }
+    .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }
     .card .content { flex: 1; min-width: 0; word-break: break-word; }
     .card a { color: var(--brand-ink); font-weight: 600; text-decoration: none; }
     .card a:hover { text-decoration: underline; }
@@ -331,6 +354,7 @@
       <button class="tab-btn" id="tabBtn-order" onclick="switchTab('order')">🎵 敬拜順序</button>
       <button class="tab-btn" id="tabBtn-meetings" onclick="switchTab('meetings')">📝 會議記錄</button>
       <button class="tab-btn" id="tabBtn-links" onclick="switchTab('links')">🔗 收藏</button>
+      <button class="tab-btn" id="tabBtn-album" onclick="switchTab('album')">📷 相簿</button>
     </nav>
     <a href="#" onclick="goPage('worship.html')" style="color:rgba(255,255,255,.7);font-size:13px;text-decoration:none;white-space:nowrap">⛪ 服事表</a>
     <span id="lastRefresh"></span>
@@ -437,6 +461,16 @@
     <div id="linksList"></div>
   </div>
 
+  <div id="panel-album" class="tab-panel container" style="display:none">
+    <p class="album-hint">傳給小秘書的圖片都會留在這裡。想只存檔不跑辨識，先跟小秘書打「存圖」。</p>
+    <div id="albumGrid" class="album-grid"></div>
+    <div id="albumEmpty" class="album-empty" style="display:none">還沒有任何圖片。傳一張給小秘書試試～</div>
+  </div>
+
+  <div id="albumLightbox" class="lightbox" style="display:none" onclick="Album.closeLightbox(event)">
+    <img id="lightboxImg" alt="" />
+  </div>
+
   <button class="fab" onclick="onFabClick()" title="新增" aria-label="新增">＋</button>
 </div>
 
@@ -450,7 +484,7 @@ const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project
 const TYPE_CLASS = { task: 'type-task', reminder: 'type-reminder', note: 'type-note', project_update: 'type-project_update' };
 
 // ---- 分頁籤切換（取代原本 5 個獨立頁面互跳，共用同一個登入 session） ----
-const TABS = ['dashboard', 'songs', 'order', 'meetings', 'links'];
+const TABS = ['dashboard', 'songs', 'order', 'meetings', 'links', 'album'];
 let currentTab = 'dashboard';
 const loadedTabs = new Set(['dashboard']);
 let hashTabApplied = false;
@@ -462,6 +496,14 @@ function switchTab(name) {
     document.getElementById('panel-' + t).style.display = t === name ? 'block' : 'none';
     document.getElementById('tabBtn-' + t).classList.toggle('active', t === name);
   });
+  // 相簿只能從 LINE 傳圖進來，後台沒有「新增」這個動作，所以把 ＋ 收起來
+  const fab = document.querySelector('.fab');
+  if (fab) fab.style.display = name === 'album' ? 'none' : '';
+
+  // 相簿的圖片網址是簽出來的、一小時後會失效，
+  // 所以每次切過來都重新抓，不做快取
+  if (name === 'album') { Album.load(); return; }
+
   if (!loadedTabs.has(name)) {
     loadedTabs.add(name);
     if (name === 'songs') Songs.load();
@@ -1385,6 +1427,65 @@ function extractUrl(text) {
   const m = text.match(/https?:\/\/\S+/);
   return m ? m[0] : null;
 }
+
+const Album = {
+  items: [],
+
+  async load() {
+    const res = await fetch('/api/dashboard/album?limit=120', { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    const json = await res.json();
+    this.items = (json && json.items) || [];
+    this.render();
+  },
+
+  render() {
+    const grid = document.getElementById('albumGrid');
+    const empty = document.getElementById('albumEmpty');
+    if (!this.items.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    grid.innerHTML = this.items.map(it => {
+      const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const when = new Date(it.created_at).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
+      const label = it.project && it.project !== '相簿' ? `${it.project}・${when}` : when;
+      // 簽名網址失效或檔案不見時，至少讓格子不要是破圖
+      if (!it.url) {
+        return `<div class="album-item"><div class="album-meta">${esc(label)}（圖片讀不到）</div>
+          <button class="album-del" onclick="Album.remove('${it.id}')" title="刪除">×</button></div>`;
+      }
+      return `<div class="album-item">
+        <img src="${esc(it.url)}" alt="${esc(it.content)}" loading="lazy" onclick="Album.openLightbox('${esc(it.url)}')" />
+        <div class="album-meta">${esc(label)}</div>
+        <button class="album-del" onclick="Album.remove('${it.id}')" title="刪除">×</button>
+      </div>`;
+    }).join('');
+  },
+
+  openLightbox(url) {
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('albumLightbox').style.display = 'flex';
+  },
+
+  closeLightbox() {
+    document.getElementById('albumLightbox').style.display = 'none';
+    document.getElementById('lightboxImg').src = '';
+  },
+
+  async remove(id) {
+    if (!confirm('刪除這張圖片？圖檔會一起刪掉，無法復原。')) return;
+    const res = await fetch(`/api/dashboard/album?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: { 'x-dashboard-token': token },
+    });
+    if (!res.ok) { alert('刪除失敗'); return; }
+    this.items = this.items.filter(i => i.id !== id);
+    this.render();
+  },
+};
 
 const Links = {
   items: [],

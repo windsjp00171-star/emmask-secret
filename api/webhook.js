@@ -1,7 +1,9 @@
 const crypto = require('crypto');
-const { dispatch, handlePostback, handleImageEvents } = require('../lib/commands');
+const { dispatch, handlePostback, handleImageEvents, handleStoredImage } = require('../lib/commands');
 const { replyMessage, getImageBase64 } = require('../lib/line');
 const { extractEventFromImage } = require('../lib/vision');
+const { uploadImage } = require('../lib/storage');
+const { isStoreImageMode } = require('../lib/botstate');
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -57,11 +59,20 @@ const handler = async function (req, res) {
           return;
         }
 
-        // 圖片訊息 → Claude 視覺擷取活動並建立提醒
+        // 圖片訊息：一律先存檔留底，再決定要不要跑 AI 辨識
         if (event.message.type === 'image') {
           const { base64, contentType } = await getImageBase64(event.message.id);
+          const imagePath = await uploadImage(base64, contentType);
+
+          // 「存圖」模式：只留檔，不燒 AI 額度
+          if (await isStoreImageMode()) {
+            const reply = await handleStoredImage(imagePath);
+            await replyMessage(replyToken, reply);
+            return;
+          }
+
           const extracted = await extractEventFromImage(base64, contentType);
-          const reply = await handleImageEvents(extracted);
+          const reply = await handleImageEvents(extracted, imagePath);
           await replyMessage(replyToken, reply);
           return;
         }

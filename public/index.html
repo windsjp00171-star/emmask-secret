@@ -179,8 +179,14 @@
     .card.done { opacity: .5; }
     .card-head { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .card-head .title { font-weight: 700; flex: 1; }
-    .card-head .date { font-weight: 700; flex: 1; color: var(--brand-ink); }
-    .card-head .tag { font-size: 12px; color: var(--muted); background: #f1f3f1; padding: 2px 8px; border-radius: 8px; }
+    .card-head .date { font-weight: 700; color: var(--brand-ink); flex: none; }
+    /* 標題吃掉剩下的寬度，太長就省略，不要把待辦標籤擠出去 */
+    .card-head .meeting-title {
+      flex: 1; min-width: 0; color: var(--brand-ink); font-weight: 600;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    /* margin-left:auto：沒有標題時標籤仍然靠右，不會黏在日期旁邊 */
+    .card-head .tag { font-size: 12px; color: var(--muted); background: #f1f3f1; padding: 2px 8px; border-radius: 8px; margin-left: auto; flex: none; }
     .card-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
     .card-body.open { display: block; }
     .lyrics { white-space: pre-wrap; font-size: 13px; color: var(--ink); line-height: 1.6; margin-bottom: 10px; }
@@ -350,6 +356,9 @@
     <h3 id="meetingsModalTitle">編輯會議記錄</h3>
     <label>日期 *</label>
     <input type="date" id="meetingsFDate" />
+    <label>會議標題</label>
+    <input type="text" id="meetingsFTitle" placeholder="例：全職同工會、小組長月會" />
+    <div class="hint">標題會存成內容的第一行，跟從 LINE 打「會議 8/29 小組長月會」的結果一樣</div>
     <label>內容</label>
     <textarea id="meetingsFContent" placeholder="討論事項...&#10;待辦: 阿德負責音控報價"></textarea>
     <div class="hint">行首寫「待辦: xxx」「TODO: xxx」會自動變成獨立待辦（新增時才會抓，編輯已存的記錄不會重複建立）</div>
@@ -1323,6 +1332,16 @@ function extractActionItems(content) {
   return items;
 }
 
+// 跟 lib/commands.js 的 meetingTitle 對應：標題就是內容第一行
+function meetingTitle(content) {
+  const first = String(content || '').split('\n').map(s => s.trim()).find(Boolean);
+  if (!first) return '';
+  return first
+    .replace(/^\d{1,2}\s*[/月]\s*\d{1,2}\s*日?[\s,，、:：-]*/, '')
+    .replace(/[\s:：,，、。.-]+$/, '')
+    .trim();
+}
+
 const Meetings = {
   items: [],
   actionItems: [],
@@ -1359,6 +1378,7 @@ const Meetings = {
       return `<div class="card">
         <div class="card-head" onclick="Meetings.toggleCard('${n.id}')">
           <span class="date">${dateLabel(n.due_date)}</span>
+          ${meetingTitle(n.content) ? `<span class="meeting-title">${meetingTitle(n.content).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
           ${dayItems.length ? `<span class="tag">📌 ${dayItems.length} 個待辦</span>` : ''}
         </div>
         <div class="card-body ${open ? 'open' : ''}">
@@ -1382,6 +1402,7 @@ const Meetings = {
     this.editingId = null;
     document.getElementById('meetingsModalTitle').textContent = '新增會議記錄';
     document.getElementById('meetingsFDate').value = dateKey(new Date().toISOString());
+    document.getElementById('meetingsFTitle').value = '';
     document.getElementById('meetingsFContent').value = '';
     document.getElementById('meetingsEditModal').classList.add('open');
   },
@@ -1392,7 +1413,13 @@ const Meetings = {
     this.editingId = id;
     document.getElementById('meetingsModalTitle').textContent = '編輯會議記錄';
     document.getElementById('meetingsFDate').value = dateKey(n.due_date);
-    document.getElementById('meetingsFContent').value = n.content || '';
+    // 內容第一行就是標題，拆出來放標題格，剩下的留在內容格。
+    // 這裡放「原始的」第一行，不套 meetingTitle 的清理（那是給顯示用的）——
+    // 不然使用者只是開個編輯視窗按儲存，結尾的冒號就被默默改掉了。
+    const lines = String(n.content || '').split('\n');
+    const firstIdx = lines.findIndex(l => l.trim());
+    document.getElementById('meetingsFTitle').value = firstIdx === -1 ? '' : lines[firstIdx].trim();
+    document.getElementById('meetingsFContent').value = firstIdx === -1 ? '' : lines.slice(firstIdx + 1).join('\n').trim();
     document.getElementById('meetingsEditModal').classList.add('open');
   },
 
@@ -1402,9 +1429,12 @@ const Meetings = {
 
   async save() {
     const dateStr = document.getElementById('meetingsFDate').value;
-    const content = document.getElementById('meetingsFContent').value.trim();
+    const title = document.getElementById('meetingsFTitle').value.trim();
+    const body = document.getElementById('meetingsFContent').value.trim();
+    // 標題存成第一行，跟從 LINE 記錄的格式一致
+    const content = [title, body].filter(Boolean).join('\n');
     if (!dateStr) return alert('請選擇日期');
-    if (!content) return alert('請填寫內容');
+    if (!content) return alert('請填寫標題或內容');
     const due_date = new Date(`${dateStr}T09:00:00+08:00`).toISOString();
 
     if (this.editingId) {

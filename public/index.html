@@ -177,6 +177,17 @@
     .toolbar input { flex: 1; }
     .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 10px; }
     .card.done { opacity: .5; }
+    /* 用 inline-flex + 外層 text-align 置中，直接 flex 會讓文字被壓成兩行 */
+    .cal-showdone-row { text-align: center; margin: 0 0 10px; }
+    .cal-showdone {
+      display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+      font-size: 13px; color: var(--muted); cursor: pointer;
+    }
+    .cal-showdone input { cursor: pointer; }
+    .trunc-warn {
+      background: #fff6e5; border: 1px solid #ffd591; color: #8a5a00;
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 13px;
+    }
     .card-head { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .card-head .title { font-weight: 700; flex: 1; }
     .card-head .date { font-weight: 700; color: var(--brand-ink); flex: none; }
@@ -385,6 +396,7 @@
   </header>
 
   <div id="panel-dashboard" class="tab-panel container">
+    <div id="truncWarn" class="trunc-warn" style="display:none"></div>
     <div class="stats" id="stats"></div>
     <div class="view-tabs">
       <button class="view-tab active" id="tabList" onclick="switchView('list')">📋 列表</button>
@@ -444,6 +456,12 @@
         <button class="cal-nav" onclick="calShift(-1)">‹</button>
         <h2 id="calTitle"></h2>
         <button class="cal-nav" onclick="calShift(1)">›</button>
+      </div>
+      <div class="cal-showdone-row">
+        <label class="cal-showdone">
+          <input type="checkbox" id="calShowDone" onchange="toggleCalDone(this.checked)" />
+          顯示已完成
+        </label>
       </div>
       <div class="cal-grid" id="calGrid"></div>
       <div class="day-detail" id="dayDetail" style="display:none"></div>
@@ -587,8 +605,14 @@ async function tryStoredLogin() {
 }
 tryStoredLogin();
 
+// 後台列表/日曆/統計都吃這份資料，所以要一次撈足。
+// 沒帶 limit 的話 API 預設只給 100 筆 —— 實測 268 筆時，7/14 以前的
+// 168 筆在後台完全看不到，看起來就像資料不見了。
+const NOTES_LIMIT = 2000;
+
 async function api(method, body) {
-  const res = await fetch(`/api/dashboard/notes`, {
+  const url = method === 'GET' ? `/api/dashboard/notes?limit=${NOTES_LIMIT}` : `/api/dashboard/notes`;
+  const res = await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: body ? JSON.stringify(body) : undefined,
@@ -602,6 +626,14 @@ async function loadNotes() {
   const data = await api('GET');
   if (!data) return;
   allNotes = data;
+
+  // 萬一哪天真的撈滿了，要講出來，不要又變成無聲截斷
+  const warn = document.getElementById('truncWarn');
+  if (warn) {
+    const hit = Array.isArray(data) && data.length >= NOTES_LIMIT;
+    warn.style.display = hit ? 'block' : 'none';
+    if (hit) warn.textContent = `⚠️ 記錄已超過 ${NOTES_LIMIT} 筆，這裡只顯示最新的 ${NOTES_LIMIT} 筆。`;
+  }
 
   // 一併載入主日服事表，疊進月曆
   worshipByDate = {};
@@ -964,13 +996,23 @@ function calShift(delta) {
   renderCalendar();
 }
 
+// 日曆預設只顯示未完成的項目。翻回過去的月份時，東西大多已經完成，
+// 整個月看起來會像空的（實測 6 月的 25 筆 task/reminder 全部已完成），
+// 很容易誤以為資料不見了。這個開關讓過去的記錄也看得到。
+let calShowDone = false;
+function toggleCalDone(on) {
+  calShowDone = !!on;
+  renderCalendar();
+}
+
 function renderCalendar() {
   document.getElementById('calTitle').textContent = `${calYear} 年 ${calMonth + 1} 月`;
 
   // 把有 due_date 的事項歸到日期
   const byDay = {};
   allNotes.forEach(n => {
-    if (!n.due_date || n.is_done) return;
+    if (!n.due_date) return;
+    if (n.is_done && !calShowDone) return;
     if (n.type !== 'task' && n.type !== 'reminder') return;
     const key = taipeiKey(n.due_date);
     (byDay[key] = byDay[key] || []).push(n);
@@ -1013,7 +1055,8 @@ function showDay(key) {
   selectedKey = key;
   renderCalendar();
   const items = allNotes
-    .filter(n => n.due_date && !n.is_done && (n.type === 'task' || n.type === 'reminder') && taipeiKey(n.due_date) === key)
+    // 跟月曆格子用同一套過濾條件，不然點下去會跟格子上顯示的數量對不起來
+    .filter(n => n.due_date && (!n.is_done || calShowDone) && (n.type === 'task' || n.type === 'reminder') && taipeiKey(n.due_date) === key)
     .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
 
   const dateLabel2 = new Date(`${key}T00:00:00+08:00`).toLocaleDateString('zh-TW', {

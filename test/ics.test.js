@@ -2,7 +2,7 @@ require('./helpers/env');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { buildCalendar, _test } = require('../lib/ics.js');
-const { escapeText, foldLine, icsDate, icsDateTimeUTC, isAllDay, nextDayStamp } = _test;
+const { escapeText, foldLine, icsDate, icsDateTimeUTC, isAllDay, nextDayStamp, toSummary } = _test;
 
 test('escapeText: 跳脫反斜線、分號、逗號、換行', () => {
   assert.equal(escapeText('a\\b'), 'a\\\\b');
@@ -160,4 +160,70 @@ test('buildCalendar: 內容裡的逗號分號會被跳脫，不會破壞格式',
     { id: 'c1', type: 'task', content: '買菜, 掃地; 洗車', due_date: '2026-10-06T00:00:00+08:00' },
   ], { now: '2026-09-17T00:00:00Z' });
   assert.match(ics, /買菜\\, 掃地\\; 洗車/);
+});
+
+// ===== 實際訂閱時發現的問題 =====
+
+// 折行記號是 CRLF 後面那個空白，解析時會被拿掉。前一行結尾若剛好也是空白，
+// 中繼站或嚴格的解析器可能一起吃掉，還原出來就少一個空格。
+test('foldLine: 折行處不會停在空白結尾', () => {
+  const src = 'DESCRIPTION:' + '原文：2026-08-23 13:00 ~ 14:30 第 3 堂 幸福小組的禱告 講師千金 '.repeat(4);
+  const out = foldLine(src);
+  const parts = out.split('\r\n');
+  parts.slice(0, -1).forEach((p, i) => {
+    assert.ok(!p.endsWith(' '), `第 ${i + 1} 段不該以空白結尾：${JSON.stringify(p.slice(-12))}`);
+  });
+});
+
+test('foldLine: 挪動空白之後，還原仍與原文完全一致', () => {
+  const src = 'DESCRIPTION:' + 'a b '.repeat(60);
+  assert.equal(foldLine(src).split('\r\n ').join(''), src);
+});
+
+test('foldLine: 連續多個空白剛好落在折行處也不會掉', () => {
+  const src = 'SUMMARY:' + 'x'.repeat(70) + '    ' + 'y'.repeat(40);
+  assert.equal(foldLine(src).split('\r\n ').join(''), src);
+});
+
+// 使用者的筆記常常是「標題換行接一串網址」，直接當日曆標題會變成十幾行
+test('toSummary: 換行壓成單行', () => {
+  assert.equal(toSummary('舊約\n1.出埃及記\n2.民數記'), '舊約 1.出埃及記 2.民數記');
+});
+
+test('toSummary: 拿掉網址', () => {
+  assert.equal(toSummary('四塊田聚集，詩歌：\nhttps://youtu.be/XYoj7ReNHFo?si=abc'), '四塊田聚集，詩歌：');
+});
+
+test('toSummary: 全部都是網址時不會變成空字串', () => {
+  const out = toSummary('https://youtu.be/abc');
+  assert.ok(out.length > 0, '不該回空字串');
+});
+
+test('toSummary: 過長會截斷', () => {
+  const out = toSummary('長'.repeat(300));
+  assert.ok(out.length <= 120, `實際 ${out.length}`);
+  assert.ok(out.endsWith('…'));
+});
+
+test('toSummary: 空值不會爆炸', () => {
+  assert.equal(toSummary(''), '');
+  assert.equal(toSummary(null), '');
+});
+
+test('buildEvent: 標題被壓過時，完整內容要留在 DESCRIPTION', () => {
+  const ev = _test.buildEvent(
+    { id: 'z1', type: 'task', content: '小組敬拜準備\n1.你愛不失敗 https://youtu.be/abc' , due_date: '2026-09-18T20:00:00+08:00' },
+    { domain: 'x', stamp: '20260917T000000Z' }
+  ).join('\n');
+  assert.ok(!/SUMMARY:[^\n]*https/.test(ev), '標題不該含網址');
+  assert.match(ev, /DESCRIPTION:.*youtu\.be/, '說明欄要保留網址');
+});
+
+test('buildCalendar: 沒有任何 SUMMARY 含跳脫換行', () => {
+  const ics = buildCalendar([
+    { id: 'm1', type: 'task', content: '第一行\n第二行\n第三行', due_date: '2026-10-06T00:00:00+08:00' },
+  ], { now: '2026-09-17T00:00:00Z' });
+  const unfolded = ics.replace(/\r\n /g, '');
+  const summaries = unfolded.split('\r\n').filter(l => l.startsWith('SUMMARY:'));
+  summaries.forEach(s => assert.ok(!s.includes('\\n'), `標題不該有換行：${s}`));
 });

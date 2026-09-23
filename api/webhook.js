@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { dispatch, handlePostback, handleImageEvents, handleStoredImage } = require('../lib/commands');
-const { replyMessage, getImageBase64 } = require('../lib/line');
+const { replyMessage, pushMessage, getImageBase64 } = require('../lib/line');
+const { importSchedulePdf } = require('../lib/worship');
 const { extractEventFromImage } = require('../lib/vision');
 const { uploadImage } = require('../lib/storage');
 const { isStoreImageMode } = require('../lib/botstate');
@@ -74,6 +75,21 @@ const handler = async function (req, res) {
           const extracted = await extractEventFromImage(base64, contentType);
           const reply = await handleImageEvents(extracted, imagePath);
           await replyMessage(replyToken, reply);
+          return;
+        }
+
+        // 服事表 PDF：只接受本人（會覆蓋那幾個主日）。讀表要十幾秒，先回覆再推播結果。
+        if (event.message.type === 'file' && /\.pdf$/i.test(event.message.fileName || '')) {
+          if (event.source.userId !== process.env.LINE_USER_ID) return;
+          await replyMessage(replyToken, '📄 收到服事表，解析中…');
+          try {
+            const { base64 } = await getImageBase64(event.message.id);
+            await pushMessage(await importSchedulePdf(base64));
+          } catch (err) {
+            // replyToken 已用掉，失敗只能用推播告知
+            console.error('Worship PDF import error:', err);
+            await pushMessage('❌ 服事表匯入失敗，請稍後再試。');
+          }
           return;
         }
       } catch (err) {

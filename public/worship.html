@@ -59,6 +59,11 @@
     .manage-item .del-btn:hover { color: #c0392b; }
     .manage-tip { font-size: 12px; color: #8e8e93; margin-top: 8px; }
     .quarter-heading { font-size: 12px; font-weight: 600; color: #6e6e73; margin: 8px 0 2px; }
+    details.quarter { margin-bottom: 12px; }
+    details.quarter > summary { cursor: pointer; padding: 10px 14px; background: #fff; border-radius: 10px; font-size: 15px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08); list-style-position: inside; }
+    details.quarter > summary small { font-weight: 400; color: #8e8e93; margin-left: 8px; }
+    details.quarter[open] > summary { margin-bottom: 8px; }
+    .person-view td.quarter-row { background: #f9f9fb; font-size: 12px; font-weight: 600; color: #6e6e73; }
 
     /* Login */
     #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
@@ -136,13 +141,12 @@
       <button class="btn btn-tab active" id="tabGrid" onclick="switchView('grid')">格狀表格</button>
       <button class="btn btn-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
       <button class="btn btn-tab" id="tabManage" onclick="switchView('manage')">⚙ 管理</button>
-      <select id="quarterSelect" data-tour="quarter-select" onchange="changeQuarter(this.value)"></select>
       <button class="btn btn-primary" id="addEntryBtn" onclick="openAddModal()" style="margin-left:auto">＋ 新增服事</button>
     </div>
 
     <div id="gridView">
       <div class="loading" id="gridLoading">載入中…</div>
-      <div class="grid-wrap" id="gridWrap" style="display:none"></div>
+      <div id="gridWrap" style="display:none"></div>
     </div>
 
     <div id="personView" style="display:none">
@@ -187,7 +191,7 @@ let allData = [];   // worship_schedule rows
 let allDates = [];  // worship_dates rows [{id, service_date}]
 let allRoles = [];  // worship_roles rows [{id, role_name, sort_order}]
 let editingId = null;
-let currentQuarter = '';
+let openQuarters = null; // Set of expanded quarters in grid view; null = not initialised yet
 
 // '2026-10-04' → '2026-Q4'
 function quarterOf(dateStr) {
@@ -200,20 +204,20 @@ function quarterLabel(q) {
   return `${year} 第${n}季（${start}–${start + 2}月）`;
 }
 
-function buildQuarterSelect() {
-  const quarters = [...new Set([...allDates.map(d => d.service_date), ...allData.map(d => d.service_date)].map(quarterOf))].sort();
-  const todayQ = quarterOf(new Date().toISOString().split('T')[0]);
-  if (!quarters.includes(currentQuarter)) {
-    currentQuarter = quarters.find(q => q >= todayQ) || quarters[quarters.length - 1] || todayQ;
-  }
-  document.getElementById('quarterSelect').innerHTML = quarters.map(q =>
-    `<option value="${q}"${q === currentQuarter ? ' selected' : ''}>${quarterLabel(q)}</option>`).join('');
+function listQuarters() {
+  return [...new Set([...allDates.map(d => d.service_date), ...allData.map(d => d.service_date)].map(quarterOf))].sort();
 }
 
-function changeQuarter(q) {
-  currentQuarter = q;
-  renderGridView();
-  renderPersonView();
+// Default: expand the current quarter (or the next one that has dates)
+function initOpenQuarters() {
+  if (openQuarters) return;
+  const quarters = listQuarters();
+  const todayQ = quarterOf(new Date().toISOString().split('T')[0]);
+  openQuarters = new Set([quarters.find(q => q >= todayQ) || quarters[quarters.length - 1]]);
+}
+
+function toggleQuarter(el) {
+  if (el.open) openQuarters.add(el.dataset.q); else openQuarters.delete(el.dataset.q);
 }
 
 function doLogin() {
@@ -249,7 +253,6 @@ async function loadAll() {
   document.getElementById('login').style.display = 'none';
   document.getElementById('main').style.display = 'block';
 
-  buildQuarterSelect();
   buildPersonList();
   populateDateSelect();
   populateRoleSelect();
@@ -284,14 +287,26 @@ function renderGridView() {
   document.getElementById('gridLoading').style.display = 'none';
   const gridWrap = document.getElementById('gridWrap');
   gridWrap.style.display = '';
+  initOpenQuarters();
 
-  const dates = allDates.map(d => d.service_date).filter(d => quarterOf(d) === currentQuarter);
+  const quarters = [...new Set(allDates.map(d => quarterOf(d.service_date)))].sort();
+  gridWrap.innerHTML = quarters.map(q => {
+    const dates = allDates.map(d => d.service_date).filter(d => quarterOf(d) === q);
+    return `<details class="quarter" data-tour="quarter-section" data-q="${q}"${openQuarters.has(q) ? ' open' : ''} ontoggle="toggleQuarter(this)">
+      <summary>${quarterLabel(q)}<small>${dates.length} 個主日</small></summary>
+      <div class="grid-wrap">${buildGridTable(q, dates)}</div>
+    </details>`;
+  }).join('') || '<div class="empty">尚無主日日期，請到 ⚙ 管理新增</div>';
+}
+
+function buildGridTable(quarter, dates) {
   const roles = allRoles.map(r => r.role_name);
   const today = new Date().toISOString().split('T')[0];
-  const todayIdx = dates.findIndex(d => d >= today);
+  const nextDate = allDates.map(d => d.service_date).find(d => d >= today);
+  const todayIdx = dates.indexOf(nextDate);
 
   const lookup = {};
-  allData.filter(item => quarterOf(item.service_date) === currentQuarter).forEach(item => {
+  allData.filter(item => quarterOf(item.service_date) === quarter).forEach(item => {
     if (!lookup[item.role]) lookup[item.role] = {};
     if (!lookup[item.role][item.service_date]) lookup[item.role][item.service_date] = [];
     lookup[item.role][item.service_date].push({ id: item.id, name: item.person_name });
@@ -328,7 +343,7 @@ function renderGridView() {
   });
 
   html += '</tbody></table>';
-  gridWrap.innerHTML = html;
+  return html;
 }
 
 function renderPersonView() {
@@ -337,8 +352,8 @@ function renderPersonView() {
   if (!person) { el.innerHTML = '<div class="empty">請選擇一位人員</div>'; return; }
 
   const today = new Date().toISOString().split('T')[0];
-  const items = allData.filter(d => d.person_name === person && quarterOf(d.service_date) === currentQuarter).sort((a, b) => a.service_date.localeCompare(b.service_date));
-  if (items.length === 0) { el.innerHTML = '<div class="empty">此人在這一季沒有服事記錄</div>'; return; }
+  const items = allData.filter(d => d.person_name === person).sort((a, b) => a.service_date.localeCompare(b.service_date));
+  if (items.length === 0) { el.innerHTML = '<div class="empty">找不到此人的服事記錄</div>'; return; }
 
   const byDate = {};
   items.forEach(item => {
@@ -347,7 +362,11 @@ function renderPersonView() {
   });
 
   let html = '<table><thead><tr><th>日期</th><th>職位</th></tr></thead><tbody>';
+  let lastQ = '';
   Object.entries(byDate).forEach(([date, roles]) => {
+    const q = quarterOf(date);
+    if (q !== lastQ) html += `<tr><td colspan="2" class="quarter-row">${quarterLabel(q)}</td></tr>`;
+    lastQ = q;
     const dt = new Date(date + 'T00:00:00+08:00');
     const label = dt.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', weekday: 'short', timeZone: 'Asia/Taipei' });
     const isPast = date < today;
@@ -464,7 +483,6 @@ async function addDate() {
   allDates.push(data);
   allDates.sort((a, b) => a.service_date.localeCompare(b.service_date));
   document.getElementById('newDateInput').value = '';
-  buildQuarterSelect();
   populateDateSelect();
   renderManageView();
   renderGridView();
@@ -475,7 +493,6 @@ async function deleteDate(id, dateStr) {
   const res = await configApi('dates', 'DELETE', { id });
   if (!res) return;
   allDates = allDates.filter(d => d.id !== id);
-  buildQuarterSelect();
   populateDateSelect();
   renderManageView();
   renderGridView();

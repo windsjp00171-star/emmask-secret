@@ -1,20 +1,10 @@
 const crypto = require('crypto');
-const { dispatch } = require('../lib/commands');
-const { replyMessage, pushMessage, getFileContent } = require('../lib/line');
+const { dispatch, handlePostback, handleImageEvents, handleStoredImage } = require('../lib/commands');
+const { replyMessage, pushMessage, getImageBase64 } = require('../lib/line');
 const { importSchedulePdf } = require('../lib/worship');
-
-// Only the owner may import a schedule PDF (it overwrites those Sundays)
-async function handlePdf(event) {
-  if (event.source.userId !== process.env.LINE_USER_ID) return;
-  await replyMessage(event.replyToken, '📄 收到服事表，解析中，約需 30 秒…');
-  try {
-    const pdf = await getFileContent(event.message.id);
-    await pushMessage(await importSchedulePdf(pdf));
-  } catch (err) {
-    console.error('PDF import error:', err);
-    await pushMessage('❌ 服事表匯入失敗，請稍後再試。');
-  }
-}
+const { extractEventFromImage } = require('../lib/vision');
+const { uploadImage } = require('../lib/storage');
+const { isStoreImageMode } = require('../lib/botstate');
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -53,17 +43,58 @@ const handler = async function (req, res) {
 
   await Promise.all(
     events.map(async event => {
-      if (event.type !== 'message') return;
-      if (event.message.type === 'file' && /\.pdf$/i.test(event.message.fileName || '')) return handlePdf(event);
-      if (event.message.type !== 'text') return;
-      const text = event.message.text;
       const replyToken = event.replyToken;
       try {
-        const reply = await dispatch(text);
-        await replyMessage(replyToken, reply);
+        // Flex 按鈕（完成／延後／改明天）
+        if (event.type === 'postback') {
+          const reply = await handlePostback(event.postback.data);
+          if (reply) await replyMessage(replyToken, reply);
+          return;
+        }
+        if (event.type !== 'message') return;
+
+        // 文字訊息
+        if (event.message.type === 'text') {
+          const reply = await dispatch(event.message.text);
+          await replyMessage(replyToken, reply);
+          return;
+        }
+
+        // 圖片訊息：一律先存檔留底，再決定要不要跑 AI 辨識
+        if (event.message.type === 'image') {
+          const { base64, contentType } = await getImageBase64(event.message.id);
+          const imagePath = await uploadImage(base64, contentType);
+
+          // 「存圖」模式：只留檔，不燒 AI 額度
+          if (await isStoreImageMode()) {
+            const reply = await handleStoredImage(imagePath);
+            await replyMessage(replyToken, reply);
+            return;
+          }
+
+          const extracted = await extractEventFromImage(base64, contentType);
+          const reply = await handleImageEvents(extracted, imagePath);
+          await replyMessage(replyToken, reply);
+          return;
+        }
+
+        // 服事表 PDF：只接受本人（會覆蓋那幾個主日）。讀表要十幾秒，先回覆再推播結果。
+        if (event.message.type === 'file' && /\.pdf$/i.test(event.message.fileName || '')) {
+          if (event.source.userId !== process.env.LINE_USER_ID) return;
+          await replyMessage(replyToken, '📄 收到服事表，解析中…');
+          try {
+            const { base64 } = await getImageBase64(event.message.id);
+            await pushMessage(await importSchedulePdf(base64));
+          } catch (err) {
+            // replyToken 已用掉，失敗只能用推播告知
+            console.error('Worship PDF import error:', err);
+            await pushMessage('❌ 服事表匯入失敗，請稍後再試。');
+          }
+          return;
+        }
       } catch (err) {
         console.error('Handler error:', err);
-        await replyMessage(replyToken, '❌ 發生錯誤，請稍後再試。');
+        if (replyToken) await replyMessage(replyToken, '❌ 發生錯誤，請稍後再試。');
       }
     })
   );

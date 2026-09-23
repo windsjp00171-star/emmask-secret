@@ -1,11 +1,14 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
 const { getWeeklyActivity } = require('../../lib/github');
+const { cronAuth } = require('../../lib/cron-auth');
+const { writeSummary } = require('../../lib/summarize');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
     const now = new Date();
@@ -88,6 +91,37 @@ module.exports = async function handler(req, res) {
       ghActivity.forEach(repo => {
         lines.push(`• ${repo.name}（${repo.count} commits）`);
         lines.push(`  └ ${repo.latest}`);
+      });
+    }
+
+    // AI 寫的一段回顧，放在最前面當開場。失敗就回 null，週報照常送出。
+    const summary = await writeSummary('week', {
+      weekStr,
+      doneCount: done ? done.length : 0,
+      pendingCount: pending ? pending.length : 0,
+      done: (done || []).map(r => r.content),
+      updates: (allUpdates || []).map(r => (r.project ? `[${r.project}] ${r.content}` : r.content)),
+      stalledProjects,
+    });
+    if (summary) {
+      lines.splice(1, 0, '', summary);
+
+      // 週報存檔。這段是「那一週當下的樣子」的快照 —— 底層資料之後會變
+      // （待辦被打勾、筆記被編輯或刪除），晚幾個月再叫 AI 總結同一週，
+      // 看到的資料已經不一樣了，生不出同一份回顧。一年 52 筆而已。
+      await supabase.from('notes').insert({
+        raw_text: `[週報] ${weekStr}`,
+        type: 'note',
+        project: '週報',
+        content: `${weekStr}\n${summary}`,
+        meta: {
+          week: weekStr,
+          done_count: done ? done.length : 0,
+          pending_count: pending ? pending.length : 0,
+          stalled_projects: stalledProjects,
+        },
+        is_reminded: true,
+        is_done: false,
       });
     }
 

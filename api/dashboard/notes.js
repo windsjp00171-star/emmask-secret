@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { type, project, content, due_date } = req.body;
+    const { type, project, content, due_date, remind_lead_minutes } = req.body;
     if (!type || !content) return res.status(400).json({ error: 'type and content required' });
     const { data, error } = await supabase.from('notes').insert({
       raw_text: content,
@@ -38,13 +38,15 @@ module.exports = async function handler(req, res) {
       project: project || null,
       content,
       due_date: due_date || null,
+      remind_lead_minutes: remind_lead_minutes === undefined || remind_lead_minutes === '' || remind_lead_minutes === null
+        ? null : Number(remind_lead_minutes),
     }).select().single();
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data);
   }
 
   if (req.method === 'PATCH') {
-    const { id, is_done, content, type, project, due_date } = req.body;
+    const { id, is_done, content, type, project, due_date, remind_lead_minutes } = req.body;
     if (!id) return res.status(400).json({ error: 'id required' });
     const updates = { updated_at: new Date().toISOString() };
     if (is_done !== undefined) updates.is_done = is_done;
@@ -52,6 +54,7 @@ module.exports = async function handler(req, res) {
     if (type !== undefined) updates.type = type;
     if (project !== undefined) updates.project = project || null;
     if (due_date !== undefined) updates.due_date = due_date || null;
+    if (remind_lead_minutes !== undefined) updates.remind_lead_minutes = remind_lead_minutes === null ? null : Number(remind_lead_minutes);
     const { data, error } = await supabase.from('notes').update(updates).eq('id', id).select().single();
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data || { ok: true });

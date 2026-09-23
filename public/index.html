@@ -4,59 +4,253 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EmmArk 小秘書 Dashboard</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1f6f54">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="小秘書">
   <style>
+    :root {
+      --bg: #f4f6f4;
+      --surface: #ffffff;
+      --ink: #1b2420;
+      --muted: #6b7670;
+      --line: #e7ebe8;
+      --brand: #1f6f54;
+      --brand-ink: #16513d;
+      --brand-soft: #e8f2ed;
+      --gold: #c2922f;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(20,40,30,.05), 0 6px 20px rgba(20,40,30,.05);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
-    header { background: #1c1c1e; color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-    header h1 { font-size: 18px; font-weight: 600; }
-    header span { font-size: 13px; color: #98989d; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    .stat-card .num { font-size: 32px; font-weight: 700; color: #007aff; }
-    .stat-card .label { font-size: 13px; color: #6e6e73; margin-top: 4px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.6; }
+    header { background: linear-gradient(135deg, #1b4536, #14352a); color: #fff; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; box-shadow: 0 2px 12px rgba(20,40,30,.12); }
+    header h1 { font-size: 18px; font-weight: 700; letter-spacing: .3px; display: flex; align-items: center; gap: 8px; }
+    header span { font-size: 13px; color: rgba(255,255,255,.55); }
+    .tabbar {
+      display: flex; gap: 3px; flex-wrap: wrap; padding: 4px; border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 4px 14px rgba(0,0,0,.12);
+    }
+    .tab-btn {
+      padding: 7px 14px; border-radius: 999px; border: none; background: transparent;
+      color: rgba(255,255,255,.7); font-size: 13px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background .15s, color .15s, box-shadow .15s;
+    }
+    .tab-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .tab-btn.active {
+      background: rgba(255,255,255,.22);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.15);
+    }
+    .container { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 16px; text-align: center; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(20,40,30,.09); }
+    .stat-card .num { font-size: 34px; font-weight: 800; color: var(--brand); line-height: 1; }
+    .stat-card .label { font-size: 12px; color: var(--muted); margin-top: 8px; letter-spacing: .3px; }
     .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-    .filters select, .filters input { padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; background: #fff; }
+    .filters select, .filters input { padding: 9px 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; background: var(--surface); color: var(--ink); }
     .filters input { flex: 1; min-width: 160px; }
-    .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
-    .btn-primary { background: #007aff; color: #fff; }
-    .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; }
-    .btn-done { background: #34c759; color: #fff; }
-    .btn-del { background: #ff3b30; color: #fff; }
-    .btn-undone { background: #ff9500; color: #fff; }
-    table { width: 100%; background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-collapse: collapse; overflow: hidden; }
-    th { background: #f2f2f7; padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #6e6e73; }
-    td { padding: 12px 16px; border-top: 1px solid #f2f2f7; font-size: 14px; vertical-align: middle; }
-    tr:hover td { background: #f9f9fb; }
-    .type-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-    .type-task { background: #fff3cd; color: #856404; }
-    .type-reminder { background: #f8d7da; color: #721c24; }
-    .type-note { background: #d1ecf1; color: #0c5460; }
-    .type-project_update { background: #d4edda; color: #155724; }
-    .done-row td { opacity: 0.45; text-decoration: line-through; }
+    select:focus, input:focus, textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(31,111,84,.15); }
+    input, textarea { padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; font-family: inherit; width: 100%; }
+    .btn { padding: 9px 18px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: filter .12s, transform .05s; }
+    .btn:hover { filter: brightness(.95); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+    .btn-done { background: #2e9d63; color: #fff; }
+    .btn-del { background: #e5544b; color: #fff; }
+    .btn-undone { background: #e8912f; color: #fff; }
+    .btn-cancel { background: #eceeec; color: var(--ink); }
+    .btn-edit { background: #5a6f66; color: #fff; }
+    .btn-archive { background: #e8912f; color: #fff; }
+    .btn-tab { background: #e9ece9; color: var(--muted); padding: 8px 16px; border-radius: 9px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-tab.active { background: var(--brand); color: #fff; }
+    table { width: 100%; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); border-collapse: separate; border-spacing: 0; overflow: hidden; border: 1px solid var(--line); }
+    th { background: #f3f6f4; padding: 15px 18px; text-align: left; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .4px; }
+    td { padding: 17px 18px; border-top: 1px solid var(--line); font-size: 14.5px; line-height: 1.65; vertical-align: middle; }
+    td[data-label="內容"] { white-space: pre-wrap; }
+    tbody tr:hover td { background: #f7faf8; }
+    .type-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .type-task { background: #fff1d6; color: #9a6a12; }
+    .type-reminder { background: #fde0e0; color: #b3322a; }
+    .type-note { background: #d8eef0; color: #1d6b73; }
+    .type-project_update { background: #d9efe2; color: #1c7a4d; }
+    .done-row td { opacity: 0.4; text-decoration: line-through; }
     .done-row:hover td { opacity: 0.6; }
-    .actions { display: flex; gap: 4px; }
-    #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .login-box { background: #fff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.1); min-width: 280px; }
-    .login-box h2 { margin-bottom: 8px; }
-    .login-box p { color: #6e6e73; font-size: 14px; margin-bottom: 24px; }
-    .login-box input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 15px; margin-bottom: 12px; }
-    .login-box button { width: 100%; padding: 12px; background: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    @media (max-width: 760px) {
+      table, tbody, tr, td { display: block; width: 100%; }
+      thead { display: none; }
+      table { border: none; box-shadow: none; background: transparent; overflow: visible; }
+      tbody tr { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; padding: 6px 4px; }
+      tbody tr:hover td { background: transparent; }
+      td { border: none; border-top: 1px solid var(--line); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; font-size: 14.5px; line-height: 1.6; overflow-wrap: anywhere; }
+      td:first-child { border-top: none; }
+      td::before { content: attr(data-label); font-size: 12px; font-weight: 700; color: var(--muted); text-align: left; flex-shrink: 0; }
+      td[data-label="操作"] .actions { justify-content: flex-end; }
+    }
+    @media (min-width: 761px) {
+      #listView table { table-layout: fixed; }
+      #listView th, #listView td { word-break: break-word; overflow-wrap: anywhere; white-space: normal; vertical-align: top; }
+      #listView td[data-label="內容"] { white-space: pre-wrap; }
+      #listView th:nth-child(1), #listView td:nth-child(1) { width: 36px; }
+      #listView th:nth-child(2), #listView td:nth-child(2) { width: 40%; }
+      #listView th:nth-child(3), #listView td:nth-child(3) { width: 72px; }
+      #listView th:nth-child(4), #listView td:nth-child(4) { width: 12%; }
+      #listView th:nth-child(5), #listView td:nth-child(5) { width: 108px; }
+      #listView th:nth-child(6), #listView td:nth-child(6) { width: 88px; }
+      #listView th:nth-child(7), #listView td:nth-child(7) { width: 158px; }
+    }
+    #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(160deg, #1b4536, #0f2b22); }
+    .login-box { background: var(--surface); border-radius: 20px; padding: 44px 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.3); min-width: 300px; }
+    .login-box h2 { margin-bottom: 8px; color: var(--brand-ink); }
+    .login-box p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .login-box input { width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; margin-bottom: 14px; }
+    .login-box button { width: 100%; padding: 13px; background: var(--brand); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .login-box button:hover { filter: brightness(.95); }
     #main { display: none; }
-    .project-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-    .project-tag { padding: 6px 12px; background: #e5e5ea; border-radius: 20px; font-size: 13px; cursor: pointer; border: 2px solid transparent; }
-    .project-tag.active { border-color: #007aff; background: #e1f0ff; color: #007aff; }
-    .empty { text-align: center; color: #6e6e73; padding: 40px; font-size: 15px; }
-    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; align-items: center; justify-content: center; }
+    .fab {
+      position: fixed; right: 22px; bottom: 22px; width: 56px; height: 56px; border-radius: 50%;
+      background: var(--brand); color: #fff; border: none; font-size: 28px; line-height: 1;
+      box-shadow: 0 6px 20px rgba(20,40,30,.25); cursor: pointer; z-index: 50;
+      display: flex; align-items: center; justify-content: center; transition: transform .12s, filter .12s;
+    }
+    .fab:hover { filter: brightness(.95); }
+    .fab:active { transform: scale(.94); }
+    .project-tags { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
+    .project-tag { padding: 6px 14px; background: var(--surface); border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid var(--line); color: var(--muted); transition: all .12s; }
+    .project-tag:hover { border-color: var(--brand); color: var(--brand); }
+    .project-tag.active { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-ink); font-weight: 600; }
+    .empty { text-align: center; color: var(--muted); padding: 48px; font-size: 15px; }
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,30,25,.5); backdrop-filter: blur(2px); z-index: 100; align-items: center; justify-content: center; }
     .modal-bg.open { display: flex; }
-    .modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 460px; margin: 16px; }
-    .modal h3 { margin-bottom: 20px; font-size: 17px; }
-    .modal label { display: block; font-size: 13px; color: #6e6e73; margin-bottom: 4px; margin-top: 14px; }
-    .modal input, .modal select, .modal textarea { width: 100%; padding: 10px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; font-family: inherit; }
+    .modal { background: var(--surface); border-radius: 18px; padding: 28px; width: 100%; max-width: 460px; margin: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.25); max-height: 90vh; overflow: auto; }
+    .modal h3 { margin-bottom: 20px; font-size: 18px; color: var(--brand-ink); }
+    .modal label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; margin-top: 14px; font-weight: 500; }
+    .modal input, .modal select, .modal textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; font-family: inherit; }
     .modal textarea { resize: vertical; min-height: 80px; }
-    .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
-    .btn-cancel { background: #e5e5ea; color: #1d1d1f; }
-    .btn-edit { background: #5856d6; color: #fff; }
+    .modal .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 22px; justify-content: flex-end; }
+    #orderFContent, #meetingsFContent { min-height: 220px; }
+    #orderFContent { font-family: 'SF Mono', Menlo, monospace; }
+    #songsFSection { min-height: 120px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .view-tabs { display: flex; gap: 6px; margin-bottom: 18px; background: #e9ece9; padding: 4px; border-radius: 12px; width: fit-content; }
+    .view-tab { padding: 8px 20px; border-radius: 9px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); transition: all .12s; }
+    .view-tab.active { background: var(--surface); color: var(--brand-ink); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .cal-head { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 18px; }
+    .cal-head h2 { font-size: 18px; font-weight: 700; min-width: 150px; text-align: center; color: var(--brand-ink); }
+    .cal-nav { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 16px; color: var(--brand); }
+    .cal-nav:hover { background: var(--brand-soft); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; background: var(--surface); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+    .cal-wd { text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); padding: 4px 0; }
+    .cal-cell { min-height: 68px; border-radius: 10px; padding: 7px; cursor: pointer; border: 1px solid var(--line); position: relative; transition: background .12s; }
+    .cal-cell:hover { background: var(--brand-soft); }
+    .cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+    .cal-cell.today { border-color: var(--brand); background: var(--brand-soft); }
+    .cal-cell.today .cal-date { color: var(--brand-ink); font-weight: 700; }
+    .cal-cell.selected { background: var(--brand); border-color: var(--brand); }
+    .cal-cell.selected .cal-date, .cal-cell.selected .cal-count { color: #fff; }
+    .cal-date { font-size: 13px; color: var(--ink); font-weight: 500; }
+    .cal-dots { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 6px; }
+    .cal-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .cal-dot.reminder { background: #e5544b; }
+    .cal-dot.task { background: #e8912f; }
+    .cal-dot.worship { background: var(--brand); }
+    .cal-count { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .day-detail { background: var(--surface); border-radius: var(--radius); padding: 18px 22px; margin-top: 16px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+    .day-detail h3 { font-size: 15px; margin-bottom: 12px; color: var(--brand-ink); }
+    .day-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+    .day-item:first-of-type { border-top: none; }
+    .day-item .dtime { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 44px; }
+    .day-item .dbadge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .toolbar { display: flex; gap: 8px; margin-bottom: 18px; }
+    .toolbar input { flex: 1; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 10px; }
+    .card.done { opacity: .5; }
+    /* 用 inline-flex + 外層 text-align 置中，直接 flex 會讓文字被壓成兩行 */
+    .cal-showdone-row { text-align: center; margin: 0 0 10px; }
+    .cal-showdone {
+      display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+      font-size: 13px; color: var(--muted); cursor: pointer;
+    }
+    .cal-showdone input { cursor: pointer; }
+    .trunc-warn {
+      background: #fff6e5; border: 1px solid #ffd591; color: #8a5a00;
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 13px;
+    }
+    .card-head { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .card-head .title { font-weight: 700; flex: 1; }
+    .card-head .date { font-weight: 700; color: var(--brand-ink); flex: none; }
+    /* 標題吃掉剩下的寬度，太長就省略，不要把待辦標籤擠出去 */
+    .card-head .meeting-title {
+      flex: 1; min-width: 0; color: var(--brand-ink); font-weight: 600;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    /* margin-left:auto：沒有標題時標籤仍然靠右，不會黏在日期旁邊 */
+    .card-head .tag { font-size: 12px; color: var(--muted); background: #f1f3f1; padding: 2px 8px; border-radius: 8px; margin-left: auto; flex: none; }
+    .card-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .card-body.open { display: block; }
+    .lyrics { white-space: pre-wrap; font-size: 13px; color: var(--ink); line-height: 1.6; margin-bottom: 10px; }
+    .history { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .content-pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; font-size: 13px; line-height: 1.6; margin-bottom: 10px; }
+    .action-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; }
+    .action-item.done { opacity: .5; text-decoration: line-through; }
+    .action-item span { flex: 1; }
+    .add-row { display: flex; gap: 8px; margin-bottom: 18px; }
+    .add-row input { flex: 1; }
+    .link-filters { display: flex; gap: 6px; margin-bottom: 16px; }
+
+    /* AI 改寫過的原話對照 */
+    .raw-toggle { margin-top: 6px; cursor: pointer; }
+    .raw-label {
+      display: inline-block; font-size: 11px; color: #8e8e93;
+      border: 1px solid #e5e5ea; border-radius: 10px; padding: 1px 8px;
+    }
+    .raw-toggle:hover .raw-label { color: #4a7bc8; border-color: #4a7bc8; }
+    .raw-text {
+      display: none; margin-top: 6px; padding: 8px 10px;
+      background: #f7f7f9; border-left: 3px solid #d1d1d6; border-radius: 6px;
+      font-size: 12px; color: #48484a; white-space: pre-wrap; word-break: break-word;
+    }
+    .raw-toggle.open .raw-text { display: block; }
+    .raw-toggle.open .raw-label { color: #4a7bc8; border-color: #4a7bc8; }
+
+    /* 相簿 */
+    .album-hint { color: #8e8e93; font-size: 13px; margin: 0 0 14px; line-height: 1.5; }
+    .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .album-item { position: relative; border-radius: 12px; overflow: hidden; background: #f2f2f7; aspect-ratio: 1; }
+    .album-item img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
+    .album-item .album-meta {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 8px 6px;
+      background: linear-gradient(transparent, rgba(0,0,0,.72));
+      color: #fff; font-size: 11px; line-height: 1.35;
+    }
+    .album-item .album-del {
+      position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
+      border: none; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff;
+      font-size: 14px; line-height: 1; cursor: pointer;
+    }
+    .album-item .album-del:hover { background: rgba(255,59,48,.9); }
+    .album-empty { color: #8e8e93; text-align: center; padding: 48px 16px; }
+    .lightbox {
+      position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.88);
+      display: flex; align-items: center; justify-content: center; padding: 20px; cursor: zoom-out;
+    }
+    .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+    .card .content { flex: 1; min-width: 0; word-break: break-word; }
+    .card a { color: var(--brand-ink); font-weight: 600; text-decoration: none; }
+    .card a:hover { text-decoration: underline; }
+    .card .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -86,6 +280,15 @@
     <input type="text" id="editProject" list="projectList" />
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="editDueDate" />
+    <label>提前多久提醒（可留空＝用系統預設5分鐘）</label>
+    <div style="display:flex;gap:8px">
+      <input type="number" id="editLeadValue" min="0" placeholder="例如 1" style="flex:1" />
+      <select id="editLeadUnit" style="width:100px">
+        <option value="1">分鐘</option>
+        <option value="60">小時</option>
+        <option value="1440">天</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
       <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
@@ -110,6 +313,15 @@
     <datalist id="projectList"></datalist>
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="newDueDate" />
+    <label>提前多久提醒（可留空＝用系統預設5分鐘）</label>
+    <div style="display:flex;gap:8px">
+      <input type="number" id="newLeadValue" min="0" placeholder="例如 1" style="flex:1" />
+      <select id="newLeadUnit" style="width:100px">
+        <option value="1">分鐘</option>
+        <option value="60">小時</option>
+        <option value="1440">天</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="submitNote()">新增</button>
@@ -117,14 +329,80 @@
   </div>
 </div>
 
+<div class="modal-bg" id="songsEditModal">
+  <div class="modal">
+    <h3 id="songsModalTitle">編輯歌曲</h3>
+    <label>歌名 *</label>
+    <input type="text" id="songsFTitle" />
+    <div class="row3">
+      <div><label>調性</label><input type="text" id="songsFKey" placeholder="D" /></div>
+      <div><label>BPM</label><input type="text" id="songsFBpm" placeholder="72" /></div>
+      <div><label>連結</label><input type="text" id="songsFLink" placeholder="https://" /></div>
+    </div>
+    <label>歌詞／段落結構</label>
+    <textarea id="songsFSection" placeholder="[verse]&#10;..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="Songs.closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="Songs.save()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="orderEditModal">
+  <div class="modal">
+    <h3 id="orderModalTitle">編輯敬拜順序</h3>
+    <label>日期 *</label>
+    <input type="date" id="orderFDate" />
+    <label>內容（歌單、段落結構、歌詞都可以，換行照原樣保留）</label>
+    <textarea id="orderFContent" placeholder="1.無人能與祢相比(E)&#10;1-PC-C-間奏..."></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="Order.closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="Order.save()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="meetingsEditModal">
+  <div class="modal">
+    <h3 id="meetingsModalTitle">編輯會議記錄</h3>
+    <label>日期 *</label>
+    <input type="date" id="meetingsFDate" />
+    <label>會議標題</label>
+    <input type="text" id="meetingsFTitle" placeholder="例：全職同工會、小組長月會" />
+    <div class="hint">標題會存成內容的第一行，跟從 LINE 打「會議 8/29 小組長月會」的結果一樣</div>
+    <label>內容</label>
+    <textarea id="meetingsFContent" placeholder="討論事項...&#10;待辦: 阿德負責音控報價"></textarea>
+    <div class="hint">行首寫「待辦: xxx」「TODO: xxx」會自動變成獨立待辦（新增時才會抓，編輯已存的記錄不會重複建立）</div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="Meetings.closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="Meetings.save()">儲存</button>
+    </div>
+  </div>
+</div>
+
 <div id="main">
   <header>
-    <h1>EmmArk 小秘書 Dashboard</h1>
-    <a id="worshipLink" href="#" onclick="goWorship()" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">⛪ 服事表</a>
+    <h1>EmmArk 小秘書</h1>
+    <nav class="tabbar" id="tabbar">
+      <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">📋 Dashboard</button>
+      <button class="tab-btn" id="tabBtn-songs" onclick="switchTab('songs')">🎼 詩歌庫</button>
+      <button class="tab-btn" id="tabBtn-order" onclick="switchTab('order')">🎵 敬拜順序</button>
+      <button class="tab-btn" id="tabBtn-meetings" onclick="switchTab('meetings')">📝 會議記錄</button>
+      <button class="tab-btn" id="tabBtn-links" onclick="switchTab('links')">🔗 收藏</button>
+      <button class="tab-btn" id="tabBtn-album" onclick="switchTab('album')">📷 相簿</button>
+    </nav>
+    <a href="#" onclick="goPage('worship.html')" style="color:rgba(255,255,255,.7);font-size:13px;text-decoration:none;white-space:nowrap">⛪ 服事表</a>
     <span id="lastRefresh"></span>
   </header>
-  <div class="container">
+
+  <div id="panel-dashboard" class="tab-panel container">
+    <div id="truncWarn" class="trunc-warn" style="display:none"></div>
     <div class="stats" id="stats"></div>
+    <div class="view-tabs">
+      <button class="view-tab active" id="tabList" onclick="switchView('list')">📋 列表</button>
+      <button class="view-tab" id="tabCalendar" onclick="switchView('calendar')">📅 日曆</button>
+    </div>
+    <div id="listView">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div class="project-tags" id="projectTags" style="margin-bottom:0"></div>
       <button class="btn btn-primary" onclick="openModal()">＋ 新增記錄</button>
@@ -143,10 +421,25 @@
         <option value="true">已完成</option>
       </select>
       <input type="text" id="search" placeholder="搜尋..." oninput="applyFilters()" />
+      <select id="sortBy" onchange="applyFilters()">
+        <option value="created_desc">建立時間（新→舊）</option>
+        <option value="created_asc">建立時間（舊→新）</option>
+        <option value="due_asc">到期時間（近→遠）</option>
+        <option value="due_desc">到期時間（遠→近）</option>
+        <option value="content_asc">內容（A→Z）</option>
+      </select>
+    </div>
+    <div id="bulkBar" style="display:none;align-items:center;gap:8px;margin-bottom:12px;background:var(--brand-soft);border:1px solid var(--brand);border-radius:10px;padding:10px 14px;">
+      <span id="bulkCount" style="font-weight:600;color:var(--brand-ink);flex:1"></span>
+      <button class="btn-sm btn-done" onclick="bulkDone()">批次完成</button>
+      <button class="btn-sm btn-edit" onclick="bulkSetProject()">改專案</button>
+      <button class="btn-sm btn-del" onclick="bulkDelete()">批次刪除</button>
+      <button class="btn-sm btn-cancel" onclick="clearSelection()">取消選取</button>
     </div>
     <table>
       <thead>
         <tr>
+          <th style="width:36px"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this.checked)" /></th>
           <th>內容</th>
           <th>類型</th>
           <th>專案</th>
@@ -157,27 +450,171 @@
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
+    </div><!-- /listView -->
+    <div id="calendarView" style="display:none">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="calShift(-1)">‹</button>
+        <h2 id="calTitle"></h2>
+        <button class="cal-nav" onclick="calShift(1)">›</button>
+      </div>
+      <div class="cal-showdone-row">
+        <label class="cal-showdone">
+          <input type="checkbox" id="calShowDone" onchange="toggleCalDone(this.checked)" />
+          顯示已完成
+        </label>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="day-detail" id="dayDetail" style="display:none"></div>
+    </div>
   </div>
+
+  <div id="panel-songs" class="tab-panel container" style="display:none">
+    <div class="toolbar">
+      <input type="text" id="songsSearch" placeholder="搜尋歌名..." oninput="Songs.render()" />
+      <button class="btn btn-primary" onclick="Songs.openAdd()">＋ 新增歌曲</button>
+    </div>
+    <div id="songsList"></div>
+  </div>
+
+  <div id="panel-order" class="tab-panel container" style="display:none">
+    <div class="toolbar" style="justify-content:flex-end">
+      <button class="btn btn-primary" onclick="Order.openAdd()">＋ 新增順序</button>
+    </div>
+    <div id="orderList"></div>
+  </div>
+
+  <div id="panel-meetings" class="tab-panel container" style="display:none">
+    <div class="toolbar" style="justify-content:flex-end">
+      <button class="btn btn-primary" onclick="Meetings.openAdd()">＋ 新增會議記錄</button>
+    </div>
+    <div id="meetingsList"></div>
+  </div>
+
+  <div id="panel-links" class="tab-panel container" style="display:none">
+    <div class="add-row">
+      <input type="text" id="linksNewInput" placeholder="貼上網址或備註..." onkeydown="if(event.key==='Enter')Links.add()" />
+      <button class="btn btn-primary" onclick="Links.add()">＋ 收藏</button>
+    </div>
+    <div class="link-filters">
+      <button class="btn-tab active" id="linksTabActive" onclick="Links.setFilter('active')">未封存</button>
+      <button class="btn-tab" id="linksTabDone" onclick="Links.setFilter('done')">已封存</button>
+      <button class="btn-tab" id="linksTabAll" onclick="Links.setFilter('all')">全部</button>
+    </div>
+    <div id="linksList"></div>
+  </div>
+
+  <div id="panel-album" class="tab-panel container" style="display:none">
+    <p class="album-hint">傳給小秘書的圖片都會留在這裡。想只存檔不跑辨識，先跟小秘書打「存圖」。</p>
+    <div id="albumGrid" class="album-grid"></div>
+    <div id="albumEmpty" class="album-empty" style="display:none">還沒有任何圖片。傳一張給小秘書試試～</div>
+  </div>
+
+  <div id="albumLightbox" class="lightbox" style="display:none" onclick="Album.closeLightbox(event)">
+    <img id="lightboxImg" alt="" />
+  </div>
+
+  <button class="fab" onclick="onFabClick()" title="新增" aria-label="新增">＋</button>
 </div>
 
 <script>
 let token = '';
 let allNotes = [];
 let activeProject = '';
+let selectedIds = new Set();
 
 const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project_update: '專案更新' };
 const TYPE_CLASS = { task: 'type-task', reminder: 'type-reminder', note: 'type-note', project_update: 'type-project_update' };
 
+// ---- 分頁籤切換（取代原本 5 個獨立頁面互跳，共用同一個登入 session） ----
+const TABS = ['dashboard', 'songs', 'order', 'meetings', 'links', 'album'];
+let currentTab = 'dashboard';
+const loadedTabs = new Set(['dashboard']);
+let hashTabApplied = false;
+
+function switchTab(name) {
+  if (!TABS.includes(name)) name = 'dashboard';
+  currentTab = name;
+  TABS.forEach(t => {
+    document.getElementById('panel-' + t).style.display = t === name ? 'block' : 'none';
+    document.getElementById('tabBtn-' + t).classList.toggle('active', t === name);
+  });
+  // 相簿只能從 LINE 傳圖進來，後台沒有「新增」這個動作，所以把 ＋ 收起來
+  const fab = document.querySelector('.fab');
+  if (fab) fab.style.display = name === 'album' ? 'none' : '';
+
+  // 相簿的圖片網址是簽出來的、一小時後會失效，
+  // 所以每次切過來都重新抓，不做快取
+  if (name === 'album') { Album.load(); return; }
+
+  if (!loadedTabs.has(name)) {
+    loadedTabs.add(name);
+    if (name === 'songs') Songs.load();
+    else if (name === 'order') Order.load();
+    else if (name === 'meetings') Meetings.load();
+    else if (name === 'links') Links.load();
+  }
+}
+
+function onFabClick() {
+  if (currentTab === 'dashboard') openModal();
+  else if (currentTab === 'songs') Songs.openAdd();
+  else if (currentTab === 'order') Order.openAdd();
+  else if (currentTab === 'meetings') Meetings.openAdd();
+  else if (currentTab === 'links') document.getElementById('linksNewInput').focus();
+}
+
+function goPage(page) {
+  window.location.href = '/' + page;
+}
+
+function formatLeadMinutes(min) {
+  if (min % 1440 === 0) return `${min / 1440}天`;
+  if (min % 60 === 0) return `${min / 60}小時`;
+  return `${min}分鐘`;
+}
+
+// 把分鐘數拆成「數值＋單位」給下拉選單用（挑最大能整除的單位）
+function minutesToUnit(min) {
+  if (min == null) return { value: '', unit: 1 };
+  if (min % 1440 === 0) return { value: min / 1440, unit: 1440 };
+  if (min % 60 === 0) return { value: min / 60, unit: 60 };
+  return { value: min, unit: 1 };
+}
+
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
   if (!token) return alert('請輸入密碼');
+  localStorage.setItem('dashboardToken', token);
   loadNotes();
 }
 
+// 記住密碼：網址帶 token（頁面互跳）或之前登入存過的 token，都自動略過登入畫面
+async function tryStoredLogin() {
+  const saved = new URLSearchParams(location.search).get('token') || localStorage.getItem('dashboardToken');
+  if (!saved) return;
+  document.getElementById('login').style.display = 'none'; // 先隱藏，避免驗證期間閃一下登入畫面
+  const res = await fetch(`/api/dashboard/notes?limit=1`, { headers: { 'x-dashboard-token': saved } });
+  if (res.status === 401) {
+    localStorage.removeItem('dashboardToken');
+    document.getElementById('login').style.display = 'flex'; // 驗證失敗才顯示登入畫面
+    return;
+  }
+  token = saved;
+  localStorage.setItem('dashboardToken', token);
+  loadNotes();
+}
+tryStoredLogin();
+
+// 後台列表/日曆/統計都吃這份資料，所以要一次撈足。
+// 沒帶 limit 的話 API 預設只給 100 筆 —— 實測 268 筆時，7/14 以前的
+// 168 筆在後台完全看不到，看起來就像資料不見了。
+const NOTES_LIMIT = 2000;
+
 async function api(method, body) {
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+  const url = method === 'GET' ? `/api/dashboard/notes?limit=${NOTES_LIMIT}` : `/api/dashboard/notes`;
+  const res = await fetch(url, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (res.status === 401) { alert('密碼錯誤'); return null; }
@@ -185,9 +622,29 @@ async function api(method, body) {
 }
 
 async function loadNotes() {
+  if (!token) return; // 還沒登入時，不要讓自動刷新的 60 秒計時器一直跳密碼錯誤
   const data = await api('GET');
   if (!data) return;
   allNotes = data;
+
+  // 萬一哪天真的撈滿了，要講出來，不要又變成無聲截斷
+  const warn = document.getElementById('truncWarn');
+  if (warn) {
+    const hit = Array.isArray(data) && data.length >= NOTES_LIMIT;
+    warn.style.display = hit ? 'block' : 'none';
+    if (hit) warn.textContent = `⚠️ 記錄已超過 ${NOTES_LIMIT} 筆，這裡只顯示最新的 ${NOTES_LIMIT} 筆。`;
+  }
+
+  // 一併載入主日服事表，疊進月曆
+  worshipByDate = {};
+  try {
+    const wres = await fetch(`/api/worship/schedule`, { headers: { 'x-dashboard-token': token } });
+    if (wres.ok) {
+      const wd = await wres.json();
+      (wd || []).forEach(w => { (worshipByDate[w.service_date] = worshipByDate[w.service_date] || []).push(w); });
+    }
+  } catch (e) { /* 服事表載入失敗不影響其他功能 */ }
+
   document.getElementById('login').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   document.getElementById('lastRefresh').textContent = '更新：' + new Date().toLocaleTimeString('zh-TW');
@@ -195,6 +652,17 @@ async function loadNotes() {
   renderProjectTags();
   updateProjectList();
   applyFilters();
+  if (currentView === 'calendar') {
+    renderCalendar();
+    if (selectedKey) showDay(selectedKey);
+  }
+
+  // 網址帶 #songs / #order / #meetings / #links（例如從服事表頁面跳過來）第一次登入完成後自動切過去
+  if (!hashTabApplied) {
+    hashTabApplied = true;
+    const h = (location.hash || '').replace('#', '');
+    if (h && TABS.includes(h) && h !== 'dashboard') switchTab(h);
+  }
 }
 
 function renderStats() {
@@ -223,6 +691,22 @@ function setProject(p) {
   applyFilters();
 }
 
+function sortNotes(items, sortBy) {
+  const byDue = (a, b, dir) => {
+    if (!a.due_date && !b.due_date) return 0;
+    if (!a.due_date) return 1; // 沒有到期時間的排最後
+    if (!b.due_date) return -1;
+    return dir * (new Date(a.due_date) - new Date(b.due_date));
+  };
+  const sorted = items.slice();
+  if (sortBy === 'created_asc') sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  else if (sortBy === 'due_asc') sorted.sort((a, b) => byDue(a, b, 1));
+  else if (sortBy === 'due_desc') sorted.sort((a, b) => byDue(a, b, -1));
+  else if (sortBy === 'content_asc') sorted.sort((a, b) => (a.content || '').localeCompare(b.content || '', 'zh-TW'));
+  else sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // created_desc（預設）
+  return sorted;
+}
+
 function applyFilters() {
   const type = document.getElementById('filterType').value;
   const done = document.getElementById('filterDone').value;
@@ -235,30 +719,49 @@ function applyFilters() {
     if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
     return true;
   });
+  filtered = sortNotes(filtered, document.getElementById('sortBy').value);
 
   const tbody = document.getElementById('tableBody');
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">沒有符合的記錄</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">沒有符合的記錄</td></tr>';
+    updateBulkBar();
     return;
   }
 
   tbody.innerHTML = filtered.map(n => {
     const due = n.due_date ? new Date(n.due_date).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '-';
-    const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+    const leadTxt = n.due_date && n.remind_lead_minutes != null ? `<br><span style="font-size:11px;color:var(--muted)">提前${formatLeadMinutes(n.remind_lead_minutes)}</span>` : '';
+    const dueWithLead = due + leadTxt;
+    const created = new Date(n.created_at).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
     const doneBtn = n.is_done
       ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
       : `<button class="btn-sm btn-done" onclick="toggleDone('${n.id}', true)">完成</button>`;
-    const safeContent = n.content.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-    const safeProject = (n.project || '').replace(/'/g, '&#39;');
+    const safeContent = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const checked = selectedIds.has(n.id) ? 'checked' : '';
+
+    // AI 改寫過的記錄，把你原本打的話也留一個入口可以對照。
+    // 不然 AI 改壞了在後台完全看不出來。
+    const rewritten = n.raw_text && n.content && n.raw_text !== n.content;
+    const safeRaw = rewritten
+      ? n.raw_text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      : '';
+    const rawBlock = rewritten
+      ? `<div class="raw-toggle" onclick="this.classList.toggle('open')">
+           <span class="raw-label">✏️ AI 改寫過，看原話</span>
+           <div class="raw-text">${safeRaw}</div>
+         </div>`
+      : '';
     return `<tr class="${n.is_done ? 'done-row' : ''}">
-      <td>${n.content}</td>
-      <td><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
-      <td>${n.project || '-'}</td>
-      <td>${due}</td>
-      <td>${created}</td>
-      <td><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}','${safeContent}','${n.type}','${safeProject}','${n.due_date||''}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
+      <td data-label="選取"><input type="checkbox" class="rowCheck" ${checked} onchange="toggleSelect('${n.id}', this.checked)" /></td>
+      <td data-label="內容">${safeContent}${rawBlock}</td>
+      <td data-label="類型"><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
+      <td data-label="專案">${n.project || '-'}</td>
+      <td data-label="到期">${dueWithLead}</td>
+      <td data-label="建立">${created}</td>
+      <td data-label="操作"><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
     </tr>`;
   }).join('');
+  updateBulkBar();
 }
 
 async function toggleDone(id, is_done) {
@@ -278,11 +781,94 @@ async function deleteNote(id) {
   applyFilters();
 }
 
+// ---- 批次選取操作 ----
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar();
+}
+
+function toggleSelectAll(checked) {
+  getShownIds().forEach(id => { if (checked) selectedIds.add(id); else selectedIds.delete(id); });
+  applyFilters();
+}
+
+function getShownIds() {
+  const type = document.getElementById('filterType').value;
+  const done = document.getElementById('filterDone').value;
+  const search = document.getElementById('search').value.toLowerCase();
+  return allNotes.filter(n => {
+    if (type && n.type !== type) return false;
+    if (done !== '' && String(n.is_done) !== done) return false;
+    if (activeProject && n.project !== activeProject) return false;
+    if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
+    return true;
+  }).map(n => n.id);
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  applyFilters();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  const selectAllBox = document.getElementById('selectAllBox');
+  if (selectedIds.size === 0) {
+    bar.style.display = 'none';
+    if (selectAllBox) selectAllBox.checked = false;
+    return;
+  }
+  bar.style.display = 'flex';
+  document.getElementById('bulkCount').textContent = `已選 ${selectedIds.size} 筆`;
+  if (selectAllBox) {
+    const shown = getShownIds();
+    selectAllBox.checked = shown.length > 0 && shown.every(id => selectedIds.has(id));
+  }
+}
+
+async function bulkDone() {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  if (!confirm(`確定將這 ${ids.length} 筆標記為完成？`)) return;
+  await Promise.all(ids.map(id => api('PATCH', { id, is_done: true })));
+  ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = true; });
+  clearSelection();
+  renderStats();
+  applyFilters();
+}
+
+async function bulkDelete() {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  if (!confirm(`確定刪除這 ${ids.length} 筆？無法復原。`)) return;
+  await Promise.all(ids.map(id => api('DELETE', { id })));
+  allNotes = allNotes.filter(n => !selectedIds.has(n.id));
+  clearSelection();
+  renderStats();
+  renderProjectTags();
+  applyFilters();
+}
+
+async function bulkSetProject() {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  const project = prompt(`把這 ${ids.length} 筆改成哪個專案？（留空＝清空專案）`);
+  if (project === null) return;
+  await Promise.all(ids.map(id => api('PATCH', { id, project })));
+  ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.project = project || null; });
+  clearSelection();
+  renderProjectTags();
+  updateProjectList();
+  applyFilters();
+}
+
 function openModal() {
   document.getElementById('newContent').value = '';
   document.getElementById('newType').value = 'task';
   document.getElementById('newProject').value = '';
   document.getElementById('newDueDate').value = '';
+  document.getElementById('newLeadValue').value = '';
+  document.getElementById('newLeadUnit').value = '1';
   document.getElementById('addModal').classList.add('open');
   document.getElementById('newContent').focus();
 }
@@ -296,12 +882,15 @@ async function submitNote() {
   const type = document.getElementById('newType').value;
   const project = document.getElementById('newProject').value.trim();
   const dueDateLocal = document.getElementById('newDueDate').value;
+  const leadRaw = document.getElementById('newLeadValue').value;
+  const leadUnit = Number(document.getElementById('newLeadUnit').value);
   if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
+  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
+  const res = await fetch(`/api/dashboard/notes`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type, project, content, due_date }),
+    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
+    body: JSON.stringify({ type, project, content, due_date, remind_lead_minutes }),
   });
   if (res.status === 401) { alert('密碼錯誤'); return; }
   const data = await res.json();
@@ -321,18 +910,23 @@ function updateProjectList() {
 
 let editingNoteId = null;
 
-function openEditModal(id, content, type, project, due_date) {
+function openEditModal(id) {
+  const note = allNotes.find(n => n.id === id);
+  if (!note) return;
   editingNoteId = id;
-  document.getElementById('editContent').value = content;
-  document.getElementById('editType').value = type;
-  document.getElementById('editProject').value = project;
-  if (due_date) {
-    const local = new Date(due_date);
+  document.getElementById('editContent').value = note.content || '';
+  document.getElementById('editType').value = note.type;
+  document.getElementById('editProject').value = note.project || '';
+  if (note.due_date) {
+    const local = new Date(note.due_date);
     local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
     document.getElementById('editDueDate').value = local.toISOString().slice(0,16);
   } else {
     document.getElementById('editDueDate').value = '';
   }
+  const leadSplit = minutesToUnit(note.remind_lead_minutes);
+  document.getElementById('editLeadValue').value = leadSplit.value;
+  document.getElementById('editLeadUnit').value = leadSplit.unit;
   document.getElementById('editModal').classList.add('open');
   document.getElementById('editContent').focus();
 }
@@ -347,12 +941,15 @@ async function saveEdit() {
   const type = document.getElementById('editType').value;
   const project = document.getElementById('editProject').value.trim();
   const dueDateLocal = document.getElementById('editDueDate').value;
+  const leadRaw = document.getElementById('editLeadValue').value;
+  const leadUnit = Number(document.getElementById('editLeadUnit').value);
   if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
-  const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date });
+  const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
+  const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date, remind_lead_minutes });
   if (!updated) return;
   const idx = allNotes.findIndex(n => n.id === editingNoteId);
-  if (idx !== -1) Object.assign(allNotes[idx], { content, type, project: project || null, due_date });
+  if (idx !== -1) Object.assign(allNotes[idx], { content, type, project: project || null, due_date, remind_lead_minutes });
   closeEditModal();
   renderStats();
   renderProjectTags();
@@ -360,12 +957,725 @@ async function saveEdit() {
   applyFilters();
 }
 
+// ---- 日曆檢視 ----
+let currentView = 'list';
+let calYear = null, calMonth = null; // calMonth: 0-based
+let selectedKey = null;
+let worshipByDate = {}; // service_date -> [{role, person_name}]
+
+function taipeiKey(iso) {
+  // 回傳 due_date 在台北時區的 YYYY-MM-DD
+  return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+}
+function todayKey() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+}
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function switchView(view) {
+  currentView = view;
+  document.getElementById('tabList').classList.toggle('active', view === 'list');
+  document.getElementById('tabCalendar').classList.toggle('active', view === 'calendar');
+  document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+  document.getElementById('calendarView').style.display = view === 'calendar' ? 'block' : 'none';
+  if (view === 'calendar') {
+    if (calYear === null) {
+      const [y, m] = todayKey().split('-').map(Number);
+      calYear = y; calMonth = m - 1;
+    }
+    renderCalendar();
+  }
+}
+
+function calShift(delta) {
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  selectedKey = null;
+  document.getElementById('dayDetail').style.display = 'none';
+  renderCalendar();
+}
+
+// 日曆預設只顯示未完成的項目。翻回過去的月份時，東西大多已經完成，
+// 整個月看起來會像空的（實測 6 月的 25 筆 task/reminder 全部已完成），
+// 很容易誤以為資料不見了。這個開關讓過去的記錄也看得到。
+let calShowDone = false;
+function toggleCalDone(on) {
+  calShowDone = !!on;
+  renderCalendar();
+}
+
+function renderCalendar() {
+  document.getElementById('calTitle').textContent = `${calYear} 年 ${calMonth + 1} 月`;
+
+  // 把有 due_date 的事項歸到日期
+  const byDay = {};
+  allNotes.forEach(n => {
+    if (!n.due_date) return;
+    if (n.is_done && !calShowDone) return;
+    if (n.type !== 'task' && n.type !== 'reminder') return;
+    const key = taipeiKey(n.due_date);
+    (byDay[key] = byDay[key] || []).push(n);
+  });
+
+  const grid = document.getElementById('calGrid');
+  let html = ['日', '一', '二', '三', '四', '五', '六']
+    .map(w => `<div class="cal-wd">${w}</div>`).join('');
+
+  const firstWd = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const tk = todayKey();
+
+  for (let i = 0; i < firstWd; i++) html += '<div class="cal-cell empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${calYear}-${pad2(calMonth + 1)}-${pad2(d)}`;
+    const items = byDay[key] || [];
+    const classes = ['cal-cell'];
+    if (key === tk) classes.push('today');
+    if (key === selectedKey) classes.push('selected');
+    const reminders = items.filter(n => n.type === 'reminder').length;
+    const tasks = items.filter(n => n.type === 'task').length;
+    const hasWorship = !!worshipByDate[key];
+    let dots = '';
+    if (reminders) dots += '<span class="cal-dot reminder"></span>';
+    if (tasks) dots += '<span class="cal-dot task"></span>';
+    if (hasWorship) dots += '<span class="cal-dot worship"></span>';
+    let countTxt = items.length ? `${items.length} 項` : '';
+    if (hasWorship) countTxt = countTxt ? `${countTxt} ⛪` : '⛪ 服事';
+    const count = countTxt ? `<div class="cal-count">${countTxt}</div>` : '';
+    html += `<div class="${classes.join(' ')}" onclick="showDay('${key}')">
+      <div class="cal-date">${d}</div>
+      <div class="cal-dots">${dots}</div>${count}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function showDay(key) {
+  selectedKey = key;
+  renderCalendar();
+  const items = allNotes
+    // 跟月曆格子用同一套過濾條件，不然點下去會跟格子上顯示的數量對不起來
+    .filter(n => n.due_date && (!n.is_done || calShowDone) && (n.type === 'task' || n.type === 'reminder') && taipeiKey(n.due_date) === key)
+    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+  const dateLabel2 = new Date(`${key}T00:00:00+08:00`).toLocaleDateString('zh-TW', {
+    timeZone: 'Asia/Taipei', month: 'long', day: 'numeric', weekday: 'long',
+  });
+
+  const worship = worshipByDate[key] || [];
+
+  let html = `<h3>${dateLabel2}</h3>`;
+  if (items.length === 0 && worship.length === 0) {
+    html += '<div class="empty" style="padding:16px">這天沒有排定事項</div>';
+  } else {
+    html += items.map(n => {
+      const time = new Date(n.due_date).toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false });
+      return `<div class="day-item">
+        <span class="dtime">${time}</span>
+        <span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span>
+        <span style="flex:1">${n.content}</span>
+        ${n.project ? `<span style="color:#6e6e73;font-size:12px">· ${n.project}</span>` : ''}
+        <div class="actions">
+          <button class="btn-sm btn-done" onclick="dayToggleDone('${n.id}')">完成</button>
+          <button class="btn-sm btn-del" onclick="dayDeleteNote('${n.id}')">刪除</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    if (worship.length) {
+      const byRole = {};
+      worship.forEach(w => { (byRole[w.role] = byRole[w.role] || []).push(w.person_name); });
+      html += `<h3 style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">⛪ 主日服事</h3>`;
+      html += Object.entries(byRole).map(([role, ppl]) => `<div class="day-item">
+        <span class="type-badge" style="background:var(--brand-soft);color:var(--brand-ink)">${role}</span>
+        <span>${ppl.join('、')}</span>
+      </div>`).join('');
+    }
+  }
+  const detail = document.getElementById('dayDetail');
+  detail.innerHTML = html;
+  detail.style.display = 'block';
+}
+
+async function dayToggleDone(id) {
+  await toggleDone(id, true);
+  if (selectedKey) showDay(selectedKey);
+}
+
+async function dayDeleteNote(id) {
+  await deleteNote(id);
+  if (selectedKey) showDay(selectedKey);
+}
+
 // Auto refresh every 60s
 setInterval(loadNotes, 60000);
 
-function goWorship() {
-  window.location.href = '/worship.html?token=' + encodeURIComponent(token);
+// ---- 共用小工具（詩歌庫／敬拜順序／會議記錄共用） ----
+function dateKey(iso) { return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' }); }
+function dateLabel(iso) {
+  return new Date(iso).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', weekday: 'short' });
 }
+
+// ---- 詩歌庫 ----
+// 把 YouTube 網址（watch/youtu.be/shorts/embed 都支援）轉成可嵌入的 embed 網址，不是 YouTube 就回傳 null
+function youtubeEmbedUrl(url) {
+  let u;
+  try { u = new URL(url); } catch (e) { return null; }
+  const host = u.hostname.replace(/^www\./, '');
+  let id = null;
+  if (host === 'youtu.be') {
+    id = u.pathname.slice(1);
+  } else if (host === 'youtube.com' || host === 'm.youtube.com') {
+    if (u.pathname === '/watch') id = u.searchParams.get('v');
+    else if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
+    else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/')[2];
+  }
+  return id ? `https://www.youtube.com/embed/${id}` : null;
+}
+
+// 跟 lib/commands.js 的 parseSongEntry 邏輯一致：只解析前4個欄位，其餘原文保留
+function parseSongEntry(content) {
+  const [main, ...histParts] = content.trim().split(/｜版本紀錄[:：]/);
+  const history = histParts.join('｜版本紀錄:');
+  const m = main.trim().match(/^(\S+)(?:\s+(\S+))?(?:\s+(\S+))?(?:\s+(\S+))?(?:\s+([\s\S]*))?$/);
+  if (!m) return { title: '', key: '', bpm: '', link: '', section: '', history };
+  return { title: m[1] || '', key: m[2] || '', bpm: m[3] || '', link: m[4] || '', section: (m[5] || '').trim(), history };
+}
+
+const Songs = {
+  items: [],
+  editingId: null,
+  openCardId: null,
+
+  async load() {
+    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('詩歌')}&limit=200`, { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    this.items = await res.json();
+    this.render();
+  },
+
+  render() {
+    const kw = document.getElementById('songsSearch').value.trim().toLowerCase();
+    const list = document.getElementById('songsList');
+    const parsed = this.items.map(n => ({ note: n, entry: parseSongEntry(n.content || '') }))
+      .filter(x => !kw || x.entry.title.toLowerCase().includes(kw));
+    if (parsed.length === 0) {
+      list.innerHTML = '<div class="empty">詩歌庫還沒有資料</div>';
+      return;
+    }
+    list.innerHTML = parsed.map(({ note, entry }) => {
+      const open = this.openCardId === note.id;
+      const tag = [entry.key, entry.bpm].filter(Boolean).join(' · ');
+      // 只有展開的卡片才嵌入播放器，避免一次載入一堆 iframe
+      const ytEmbed = (open && entry.link) ? youtubeEmbedUrl(entry.link) : null;
+      const linkHtml = entry.link
+        ? (ytEmbed
+            ? `<div style="position:relative;width:100%;padding-top:56.25%;margin-bottom:10px;border-radius:10px;overflow:hidden">
+                 <iframe src="${ytEmbed}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" allowfullscreen loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+               </div>
+               <a href="${entry.link}" target="_blank" rel="noopener" style="font-size:12px;color:var(--muted)">${entry.link}</a><br>`
+            : `<a href="${entry.link}" target="_blank" rel="noopener">${entry.link}</a><br>`)
+        : '';
+      const safeLyrics = (entry.section || '（沒有歌詞／段落資料）').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const historyHtml = entry.history ? `<div class="history">📜 版本紀錄：${entry.history}</div>` : '';
+      return `<div class="card">
+        <div class="card-head" onclick="Songs.toggleCard('${note.id}')">
+          <span class="title">🎼 ${entry.title || '(未命名)'}</span>
+          ${tag ? `<span class="tag">${tag}</span>` : ''}
+        </div>
+        <div class="card-body ${open ? 'open' : ''}" id="songs-body-${note.id}">
+          ${linkHtml}
+          ${historyHtml}
+          <div class="lyrics">${safeLyrics}</div>
+          <div class="actions">
+            <button class="btn-sm btn-edit" onclick="Songs.openEdit('${note.id}')">編輯</button>
+            <button class="btn-sm btn-del" onclick="Songs.del('${note.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  toggleCard(id) {
+    this.openCardId = this.openCardId === id ? null : id;
+    this.render();
+  },
+
+  openAdd() {
+    this.editingId = null;
+    document.getElementById('songsModalTitle').textContent = '新增歌曲';
+    document.getElementById('songsFTitle').value = '';
+    document.getElementById('songsFKey').value = '';
+    document.getElementById('songsFBpm').value = '';
+    document.getElementById('songsFLink').value = '';
+    document.getElementById('songsFSection').value = '';
+    document.getElementById('songsEditModal').classList.add('open');
+  },
+
+  openEdit(id) {
+    const note = this.items.find(n => n.id === id);
+    if (!note) return;
+    const entry = parseSongEntry(note.content || '');
+    this.editingId = id;
+    document.getElementById('songsModalTitle').textContent = '編輯歌曲';
+    document.getElementById('songsFTitle').value = entry.title;
+    document.getElementById('songsFKey').value = entry.key;
+    document.getElementById('songsFBpm').value = entry.bpm;
+    document.getElementById('songsFLink').value = entry.link;
+    document.getElementById('songsFSection').value = entry.section;
+    document.getElementById('songsEditModal').classList.add('open');
+  },
+
+  closeModal() {
+    document.getElementById('songsEditModal').classList.remove('open');
+  },
+
+  async save() {
+    const title = document.getElementById('songsFTitle').value.trim();
+    if (!title) return alert('請填寫歌名');
+    const key = document.getElementById('songsFKey').value.trim();
+    const bpm = document.getElementById('songsFBpm').value.trim();
+    const link = document.getElementById('songsFLink').value.trim();
+    const section = document.getElementById('songsFSection').value.trim();
+    const header = [title, key, bpm, link].filter(Boolean).join(' ');
+    // 編輯時保留原本的版本紀錄字串，不從後台這邊動它
+    let history = '';
+    if (this.editingId) {
+      const note = this.items.find(n => n.id === this.editingId);
+      const parsed = parseSongEntry(note.content || '');
+      if (parsed.history) history = `\n｜版本紀錄:${parsed.history}`;
+    }
+    const content = [header, section].filter(Boolean).join('\n') + history;
+
+    if (this.editingId) {
+      const updated = await api('PATCH', { id: this.editingId, content });
+      if (!updated) return;
+      const idx = this.items.findIndex(n => n.id === this.editingId);
+      if (idx !== -1) this.items[idx].content = content;
+    } else {
+      const data = await api('POST', { type: 'note', project: '詩歌', content });
+      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      this.items.unshift(data);
+    }
+    this.closeModal();
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這首歌？')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+};
+
+// ---- 敬拜順序 ----
+const Order = {
+  items: [],
+  editingId: null,
+  openCardId: null,
+
+  async load() {
+    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('敬拜順序')}&limit=200`, { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    this.items = (await res.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.render();
+  },
+
+  render() {
+    const list = document.getElementById('orderList');
+    if (this.items.length === 0) {
+      list.innerHTML = '<div class="empty">還沒有任何敬拜順序記錄</div>';
+      return;
+    }
+    list.innerHTML = this.items.map(n => {
+      const open = this.openCardId === n.id;
+      const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<div class="card">
+        <div class="card-head" onclick="Order.toggleCard('${n.id}')">
+          <span class="date">${dateLabel(n.due_date)}</span>
+        </div>
+        <div class="card-body ${open ? 'open' : ''}">
+          <div class="content-pre">${safe}</div>
+          <div class="actions">
+            <button class="btn-sm btn-edit" onclick="Order.openEdit('${n.id}')">編輯</button>
+            <button class="btn-sm btn-del" onclick="Order.del('${n.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  toggleCard(id) {
+    this.openCardId = this.openCardId === id ? null : id;
+    this.render();
+  },
+
+  openAdd() {
+    this.editingId = null;
+    document.getElementById('orderModalTitle').textContent = '新增敬拜順序';
+    document.getElementById('orderFDate').value = dateKey(new Date().toISOString());
+    document.getElementById('orderFContent').value = '';
+    document.getElementById('orderEditModal').classList.add('open');
+  },
+
+  openEdit(id) {
+    const n = this.items.find(x => x.id === id);
+    if (!n) return;
+    this.editingId = id;
+    document.getElementById('orderModalTitle').textContent = '編輯敬拜順序';
+    document.getElementById('orderFDate').value = dateKey(n.due_date);
+    document.getElementById('orderFContent').value = n.content || '';
+    document.getElementById('orderEditModal').classList.add('open');
+  },
+
+  closeModal() {
+    document.getElementById('orderEditModal').classList.remove('open');
+  },
+
+  async save() {
+    const dateStr = document.getElementById('orderFDate').value;
+    const content = document.getElementById('orderFContent').value.trim();
+    if (!dateStr) return alert('請選擇日期');
+    if (!content) return alert('請填寫內容');
+    const due_date = new Date(`${dateStr}T09:00:00+08:00`).toISOString();
+
+    if (this.editingId) {
+      const updated = await api('PATCH', { id: this.editingId, content, due_date });
+      if (!updated) return;
+      const idx = this.items.findIndex(n => n.id === this.editingId);
+      if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
+    } else {
+      const data = await api('POST', { type: 'note', project: '敬拜順序', content, due_date });
+      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      this.items.unshift(data);
+    }
+    this.items.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.closeModal();
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這份敬拜順序？')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+};
+
+// ---- 會議記錄 ----
+// 跟 lib/commands.js 的 extractActionItems 邏輯一致
+function extractActionItems(content) {
+  const items = [];
+  content.split('\n').forEach((line) => {
+    const m = line.match(/^\s*(?:待辦|待辦事項|todo|to-?do|行動項目|action)[:：]\s*(.+)$/i);
+    if (m && m[1].trim()) items.push(m[1].trim());
+  });
+  return items;
+}
+
+// 跟 lib/commands.js 的 meetingTitle 對應：標題就是內容第一行
+function meetingTitle(content) {
+  const first = String(content || '').split('\n').map(s => s.trim()).find(Boolean);
+  if (!first) return '';
+  return first
+    .replace(/^\d{1,2}\s*[/月]\s*\d{1,2}\s*日?[\s,，、:：-]*/, '')
+    .replace(/[\s:：,，、。.-]+$/, '')
+    .trim();
+}
+
+const Meetings = {
+  items: [],
+  actionItems: [],
+  editingId: null,
+  openCardId: null,
+
+  async load() {
+    const [mRes, tRes] = await Promise.all([
+      fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
+      fetch(`/api/dashboard/notes?type=task&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
+    ]);
+    if (mRes.status === 401) { alert('密碼錯誤'); return; }
+    this.items = (await mRes.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.actionItems = await tRes.json();
+    this.render();
+  },
+
+  render() {
+    const list = document.getElementById('meetingsList');
+    if (this.items.length === 0) {
+      list.innerHTML = '<div class="empty">還沒有任何會議記錄</div>';
+      return;
+    }
+    list.innerHTML = this.items.map(n => {
+      const open = this.openCardId === n.id;
+      const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // 用建立時間相近（同一天）粗略歸屬待辦項目給該次會議
+      const dayItems = this.actionItems.filter(t => dateKey(t.created_at) === dateKey(n.created_at));
+      const itemsHtml = dayItems.map(t => `<div class="action-item ${t.is_done ? 'done' : ''}">
+        <span>${(t.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+        ${!t.is_done ? `<button class="btn-sm btn-done" onclick="Meetings.doneItem('${t.id}')">完成</button>` : ''}
+        <button class="btn-sm btn-del" onclick="Meetings.delItem('${t.id}')">刪除</button>
+      </div>`).join('');
+      return `<div class="card">
+        <div class="card-head" onclick="Meetings.toggleCard('${n.id}')">
+          <span class="date">${dateLabel(n.due_date)}</span>
+          ${meetingTitle(n.content) ? `<span class="meeting-title">${meetingTitle(n.content).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>` : ''}
+          ${dayItems.length ? `<span class="tag">📌 ${dayItems.length} 個待辦</span>` : ''}
+        </div>
+        <div class="card-body ${open ? 'open' : ''}">
+          <div class="content-pre">${safe}</div>
+          ${itemsHtml}
+          <div class="actions">
+            <button class="btn-sm btn-edit" onclick="Meetings.openEdit('${n.id}')">編輯</button>
+            <button class="btn-sm btn-del" onclick="Meetings.del('${n.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  toggleCard(id) {
+    this.openCardId = this.openCardId === id ? null : id;
+    this.render();
+  },
+
+  openAdd() {
+    this.editingId = null;
+    document.getElementById('meetingsModalTitle').textContent = '新增會議記錄';
+    document.getElementById('meetingsFDate').value = dateKey(new Date().toISOString());
+    document.getElementById('meetingsFTitle').value = '';
+    document.getElementById('meetingsFContent').value = '';
+    document.getElementById('meetingsEditModal').classList.add('open');
+  },
+
+  openEdit(id) {
+    const n = this.items.find(x => x.id === id);
+    if (!n) return;
+    this.editingId = id;
+    document.getElementById('meetingsModalTitle').textContent = '編輯會議記錄';
+    document.getElementById('meetingsFDate').value = dateKey(n.due_date);
+    // 內容第一行就是標題，拆出來放標題格，剩下的留在內容格。
+    // 這裡放「原始的」第一行，不套 meetingTitle 的清理（那是給顯示用的）——
+    // 不然使用者只是開個編輯視窗按儲存，結尾的冒號就被默默改掉了。
+    const lines = String(n.content || '').split('\n');
+    const firstIdx = lines.findIndex(l => l.trim());
+    document.getElementById('meetingsFTitle').value = firstIdx === -1 ? '' : lines[firstIdx].trim();
+    document.getElementById('meetingsFContent').value = firstIdx === -1 ? '' : lines.slice(firstIdx + 1).join('\n').trim();
+    document.getElementById('meetingsEditModal').classList.add('open');
+  },
+
+  closeModal() {
+    document.getElementById('meetingsEditModal').classList.remove('open');
+  },
+
+  async save() {
+    const dateStr = document.getElementById('meetingsFDate').value;
+    const title = document.getElementById('meetingsFTitle').value.trim();
+    const body = document.getElementById('meetingsFContent').value.trim();
+    // 標題存成第一行，跟從 LINE 記錄的格式一致
+    const content = [title, body].filter(Boolean).join('\n');
+    if (!dateStr) return alert('請選擇日期');
+    if (!content) return alert('請填寫標題或內容');
+    const due_date = new Date(`${dateStr}T09:00:00+08:00`).toISOString();
+
+    if (this.editingId) {
+      const updated = await api('PATCH', { id: this.editingId, content, due_date });
+      if (!updated) return;
+      const idx = this.items.findIndex(n => n.id === this.editingId);
+      if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
+    } else {
+      const data = await api('POST', { type: 'note', project: '會議記錄', content, due_date });
+      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      this.items.unshift(data);
+
+      const actionTexts = extractActionItems(content);
+      for (const it of actionTexts) {
+        const task = await api('POST', { type: 'task', project: '會議記錄', content: it });
+        if (task && !task.error) this.actionItems.push(task);
+      }
+    }
+    this.items.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.closeModal();
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這則會議記錄？（不會一併刪除已拆出的待辦）')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+
+  async doneItem(id) {
+    await api('PATCH', { id, is_done: true });
+    const t = this.actionItems.find(x => x.id === id);
+    if (t) t.is_done = true;
+    this.render();
+  },
+
+  async delItem(id) {
+    if (!confirm('確定刪除這個待辦？')) return;
+    await api('DELETE', { id });
+    this.actionItems = this.actionItems.filter(t => t.id !== id);
+    this.render();
+  },
+};
+
+// ---- 收藏連結 ----
+function extractUrl(text) {
+  const m = text.match(/https?:\/\/\S+/);
+  return m ? m[0] : null;
+}
+
+const Album = {
+  items: [],
+
+  async load() {
+    const res = await fetch('/api/dashboard/album?limit=120', { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    const json = await res.json();
+    this.items = (json && json.items) || [];
+    this.render();
+  },
+
+  render() {
+    const grid = document.getElementById('albumGrid');
+    const empty = document.getElementById('albumEmpty');
+    if (!this.items.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    grid.innerHTML = this.items.map(it => {
+      const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const when = new Date(it.created_at).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
+      const label = it.project && it.project !== '相簿' ? `${it.project}・${when}` : when;
+      // 簽名網址失效或檔案不見時，至少讓格子不要是破圖
+      if (!it.url) {
+        return `<div class="album-item"><div class="album-meta">${esc(label)}（圖片讀不到）</div>
+          <button class="album-del" onclick="Album.remove('${it.id}')" title="刪除">×</button></div>`;
+      }
+      return `<div class="album-item">
+        <img src="${esc(it.url)}" alt="${esc(it.content)}" loading="lazy" onclick="Album.openLightbox('${esc(it.url)}')" />
+        <div class="album-meta">${esc(label)}</div>
+        <button class="album-del" onclick="Album.remove('${it.id}')" title="刪除">×</button>
+      </div>`;
+    }).join('');
+  },
+
+  openLightbox(url) {
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('albumLightbox').style.display = 'flex';
+  },
+
+  closeLightbox() {
+    document.getElementById('albumLightbox').style.display = 'none';
+    document.getElementById('lightboxImg').src = '';
+  },
+
+  async remove(id) {
+    if (!confirm('刪除這張圖片？圖檔會一起刪掉，無法復原。')) return;
+    const res = await fetch(`/api/dashboard/album?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: { 'x-dashboard-token': token },
+    });
+    if (!res.ok) { alert('刪除失敗'); return; }
+    this.items = this.items.filter(i => i.id !== id);
+    this.render();
+  },
+};
+
+const Links = {
+  items: [],
+  filter: 'active',
+  titleCache: {}, // url -> 抓到的網頁標題（或 null 代表抓不到），同一個網址一個 session 只抓一次
+
+  async load() {
+    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('收藏')}&limit=200`, { headers: { 'x-dashboard-token': token } });
+    if (res.status === 401) { alert('密碼錯誤'); return; }
+    this.items = await res.json();
+    this.render();
+  },
+
+  setFilter(f) {
+    this.filter = f;
+    ['active', 'done', 'all'].forEach(k => document.getElementById('linksTab' + k[0].toUpperCase() + k.slice(1)).classList.toggle('active', k === f));
+    this.render();
+  },
+
+  render() {
+    const list = document.getElementById('linksList');
+    const filtered = this.items.filter(n => this.filter === 'all' ? true : this.filter === 'done' ? n.is_done : !n.is_done);
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty">沒有收藏的連結</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(n => {
+      const url = extractUrl(n.content || '');
+      const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+      const safe = (n.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const title = url ? this.titleCache[url] : null;
+      const escTitle = title ? title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : null;
+      const escUrl = url ? url.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+      const body = url
+        ? `<a href="${url}" target="_blank" rel="noopener">${escTitle || escUrl}</a>` + (escTitle ? `<div class="meta" style="margin-top:2px">${escUrl}</div>` : '')
+        : `<span>${safe}</span>`;
+      return `<div class="card ${n.is_done ? 'done' : ''}">
+        <div class="content">${body}<div class="meta">收藏於 ${created}</div></div>
+        <button class="btn-sm btn-archive" onclick="Links.toggleDone('${n.id}', ${!n.is_done})">${n.is_done ? '取消封存' : '封存'}</button>
+        <button class="btn-sm btn-del" onclick="Links.del('${n.id}')">刪除</button>
+      </div>`;
+    }).join('');
+
+    // 背景抓還沒快取過標題的連結，抓到後重新渲染一次換成可讀標題
+    const urls = [...new Set(filtered.map(n => extractUrl(n.content || '')).filter(Boolean))];
+    this.fetchTitlesFor(urls).then((fetchedAny) => { if (fetchedAny) this.render(); });
+  },
+
+  async fetchTitlesFor(urls) {
+    const missing = urls.filter(u => !(u in this.titleCache));
+    if (missing.length === 0) return false;
+    await Promise.all(missing.map(async (u) => {
+      try {
+        const res = await fetch(`/api/unfurl?url=${encodeURIComponent(u)}`, { headers: { 'x-dashboard-token': token } });
+        const data = await res.json();
+        this.titleCache[u] = (data && data.title) || null;
+      } catch (e) {
+        this.titleCache[u] = null;
+      }
+    }));
+    return true;
+  },
+
+  async add() {
+    const input = document.getElementById('linksNewInput');
+    const content = input.value.trim();
+    if (!content) return;
+    const data = await api('POST', { type: 'note', project: '收藏', content, is_done: false });
+    if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+    this.items.unshift(data);
+    input.value = '';
+    this.render();
+  },
+
+  async toggleDone(id, is_done) {
+    await api('PATCH', { id, is_done });
+    const n = this.items.find(x => x.id === id);
+    if (n) n.is_done = is_done;
+    this.render();
+  },
+
+  async del(id) {
+    if (!confirm('確定刪除這則收藏？')) return;
+    await api('DELETE', { id });
+    this.items = this.items.filter(n => n.id !== id);
+    this.render();
+  },
+};
 </script>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body>
 </html>

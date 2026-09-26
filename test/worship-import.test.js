@@ -46,3 +46,16 @@ test('buildEntries: cells 比日期多的部分忽略', () => {
   const out = buildEntries({ dates: ['2026-10-04'], rows: [{ role: '鼓', cells: ['于巽', '承緯'] }] });
   assert.equal(out.entries.length, 1);
 });
+
+const { pickNearest, shiftIso } = require('../lib/worship.js')._test;
+
+test('shiftIso: 跨月加減天數', () => {
+  assert.equal(shiftIso('2026-10-01', -3), '2026-09-28');
+  assert.equal(shiftIso('2026-12-30', 3), '2027-01-02');
+});
+
+test('pickNearest: 打錯一天找到最近的主日', () => {
+  assert.equal(pickNearest('2026-10-03', ['2026-10-04']), '2026-10-04');
+  assert.equal(pickNearest('2026-10-07', ['2026-10-04', '2026-10-11']), '2026-10-04');
+  assert.equal(pickNearest('2026-10-03', []), null);
+});

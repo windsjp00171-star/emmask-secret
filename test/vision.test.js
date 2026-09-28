@@ -94,11 +94,11 @@ test('buildImageReply: 收據金額沒看清楚時不會顯示 $null', () => {
 
 test('buildImageReply: 名片會列出電話與 email', () => {
   const out = buildImageReply('contact', [
-    { content: '黃先生', meta: { name: '黃先生', org: '安南靈糧堂', title: '行政', phone: '0966023100', email: 'a@b.c' } },
+    { content: '王小明', meta: { name: '王小明', org: '範例教會', title: '行政', phone: '0912345678', email: 'a@b.c' } },
   ]);
-  assert.match(out, /黃先生/);
-  assert.match(out, /安南靈糧堂/);
-  assert.match(out, /0966023100/);
+  assert.match(out, /王小明/);
+  assert.match(out, /範例教會/);
+  assert.match(out, /0912345678/);
   assert.match(out, /a@b\.c/);
 });
 

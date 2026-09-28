@@ -4,6 +4,8 @@
 
 **Fork 一份、填幾把金鑰，就是你自己的小秘書。** 全部用免費方案，不需要會寫程式，大約 30–40 分鐘可以完成。
 
+> 🤖 **不想自己看教學？** 把這個 repo 交給 AI 助理（ChatGPT、Claude…），貼上 [`AI_SETUP.md`](AI_SETUP.md) 裡的提示詞，它會一步一步帶你完成。
+
 ---
 
 ## 目錄
@@ -272,4 +274,5 @@ Gemini 每天有免費額度，用完後隔天自動恢復。這段期間用「�
 - 本機測試：`npm ci && npm test`
 - 資料庫結構：[`supabase/schema.sql`](supabase/schema.sql)
 - 所有環境變數說明：[`.env.example`](.env.example)
+- 給 AI 助理的部署規格：[`AI_SETUP.md`](AI_SETUP.md)
 - 更新紀錄：[`CHANGELOG.md`](CHANGELOG.md)

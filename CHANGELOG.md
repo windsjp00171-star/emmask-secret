@@ -10,6 +10,7 @@
 - **Fork 就能用**：新增 README 圖文部署教學、Vercel 一鍵部署按鈕、`supabase/schema.sql` 建表檔。
 - **設定精靈** `/setup.html`：逐項檢查金鑰、LINE、Webhook、資料庫、AI、圖文選單、提醒排程，並提供一鍵設定 Webhook、複製建表 SQL。
 - 還沒設定 `LINE_USER_ID` 時，傳任何訊息給小秘書，它會直接回你的 userId。
+- **AI 帶你部署**：新增 `AI_SETUP.md`，把 repo 交給 AI 助理、貼上提示詞，就能一步步帶你完成部署。
 
 ### 🔒 安全
 - 小秘書只回應主人（`LINE_USER_ID`），其他人加好友傳訊息一律不理，也不會寫進資料庫。

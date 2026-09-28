@@ -1,6 +1,11 @@
 {
   "functions": {
-    "api/webhook.js": { "maxDuration": 60 }
+    "api/webhook.js": {
+      "maxDuration": 60
+    },
+    "api/setup/status.js": {
+      "includeFiles": "supabase/schema.sql"
+    }
   },
   "crons": [
     {

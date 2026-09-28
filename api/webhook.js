@@ -4,7 +4,24 @@ const { replyMessage, pushMessage, getImageBase64 } = require('../lib/line');
 const { importSchedulePdf } = require('../lib/worship');
 const { extractEventFromImage } = require('../lib/vision');
 const { uploadImage } = require('../lib/storage');
-const { isStoreImageMode } = require('../lib/botstate');
+const { isStoreImageMode, setState } = require('../lib/botstate');
+
+// 還沒設定 LINE_USER_ID（剛部署好）時，直接告訴對方自己的 userId，
+// 並記下來讓設定精靈頁面可以一鍵複製，不用再去翻 LINE Developers。
+async function replyOwnerSetup(event) {
+  const userId = event.source && event.source.userId;
+  if (!userId || !event.replyToken) return;
+  await setState('pending_owner_id', { userId, at: new Date().toISOString() });
+  await replyMessage(event.replyToken, [
+    '👋 嗨！小秘書還不知道誰是主人。',
+    '',
+    '你的 LINE userId 是：',
+    userId,
+    '',
+    '請把它填到 Vercel 的環境變數 LINE_USER_ID，然後 Redeploy。',
+    '（設定精靈頁面 /setup.html 也有一鍵複製）',
+  ].join('\n'));
+}
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -45,6 +62,14 @@ const handler = async function (req, res) {
     events.map(async event => {
       const replyToken = event.replyToken;
       try {
+        // 這是私人小秘書：只服務主人。其他人加好友傳訊息一律不理，也不會寫進資料庫。
+        const owner = process.env.LINE_USER_ID;
+        if (!owner) {
+          if (event.type === 'message') await replyOwnerSetup(event);
+          return;
+        }
+        if (!event.source || event.source.userId !== owner) return;
+
         // Flex 按鈕（完成／延後／改明天）
         if (event.type === 'postback') {
           const reply = await handlePostback(event.postback.data);
@@ -78,9 +103,8 @@ const handler = async function (req, res) {
           return;
         }
 
-        // 服事表 PDF：只接受本人（會覆蓋那幾個主日）。讀表要十幾秒，先回覆再推播結果。
+        // 服事表 PDF（會覆蓋那幾個主日）。讀表要十幾秒，先回覆再推播結果。
         if (event.message.type === 'file' && /\.pdf$/i.test(event.message.fileName || '')) {
-          if (event.source.userId !== process.env.LINE_USER_ID) return;
           await replyMessage(replyToken, '📄 收到服事表，解析中…');
           try {
             const { base64 } = await getImageBase64(event.message.id);

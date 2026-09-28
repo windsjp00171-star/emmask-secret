@@ -6,23 +6,23 @@ const { buildEntries, splitNames } = require('../lib/worship.js')._test;
 const dates = ['2026-10-04', '2026-10-11', '2026-10-18'];
 
 test('splitNames: 頓號與斜線都拆成多人', () => {
-  assert.deepEqual(splitNames('采穎、雅竹'), ['采穎', '雅竹']);
+  assert.deepEqual(splitNames('小美、小華'), ['小美', '小華']);
   assert.deepEqual(splitNames('弘憲/佩蓉'), ['弘憲', '佩蓉']);
   assert.deepEqual(splitNames('牧師'), ['牧師']);
 });
 
 test('buildEntries: 空白格略過、備註不拆', () => {
   const out = buildEntries({ dates, rows: [
-    { role: '助唱', cells: ['采穎、雅竹', '', '昭頤'] },
-    { role: '備註', cells: ['10/24 和運、昭頤 感恩禮拜', '', ''] },
+    { role: '助唱', cells: ['小美、小華', '', '小芳'] },
+    { role: '備註', cells: ['10/24 大明、小芳 感恩禮拜', '', ''] },
   ] });
   assert.equal(out.entries.length, 4);
   assert.deepEqual(out.entries.find(e => e.role === '備註'),
-    { service_date: '2026-10-04', role: '備註', person_name: '10/24 和運、昭頤 感恩禮拜' });
+    { service_date: '2026-10-04', role: '備註', person_name: '10/24 大明、小芳 感恩禮拜' });
 });
 
 test('buildEntries: PDF 跨頁重複的列只算一次', () => {
-  const row = { role: '信息', cells: ['牧師', '惠子', '牧師'] };
+  const row = { role: '信息', cells: ['牧師', '志明', '牧師'] };
   const out = buildEntries({ dates, rows: [row, row] });
   assert.equal(out.entries.length, 3);
 });
@@ -43,7 +43,7 @@ test('buildEntries: 日期格式不對就回 null', () => {
 });
 
 test('buildEntries: cells 比日期多的部分忽略', () => {
-  const out = buildEntries({ dates: ['2026-10-04'], rows: [{ role: '鼓', cells: ['于巽', '承緯'] }] });
+  const out = buildEntries({ dates: ['2026-10-04'], rows: [{ role: '鼓', cells: ['阿傑', '阿宏'] }] });
   assert.equal(out.entries.length, 1);
 });
 

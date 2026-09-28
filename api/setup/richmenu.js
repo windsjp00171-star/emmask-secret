@@ -36,6 +36,9 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // 用自己的網域，fork 出去的人按「後台」才會開到自己的後台
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+
   try {
     const menuDef = {
       size: { width: 2500, height: 843 },
@@ -50,7 +53,7 @@ module.exports = async function handler(req, res) {
         { bounds: { x: 0,    y: 421, width: 625, height: 422 }, action: { type: 'message', text: '專案' } },
         { bounds: { x: 625,  y: 421, width: 625, height: 422 }, action: { type: 'message', text: '服事表' } },
         { bounds: { x: 1250, y: 421, width: 625, height: 422 }, action: { type: 'message', text: '指令' } },
-        { bounds: { x: 1875, y: 421, width: 625, height: 422 }, action: { type: 'uri', uri: `https://emmask-secret.vercel.app?token=${process.env.DASHBOARD_TOKEN}`, label: 'Dashboard' } },
+        { bounds: { x: 1875, y: 421, width: 625, height: 422 }, action: { type: 'uri', uri: `https://${host}?token=${process.env.DASHBOARD_TOKEN}`, label: 'Dashboard' } },
       ],
     };
 

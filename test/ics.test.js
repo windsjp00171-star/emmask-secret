@@ -167,7 +167,7 @@ test('buildCalendar: 內容裡的逗號分號會被跳脫，不會破壞格式',
 // 折行記號是 CRLF 後面那個空白，解析時會被拿掉。前一行結尾若剛好也是空白，
 // 中繼站或嚴格的解析器可能一起吃掉，還原出來就少一個空格。
 test('foldLine: 折行處不會停在空白結尾', () => {
-  const src = 'DESCRIPTION:' + '原文：2026-08-23 13:00 ~ 14:30 第 3 堂 幸福小組的禱告 講師千金 '.repeat(4);
+  const src = 'DESCRIPTION:' + '原文：2026-08-23 13:00 ~ 14:30 第 3 堂 幸福小組的禱告 講師小玉 '.repeat(4);
   const out = foldLine(src);
   const parts = out.split('\r\n');
   parts.slice(0, -1).forEach((p, i) => {

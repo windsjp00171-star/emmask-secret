@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>設定精靈 - 小秘書</title>
+  <style>
+    :root {
+      --bg: #f4f6f4;
+      --surface: #ffffff;
+      --ink: #1b2420;
+      --muted: #6b7670;
+      --line: #e7ebe8;
+      --brand: #1f6f54;
+      --brand-ink: #16513d;
+      --brand-soft: #e8f2ed;
+      --warn: #b7791f;
+      --warn-soft: #fdf3e1;
+      --bad: #c53030;
+      --bad-soft: #fdecec;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(20,40,30,.05), 0 6px 20px rgba(20,40,30,.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+    header { background: linear-gradient(160deg, #1b4536, #0f2b22); color: #fff; padding: 20px 16px; }
+    header .wrap { max-width: 760px; margin: 0 auto; }
+    header h1 { font-size: 20px; font-weight: 700; }
+    header p { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 4px; }
+    main { max-width: 760px; margin: 0 auto; padding: 20px 16px 60px; }
+    .progress { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 16px; }
+    .progress-bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+    .progress-bar div { height: 100%; background: var(--brand); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 16px; margin-bottom: 12px; }
+    .card h2 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .badge { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 12px; margin-left: auto; white-space: nowrap; }
+    .badge.ok { background: var(--brand-soft); color: var(--brand-ink); }
+    .badge.todo { background: var(--warn-soft); color: var(--warn); }
+    .badge.bad { background: var(--bad-soft); color: var(--bad); }
+    .card .body { margin-top: 10px; font-size: 14px; }
+    .card .body p + p, .card .body p + ul, .card .body ul + p { margin-top: 8px; }
+    .card ul { padding-left: 20px; }
+    .card li { margin: 2px 0; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+    code, .mono { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; background: #f3f6f4; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; word-break: break-all; }
+    .mono { display: block; flex: 1; min-width: 0; }
+    .btn { padding: 9px 16px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; text-decoration: none; display: inline-block; }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-ghost { background: var(--brand-soft); color: var(--brand-ink); }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .ok-text { color: var(--brand-ink); }
+    .bad-text { color: var(--bad); }
+    .msg { margin-top: 8px; font-size: 13px; }
+    #login { max-width: 360px; margin: 60px auto; background: var(--surface); border-radius: 18px; padding: 32px 24px; box-shadow: var(--shadow); text-align: center; }
+    #login h2 { color: var(--brand-ink); }
+    #login p { color: var(--muted); font-size: 14px; margin: 8px 0 20px; }
+    #login input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; margin-bottom: 12px; }
+    #login button { width: 100%; }
+    #main { display: none; }
+    .env-list li { list-style: none; margin-left: -20px; padding: 6px 0; border-top: 1px solid var(--line); }
+    .env-list li:first-child { border-top: none; }
+    .env-list b { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <h2>🧭 設定精靈</h2>
+  <p>輸入你在 Vercel 設定的 DASHBOARD_TOKEN（後台密碼）</p>
+  <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" onkeydown="if(event.key==='Enter')doLogin()">
+  <button class="btn btn-primary" onclick="doLogin()">開始檢查</button>
+  <p class="msg bad-text" id="loginMsg"></p>
+</div>
+
+<div id="main">
+  <header><div class="wrap">
+    <h1>🧭 小秘書設定精靈</h1>
+    <p>照順序把每一張卡片變成綠色「完成」，小秘書就可以用了。</p>
+  </div></header>
+  <main>
+    <div class="progress">
+      <div id="progressText">檢查中…</div>
+      <div class="progress-bar"><div id="progressBar" style="width:0"></div></div>
+      <div class="row"><button class="btn btn-ghost" onclick="load()">🔄 重新檢查</button>
+        <a class="btn btn-ghost" href="/index.html">前往後台 →</a></div>
+    </div>
+    <div id="cards"></div>
+  </main>
+</div>
+
+<script>
+let token = '';
+let status = null;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function doLogin() {
+  token = document.getElementById('tokenInput').value.trim();
+  if (!token) return;
+  load();
+}
+
+async function api(path, method = 'GET') {
+  const res = await fetch(path, { method, headers: { 'x-dashboard-token': token } });
+  if (res.status === 401) throw new Error('密碼不對，請確認和 Vercel 上的 DASHBOARD_TOKEN 一樣');
+  const ct = res.headers.get('content-type') || '';
+  const data = ct.includes('json') ? await res.json() : await res.text();
+  if (!res.ok && data && data.error) throw new Error(data.error);
+  return data;
+}
+
+async function load() {
+  try {
+    status = await api('/api/setup/status');
+  } catch (err) {
+    document.getElementById('login').style.display = 'block';
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('loginMsg').textContent = err.message;
+    return;
+  }
+  try { localStorage.setItem('dashboardToken', token); } catch (e) { /* 私密模式 */ }
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  render();
+}
+
+function badge(state) {
+  if (state === 'ok') return '<span class="badge ok">✓ 完成</span>';
+  if (state === 'bad') return '<span class="badge bad">要處理</span>';
+  return '<span class="badge todo">待設定</span>';
+}
+
+function copyBtn(text) {
+  return `<button class="btn btn-ghost" onclick="copyText(this, '${esc(text).replace(/'/g, '&#39;')}')">複製</button>`;
+}
+
+async function copyText(btn, text) {
+  try { await navigator.clipboard.writeText(text); btn.textContent = '已複製 ✓'; }
+  catch (e) { prompt('請手動複製：', text); }
+}
+
+function card(num, title, state, body) {
+  return `<section class="card"><h2>${num}. ${title}${badge(state)}</h2><div class="body">${body}</div></section>`;
+}
+
+function render() {
+  const s = status;
+  const steps = [];
+
+  // 1. 環境變數
+  const missing = s.env.required.filter(e => !e.ok && e.key !== 'LINE_USER_ID');
+  steps.push(['環境變數（各種金鑰）', missing.length ? 'bad' : 'ok',
+    (missing.length
+      ? `<p>還缺這些，請到 <b>Vercel → 你的專案 → Settings → Environment Variables</b> 新增，存檔後到 <b>Deployments</b> 按 <b>Redeploy</b>：</p>`
+      : '<p class="ok-text">必填的金鑰都填好了。</p>') +
+    `<ul class="env-list">${s.env.required.filter(e => e.key !== 'LINE_USER_ID').map(e =>
+      `<li>${e.ok ? '✅' : '⬜'} <b>${e.key}</b><br><span class="muted">${esc(e.hint)}</span></li>`).join('')}</ul>`]);
+
+  // 2. LINE 連線
+  const line = s.line || {};
+  steps.push(['LINE 官方帳號連線', line.ok ? 'ok' : 'bad',
+    line.ok
+      ? `<p>已連上 LINE 官方帳號：<b>${esc(line.botName)}</b></p>` +
+        (line.addFriendUrl ? `<div class="row"><a class="btn btn-primary" href="${esc(line.addFriendUrl)}" target="_blank" rel="noopener">＋ 加小秘書好友</a><span class="muted">用手機打開這頁比較方便</span></div>` : '')
+      : `<p class="bad-text">${esc(line.error || '連不上 LINE')}</p>`]);
+
+  // 3. Webhook
+  const wh = (line.webhook) || {};
+  steps.push(['Webhook（讓 LINE 把訊息送過來）', wh.ok ? 'ok' : (line.ok ? 'todo' : 'bad'),
+    `<p>Webhook 網址應該是：</p><div class="row"><span class="mono">${esc(wh.expected || s.baseUrl + '/api/webhook')}</span>${copyBtn(wh.expected || s.baseUrl + '/api/webhook')}</div>` +
+    (wh.ok ? '<p class="ok-text">已設定好，而且是開啟狀態。</p>'
+      : `<p>${wh.current ? `目前填的是 <code>${esc(wh.current)}</code>，不對。` : '目前還沒填。'}按下面的按鈕會自動幫你填好並測試。</p>
+         <div class="row"><button class="btn btn-primary" onclick="setWebhook(this)" ${line.ok ? '' : 'disabled'}>一鍵設定 Webhook</button></div>
+         <p class="muted">如果測試失敗：到 LINE Developers → Messaging API，確認 <b>Use webhook</b> 是打開的；並到 LINE Official Account Manager 把「自動回應訊息」關掉。</p>
+         <p class="msg" id="webhookMsg"></p>`)]);
+
+  // 4. 資料庫
+  const db = s.database || {};
+  const dbMissing = (db.tables || []).filter(t => !t.ok).map(t => t.name);
+  if (db.bucket && !db.bucket.ok) dbMissing.push(`圖片空間 ${db.bucket.name}`);
+  steps.push(['資料庫（Supabase 建表）', db.ok ? 'ok' : 'bad',
+    db.error ? `<p class="bad-text">${esc(db.error)}</p>`
+    : db.ok ? '<p class="ok-text">6 張資料表和圖片空間都建好了。</p>'
+    : `<p>還沒建好：${dbMissing.map(n => `<code>${esc(n)}</code>`).join(' ')}</p>
+       <p>只要做一次：</p>
+       <ul><li>按「複製建表 SQL」</li><li>按「打開 SQL Editor」→ 貼上 → 按右下角 <b>Run</b></li><li>回來按「重新檢查」</li></ul>
+       <div class="row"><button class="btn btn-primary" onclick="copySchema(this)">複製建表 SQL</button>
+       ${db.sqlEditorUrl ? `<a class="btn btn-ghost" href="${esc(db.sqlEditorUrl)}" target="_blank" rel="noopener">打開 SQL Editor ↗</a>` : ''}</div>`]);
+
+  // 5. 主人
+  const ownerOk = s.env.required.find(e => e.key === 'LINE_USER_ID').ok;
+  steps.push(['設定主人（LINE_USER_ID）', ownerOk ? 'ok' : 'todo',
+    ownerOk ? '<p class="ok-text">已設定。小秘書只會回應你一個人，別人加好友傳訊息它不會理。</p>'
+    : s.pendingOwnerId
+      ? `<p>小秘書收到你的訊息了，你的 userId 是：</p><div class="row"><span class="mono">${esc(s.pendingOwnerId)}</span>${copyBtn(s.pendingOwnerId)}</div>
+         <p>把它新增到 Vercel 環境變數 <b>LINE_USER_ID</b>，然後 <b>Redeploy</b>。</p>`
+      : `<p>先完成上面 1–4，然後<b>加小秘書好友，傳任何一句話</b>（例如「你好」）。小秘書會回你的 userId，這裡也會出現一鍵複製。</p>`]);
+
+  // 6. Gemini
+  const gm = s.gemini || {};
+  steps.push(['AI（Gemini）', gm.ok ? 'ok' : 'bad',
+    gm.ok ? '<p class="ok-text">Gemini 金鑰有效。</p>' : `<p class="bad-text">${esc(gm.error)}</p>`]);
+
+  // 7. 圖文選單
+  steps.push(['圖文選單（聊天室下方的按鈕）', line.richMenu ? 'ok' : 'todo',
+    (line.richMenu ? '<p class="ok-text">已經有圖文選單了。想重建也可以再按一次。</p>' : '') +
+    `<p>按一下就會幫 LINE 聊天室加上 8 格功能選單（今天、本週、日曆、後台…）。重複按沒關係。</p>
+     <div class="row"><button class="btn btn-primary" onclick="setRichMenu(this)" ${line.ok ? '' : 'disabled'}>建立圖文選單</button></div>
+     <p class="msg" id="richMsg"></p>`]);
+
+  // 8. 提醒排程
+  const rm = s.reminder || {};
+  steps.push(['提醒排程（讓提醒準時跳出來）', rm.ok ? 'ok' : 'todo',
+    (rm.ok ? `<p class="ok-text">運作中，最後一次檢查：${new Date(rm.lastRunAt).toLocaleString('zh-TW')}</p>`
+      : `<p>Vercel 免費方案一天只能跑一次排程，所以提醒要靠免費的 <b>cron-job.org</b> 每 5 分鐘叫一次小秘書。</p>
+         <ul><li>到 <a href="https://cron-job.org" target="_blank" rel="noopener">cron-job.org</a> 免費註冊</li>
+         <li>按 <b>CREATE CRONJOB</b>，URL 貼上下面這串，Execution schedule 選 <b>Every 5 minutes</b>，存檔</li>
+         <li>5 分鐘後回來按「重新檢查」</li></ul>`) +
+    `<div class="row"><span class="mono">${esc(rm.url)}</span>${copyBtn(rm.url || '')}</div>` +
+    (s.env.optional.find(e => e.key === 'CRON_SECRET').ok ? '' : '<p class="muted">建議另外設定 CRON_SECRET，別人才不能亂打這個網址。</p>')]);
+
+  const done = steps.filter(x => x[1] === 'ok').length;
+  document.getElementById('progressText').innerHTML = `已完成 <b>${done}</b> / ${steps.length} 項` +
+    (done === steps.length ? '　🎉 全部完成，去 LINE 跟小秘書說說話吧！' : '');
+  document.getElementById('progressBar').style.width = `${Math.round(done / steps.length * 100)}%`;
+  document.getElementById('cards').innerHTML = steps.map((x, i) => card(i + 1, x[0], x[1], x[2])).join('');
+}
+
+async function setWebhook(btn) {
+  btn.disabled = true;
+  const msg = document.getElementById('webhookMsg');
+  try {
+    const r = await api('/api/setup/status?action=webhook', 'POST');
+    msg.className = 'msg ' + (r.ok ? 'ok-text' : 'bad-text');
+    msg.textContent = r.message || r.error;
+    if (r.ok) setTimeout(load, 800);
+  } catch (err) {
+    msg.className = 'msg bad-text'; msg.textContent = err.message;
+  }
+  btn.disabled = false;
+}
+
+async function setRichMenu(btn) {
+  btn.disabled = true;
+  const msg = document.getElementById('richMsg');
+  try {
+    const res = await fetch(`/api/setup/richmenu?token=${encodeURIComponent(token)}`);
+    const r = await res.json();
+    msg.className = 'msg ' + (r.ok ? 'ok-text' : 'bad-text');
+    msg.textContent = r.ok ? '✓ ' + r.message : r.error;
+    if (r.ok) setTimeout(load, 800);
+  } catch (err) {
+    msg.className = 'msg bad-text'; msg.textContent = err.message;
+  }
+  btn.disabled = false;
+}
+
+async function copySchema(btn) {
+  try {
+    const sql = await api('/api/setup/status?action=schema');
+    await navigator.clipboard.writeText(sql);
+    btn.textContent = '已複製 ✓ 去 SQL Editor 貼上';
+  } catch (err) {
+    alert('複製失敗：' + err.message);
+  }
+}
+
+// 從後台過來的人不用再輸入一次密碼
+(function init() {
+  let saved = null;
+  try { saved = localStorage.getItem('dashboardToken'); } catch (e) { /* 私密模式 */ }
+  if (saved) { token = saved; load(); }
+})();
+</script>
+</body>
+</html>

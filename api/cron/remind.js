@@ -3,6 +3,7 @@ const { pushMessage } = require('../../lib/line');
 const { buildReminderFlex, nextRecurDue } = require('../../lib/commands');
 const { cronAuth } = require('../../lib/cron-auth');
 const { recordHeartbeat } = require('../../lib/heartbeat');
+const { sendWorshipEveReminder } = require('../../lib/worship');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -10,6 +11,13 @@ module.exports = async function handler(req, res) {
   }
   if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
   await recordHeartbeat('remind');
+
+  // 服事前一晚提醒；出錯不影響一般提醒
+  try {
+    await sendWorshipEveReminder();
+  } catch (err) {
+    console.error('Worship eve reminder error:', err);
+  }
 
   try {
     // 提前提醒：到點前 N 分鐘就發。每則可各自設定 remind_lead_minutes，

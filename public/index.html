@@ -383,7 +383,7 @@
 <div id="main">
   <header>
     <h1>EmmArk 小秘書</h1>
-    <nav class="tabbar" id="tabbar">
+    <nav class="tabbar" id="tabbar" data-tour="tabbar">
       <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">📋 Dashboard</button>
       <button class="tab-btn" id="tabBtn-songs" onclick="switchTab('songs')">🎼 詩歌庫</button>
       <button class="tab-btn" id="tabBtn-order" onclick="switchTab('order')">🎵 敬拜順序</button>
@@ -391,14 +391,14 @@
       <button class="tab-btn" id="tabBtn-links" onclick="switchTab('links')">🔗 收藏</button>
       <button class="tab-btn" id="tabBtn-album" onclick="switchTab('album')">📷 相簿</button>
     </nav>
-    <a href="#" onclick="goPage('worship.html')" style="color:rgba(255,255,255,.7);font-size:13px;text-decoration:none;white-space:nowrap">⛪ 服事表</a>
+    <a href="#" data-tour="worship-link" onclick="goPage('worship.html')" style="color:rgba(255,255,255,.7);font-size:13px;text-decoration:none;white-space:nowrap">⛪ 服事表</a>
     <span id="lastRefresh"></span>
   </header>
 
   <div id="panel-dashboard" class="tab-panel container">
     <div id="truncWarn" class="trunc-warn" style="display:none"></div>
-    <div class="stats" id="stats"></div>
-    <div class="view-tabs">
+    <div class="stats" id="stats" data-tour="stats"></div>
+    <div class="view-tabs" data-tour="view-tabs">
       <button class="view-tab active" id="tabList" onclick="switchView('list')">📋 列表</button>
       <button class="view-tab" id="tabCalendar" onclick="switchView('calendar')">📅 日曆</button>
     </div>
@@ -407,7 +407,7 @@
       <div class="project-tags" id="projectTags" style="margin-bottom:0"></div>
       <button class="btn btn-primary" onclick="openModal()">＋ 新增記錄</button>
     </div>
-    <div class="filters">
+    <div class="filters" data-tour="filters">
       <select id="filterType" onchange="applyFilters()">
         <option value="">全部類型</option>
         <option value="task">待辦</option>
@@ -436,7 +436,7 @@
       <button class="btn-sm btn-del" onclick="bulkDelete()">批次刪除</button>
       <button class="btn-sm btn-cancel" onclick="clearSelection()">取消選取</button>
     </div>
-    <table>
+    <table data-tour="list-table">
       <thead>
         <tr>
           <th style="width:36px"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this.checked)" /></th>
@@ -513,7 +513,7 @@
     <img id="lightboxImg" alt="" />
   </div>
 
-  <button class="fab" onclick="onFabClick()" title="新增" aria-label="新增">＋</button>
+  <button class="fab" data-tour="fab" onclick="onFabClick()" title="新增" aria-label="新增">＋</button>
 </div>
 
 <script>
@@ -1677,5 +1677,20 @@ const Links = {
 };
 </script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+<script src="/tour.js"></script>
+<script>
+Tour.mount({
+  anchor: 'header',
+  steps: [
+    { target: 'tabbar', title: '切換功能', text: '上面這排可以切換：待辦清單、詩歌庫、敬拜順序、會議記錄、收藏、相簿。' },
+    { target: 'worship-link', title: '服事表', text: '主日服事表在這裡，點進去可以看整季班表。' },
+    { target: 'stats', title: '總覽', text: '一眼看到目前有多少待辦、提醒和筆記。', before: () => switchTab('dashboard') },
+    { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },
+    { target: 'filters', title: '找東西', text: '用類型、完成狀態或關鍵字篩選，也可以換排序方式。', before: () => { switchTab('dashboard'); switchView('list'); } },
+    { target: 'list-table', title: '每一筆都能直接操作', text: '每一列右邊可以「完成」「編輯」「刪除」。\n勾選左邊的方框，可以一次處理好幾筆。' },
+    { target: 'fab', title: '新增', text: '按＋可以新增一筆。\n其實在 LINE 直接跟小秘書說「明天下午三點看牙醫」更快。' },
+  ],
+});
+</script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { dispatch, handlePostback, handleImageEvents, handleStoredImage } = require('../lib/commands');
-const { replyMessage, pushMessage, getImageBase64 } = require('../lib/line');
+const { replyMessage, pushMessage, getImageBase64, withQuickReply } = require('../lib/line');
 const { importSchedulePdf } = require('../lib/worship');
 const { extractEventFromImage } = require('../lib/vision');
 const { transcribeAudio, withHeard, MAX_SECONDS } = require('../lib/voice');
@@ -82,7 +82,7 @@ const handler = async function (req, res) {
         // 文字訊息
         if (event.message.type === 'text') {
           const reply = await dispatch(event.message.text);
-          await replyMessage(replyToken, reply);
+          await replyMessage(replyToken, withQuickReply(reply));
           return;
         }
 
@@ -98,7 +98,7 @@ const handler = async function (req, res) {
             await replyMessage(replyToken, heard.error);
             return;
           }
-          await replyMessage(replyToken, withHeard(heard.text, await dispatch(heard.text)));
+          await replyMessage(replyToken, withQuickReply(withHeard(heard.text, await dispatch(heard.text))));
           return;
         }
 

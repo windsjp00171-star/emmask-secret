@@ -22,3 +22,23 @@ test('toMessages: 單一 flex 物件補上預設 altText', () => {
   const out = toMessages({ type: 'flex', contents: { type: 'bubble' } });
   assert.equal(out.altText, '訊息');
 });
+
+const { withQuickReply } = require('../lib/line.js');
+
+test('withQuickReply: 快捷按鈕只掛在最後一則', () => {
+  const out = withQuickReply(['第一則', { type: 'flex', contents: { type: 'bubble' } }]);
+  assert.equal(out[0].quickReply, undefined);
+  assert.ok(out[1].quickReply.items.length > 0);
+  assert.equal(withQuickReply('hi').quickReply.items.length, 7);
+});
+
+test('withQuickReply: 已經有自己的快捷按鈕就不蓋掉', () => {
+  const own = { type: 'text', text: '選一個', quickReply: { items: [] } };
+  assert.equal(withQuickReply(own).quickReply.items.length, 0);
+});
+
+test('快捷按鈕：LINE 限制最多 13 個、label 最多 20 字', () => {
+  const { QUICK_ITEMS } = require('../lib/line.js')._test;
+  assert.ok(QUICK_ITEMS.length <= 13);
+  for (const it of QUICK_ITEMS) assert.ok([...it.action.label].length <= 20);
+});

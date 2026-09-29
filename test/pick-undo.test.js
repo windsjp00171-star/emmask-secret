@@ -16,3 +16,13 @@ test('buildPickFlex: 每一筆都是一個按鈕，帶著自己的 id', () => {
   assert.equal(buttons[0].action.data, 'act=delnote&id=a1');
   assert.equal(buttons[1].action.label, '會議記錄');
 });
+
+const { describeChange } = require('../lib/commands.js')._test;
+
+test('describeChange: 確認卡片上講清楚要改成什麼', () => {
+  const note = { content: '看牙醫', due_date: '2026-09-30T02:00:00Z' };
+  assert.match(describeChange('reschedule', note, { due: '2026-10-01T07:00:00Z' }), /09\/30.10:00 → 10\/01.15:00/);
+  assert.match(describeChange('rename', note, { content: '看眼科' }), /看眼科/);
+  assert.match(describeChange('done', note, {}), /完成/);
+  assert.match(describeChange('delete', note, {}), /刪除/);
+});

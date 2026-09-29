@@ -63,7 +63,7 @@ test('pickNearest: 打錯一天找到最近的主日', () => {
 const { findSimilarNames, importFailureReason, buildEveMessage } = require('../lib/worship.js')._test;
 
 test('findSimilarNames: 只差一個字的名字會被挑出來', () => {
-  assert.deepEqual(findSimilarNames(['惠娟', '慧娟', '小明', '惠娟', '小華']), [['惠娟', '慧娟'], ['小明', '小華']]);
+  assert.deepEqual(findSimilarNames(['秀娟', '秀涓', '大明', '秀娟', '大華']), [['秀娟', '秀涓'], ['大明', '大華']]);
 });
 
 test('findSimilarNames: 長度不同或差兩個字以上不算', () => {
@@ -99,10 +99,10 @@ const { findSimilarGroups } = require('../lib/worship.js')._test;
 test('findSimilarGroups: 只比同職位，並把彼此相似的名字併成一組', () => {
   const e = (role, person_name) => ({ role, person_name });
   const groups = findSimilarGroups([
-    e('第二堂服務台', '惠娟'), e('第二堂服務台', '慧娟'), e('第二堂服務台', '惠純'), e('第二堂服務台', '慧純'),
-    e('助唱', '淑如'), e('第一堂服務台', '淑閔'),
+    e('第二堂服務台', '小娟'), e('第二堂服務台', '曉娟'), e('第二堂服務台', '小純'), e('第二堂服務台', '曉純'),
+    e('助唱', '阿美'), e('第一堂服務台', '阿花'),
   ]);
   assert.equal(groups.length, 1);
   assert.equal(groups[0].role, '第二堂服務台');
-  assert.deepEqual(groups[0].names.sort(), ['惠娟', '惠純', '慧娟', '慧純'].sort());
+  assert.deepEqual(groups[0].names.sort(), ['小娟', '小純', '曉娟', '曉純'].sort());
 });

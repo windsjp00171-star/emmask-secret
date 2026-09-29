@@ -193,12 +193,12 @@
     <a href="#" onclick="navTo('index.html#links')">🔗 收藏</a>
   </header>
   <div class="container">
-    <div class="toolbar">
+    <div class="toolbar" data-tour="worship-toolbar">
       <button class="btn btn-tab active" id="tabGrid" onclick="switchView('grid')">格狀表格</button>
       <button class="btn btn-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
       <button class="btn btn-tab" id="tabManage" onclick="switchView('manage')">⚙ 管理</button>
-      <button class="btn btn-manage" id="pasteBtn" onclick="openPasteModal()" style="margin-left:auto">📋 批次貼上</button>
-      <button class="btn btn-primary" id="addEntryBtn" onclick="openAddModal()">＋ 新增服事</button>
+      <button class="btn btn-manage" id="pasteBtn" data-tour="paste-btn" onclick="openPasteModal()" style="margin-left:auto">📋 批次貼上</button>
+      <button class="btn btn-primary" id="addEntryBtn" data-tour="add-entry" onclick="openAddModal()">＋ 新增服事</button>
     </div>
 
     <div id="gridView">
@@ -383,7 +383,7 @@ function renderGridView() {
     const idxs = dates.map((d, i) => i).filter(i => quarterOf(dates[i]) === q);
     html += `<details class="quarter" data-tour="quarter-section" data-q="${q}"${openQuarters.has(q) ? ' open' : ''} ontoggle="toggleQuarter(this)">`;
     html += `<summary>${quarterLabel(q)}<small>${idxs.length} 個主日</small></summary>`;
-    html += `<div class="grid-wrap">${buildGridTable(roles, idxs, todayIdx)}</div></details>`;
+    html += `<div class="grid-wrap" data-tour="grid-table">${buildGridTable(roles, idxs, todayIdx)}</div></details>`;
   });
   gridWrap.innerHTML = html || '<div class="empty">尚無主日日期，請到 ⚙ 管理新增</div>';
 }
@@ -757,5 +757,18 @@ function esc(s) {
 
 </script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+<script src="/tour.js"></script>
+<script>
+Tour.mount({
+  anchor: 'header',
+  steps: [
+    { target: 'worship-toolbar', title: '三種看法', text: '「格狀表格」看整季的班表，「人員查詢」看某個人排到哪幾天，「⚙ 管理」可以新增主日日期和職位。', before: () => switchView('grid') },
+    { target: 'quarter-section', title: '每一季一個區塊', text: '點季別的標題可以收起來或展開。一打開預設會展開這一季。' },
+    { target: 'grid-table', title: '直接點格子改名字', text: '點任何一格就能打字修改，好幾個人用「、」隔開，按 Enter 存檔並跳到下一格。\n橘色那一欄是最近的主日。' },
+    { target: 'paste-btn', title: '一次貼上整份班表', text: '從 Excel 或 Google 試算表複製整份表格貼進來，就會自動填好。\n（在 LINE 直接傳服事表 PDF 給小秘書也可以）' },
+    { target: 'add-entry', title: '新增一筆服事', text: '只想補一個人時用這個，選日期、職位、填名字就好。' },
+  ],
+});
+</script>
 </body>
 </html>

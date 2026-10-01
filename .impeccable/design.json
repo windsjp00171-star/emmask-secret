@@ -1,0 +1,472 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T01:20:01.385Z",
+  "title": "Design System: EmmArk 小秘書",
+  "extensions": {
+    "colorMeta": {
+      "system-blue": {
+        "role": "primary",
+        "displayName": "System Blue",
+        "canonical": "#007aff",
+        "oklch": "oklch(60.3% 0.218 257.4)",
+        "tonalRamp": [
+          "oklch(15% 0.200 257.4)",
+          "oklch(25% 0.200 257.4)",
+          "oklch(35% 0.200 257.4)",
+          "oklch(48% 0.200 257.4)",
+          "oklch(60% 0.200 257.4)",
+          "oklch(72% 0.200 257.4)",
+          "oklch(84% 0.200 257.4)",
+          "oklch(95% 0.200 257.4)"
+        ]
+      },
+      "indigo-violet": {
+        "role": "secondary",
+        "displayName": "Indigo Violet",
+        "canonical": "#5856d6",
+        "oklch": "oklch(52.9% 0.191 278.3)",
+        "tonalRamp": [
+          "oklch(15% 0.191 278.3)",
+          "oklch(25% 0.191 278.3)",
+          "oklch(35% 0.191 278.3)",
+          "oklch(48% 0.191 278.3)",
+          "oklch(60% 0.191 278.3)",
+          "oklch(72% 0.191 278.3)",
+          "oklch(84% 0.191 278.3)",
+          "oklch(95% 0.191 278.3)"
+        ]
+      },
+      "done-green": {
+        "role": "tertiary",
+        "displayName": "Done Green",
+        "canonical": "#34c759",
+        "oklch": "oklch(73.0% 0.194 147.4)",
+        "tonalRamp": [
+          "oklch(15% 0.194 147.4)",
+          "oklch(25% 0.194 147.4)",
+          "oklch(35% 0.194 147.4)",
+          "oklch(48% 0.194 147.4)",
+          "oklch(60% 0.194 147.4)",
+          "oklch(72% 0.194 147.4)",
+          "oklch(84% 0.194 147.4)",
+          "oklch(95% 0.194 147.4)"
+        ]
+      },
+      "alert-red": {
+        "role": "tertiary",
+        "displayName": "Alert Red",
+        "canonical": "#ff3b30",
+        "oklch": "oklch(65.4% 0.232 28.7)",
+        "tonalRamp": [
+          "oklch(15% 0.200 28.7)",
+          "oklch(25% 0.200 28.7)",
+          "oklch(35% 0.200 28.7)",
+          "oklch(48% 0.200 28.7)",
+          "oklch(60% 0.200 28.7)",
+          "oklch(72% 0.200 28.7)",
+          "oklch(84% 0.200 28.7)",
+          "oklch(95% 0.200 28.7)"
+        ]
+      },
+      "pending-orange": {
+        "role": "tertiary",
+        "displayName": "Pending Orange",
+        "canonical": "#ff9500",
+        "oklch": "oklch(76.5% 0.175 62.6)",
+        "tonalRamp": [
+          "oklch(15% 0.175 62.6)",
+          "oklch(25% 0.175 62.6)",
+          "oklch(35% 0.175 62.6)",
+          "oklch(48% 0.175 62.6)",
+          "oklch(60% 0.175 62.6)",
+          "oklch(72% 0.175 62.6)",
+          "oklch(84% 0.175 62.6)",
+          "oklch(95% 0.175 62.6)"
+        ]
+      },
+      "charcoal-bar": {
+        "role": "neutral",
+        "displayName": "Charcoal Bar",
+        "canonical": "#1c1c1e",
+        "oklch": "oklch(22.7% 0.004 286.1)",
+        "tonalRamp": [
+          "oklch(15% 0.004 286.1)",
+          "oklch(25% 0.004 286.1)",
+          "oklch(35% 0.004 286.1)",
+          "oklch(48% 0.004 286.1)",
+          "oklch(60% 0.004 286.1)",
+          "oklch(72% 0.004 286.1)",
+          "oklch(84% 0.004 286.1)",
+          "oklch(95% 0.004 286.1)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1d1d1f",
+        "oklch": "oklch(23.2% 0.004 286.1)",
+        "tonalRamp": [
+          "oklch(15% 0.004 286.1)",
+          "oklch(25% 0.004 286.1)",
+          "oklch(35% 0.004 286.1)",
+          "oklch(48% 0.004 286.1)",
+          "oklch(60% 0.004 286.1)",
+          "oklch(72% 0.004 286.1)",
+          "oklch(84% 0.004 286.1)",
+          "oklch(95% 0.004 286.1)"
+        ]
+      },
+      "slate-label": {
+        "role": "neutral",
+        "displayName": "Slate Label",
+        "canonical": "#6e6e73",
+        "oklch": "oklch(54.0% 0.008 286.1)",
+        "tonalRamp": [
+          "oklch(15% 0.008 286.1)",
+          "oklch(25% 0.008 286.1)",
+          "oklch(35% 0.008 286.1)",
+          "oklch(48% 0.008 286.1)",
+          "oklch(60% 0.008 286.1)",
+          "oklch(72% 0.008 286.1)",
+          "oklch(84% 0.008 286.1)",
+          "oklch(95% 0.008 286.1)"
+        ]
+      },
+      "mist-gray": {
+        "role": "neutral",
+        "displayName": "Mist Gray",
+        "canonical": "#8e8e93",
+        "oklch": "oklch(64.8% 0.007 286.2)",
+        "tonalRamp": [
+          "oklch(15% 0.007 286.2)",
+          "oklch(25% 0.007 286.2)",
+          "oklch(35% 0.007 286.2)",
+          "oklch(48% 0.007 286.2)",
+          "oklch(60% 0.007 286.2)",
+          "oklch(72% 0.007 286.2)",
+          "oklch(84% 0.007 286.2)",
+          "oklch(95% 0.007 286.2)"
+        ]
+      },
+      "header-meta-gray": {
+        "role": "neutral",
+        "displayName": "Header Meta Gray",
+        "canonical": "#98989d",
+        "oklch": "oklch(68.1% 0.007 286.2)",
+        "tonalRamp": [
+          "oklch(15% 0.007 286.2)",
+          "oklch(25% 0.007 286.2)",
+          "oklch(35% 0.007 286.2)",
+          "oklch(48% 0.007 286.2)",
+          "oklch(60% 0.007 286.2)",
+          "oklch(72% 0.007 286.2)",
+          "oklch(84% 0.007 286.2)",
+          "oklch(95% 0.007 286.2)"
+        ]
+      },
+      "hairline-gray": {
+        "role": "neutral",
+        "displayName": "Hairline Gray",
+        "canonical": "#d2d2d7",
+        "oklch": "oklch(86.5% 0.007 286.3)",
+        "tonalRamp": [
+          "oklch(15% 0.007 286.3)",
+          "oklch(25% 0.007 286.3)",
+          "oklch(35% 0.007 286.3)",
+          "oklch(48% 0.007 286.3)",
+          "oklch(60% 0.007 286.3)",
+          "oklch(72% 0.007 286.3)",
+          "oklch(84% 0.007 286.3)",
+          "oklch(95% 0.007 286.3)"
+        ]
+      },
+      "fill-gray": {
+        "role": "neutral",
+        "displayName": "Fill Gray",
+        "canonical": "#e5e5ea",
+        "oklch": "oklch(92.3% 0.007 286.3)",
+        "tonalRamp": [
+          "oklch(15% 0.007 286.3)",
+          "oklch(25% 0.007 286.3)",
+          "oklch(35% 0.007 286.3)",
+          "oklch(48% 0.007 286.3)",
+          "oklch(60% 0.007 286.3)",
+          "oklch(72% 0.007 286.3)",
+          "oklch(84% 0.007 286.3)",
+          "oklch(95% 0.007 286.3)"
+        ]
+      },
+      "quiet-fill": {
+        "role": "neutral",
+        "displayName": "Quiet Fill",
+        "canonical": "#f2f2f7",
+        "oklch": "oklch(96.3% 0.007 286.3)",
+        "tonalRamp": [
+          "oklch(15% 0.007 286.3)",
+          "oklch(25% 0.007 286.3)",
+          "oklch(35% 0.007 286.3)",
+          "oklch(48% 0.007 286.3)",
+          "oklch(60% 0.007 286.3)",
+          "oklch(72% 0.007 286.3)",
+          "oklch(84% 0.007 286.3)",
+          "oklch(95% 0.007 286.3)"
+        ]
+      },
+      "page-gray": {
+        "role": "neutral",
+        "displayName": "Page Gray",
+        "canonical": "#f5f5f7",
+        "oklch": "oklch(97.1% 0.003 286.4)",
+        "tonalRamp": [
+          "oklch(15% 0.003 286.4)",
+          "oklch(25% 0.003 286.4)",
+          "oklch(35% 0.003 286.4)",
+          "oklch(48% 0.003 286.4)",
+          "oklch(60% 0.003 286.4)",
+          "oklch(72% 0.003 286.4)",
+          "oklch(84% 0.003 286.4)",
+          "oklch(95% 0.003 286.4)"
+        ]
+      },
+      "hover-wash": {
+        "role": "neutral",
+        "displayName": "Hover Wash",
+        "canonical": "#f9f9fb",
+        "oklch": "oklch(98.3% 0.003 286.4)",
+        "tonalRamp": [
+          "oklch(15% 0.003 286.4)",
+          "oklch(25% 0.003 286.4)",
+          "oklch(35% 0.003 286.4)",
+          "oklch(48% 0.003 286.4)",
+          "oklch(60% 0.003 286.4)",
+          "oklch(72% 0.003 286.4)",
+          "oklch(84% 0.003 286.4)",
+          "oklch(95% 0.003 286.4)"
+        ]
+      },
+      "surface-white": {
+        "role": "neutral",
+        "displayName": "Surface White",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(25% 0.000 89.9)",
+          "oklch(35% 0.000 89.9)",
+          "oklch(48% 0.000 89.9)",
+          "oklch(60% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "blue-tint": {
+        "role": "neutral",
+        "displayName": "Blue Tint",
+        "canonical": "#e1f0ff",
+        "oklch": "oklch(94.8% 0.026 248.1)",
+        "tonalRamp": [
+          "oklch(15% 0.026 248.1)",
+          "oklch(25% 0.026 248.1)",
+          "oklch(35% 0.026 248.1)",
+          "oklch(48% 0.026 248.1)",
+          "oklch(60% 0.026 248.1)",
+          "oklch(72% 0.026 248.1)",
+          "oklch(84% 0.026 248.1)",
+          "oklch(95% 0.026 248.1)"
+        ]
+      },
+      "today-cream": {
+        "role": "neutral",
+        "displayName": "Today Cream",
+        "canonical": "#fff8e6",
+        "oklch": "oklch(98.0% 0.025 89.2)",
+        "tonalRamp": [
+          "oklch(15% 0.025 89.2)",
+          "oklch(25% 0.025 89.2)",
+          "oklch(35% 0.025 89.2)",
+          "oklch(48% 0.025 89.2)",
+          "oklch(60% 0.025 89.2)",
+          "oklch(72% 0.025 89.2)",
+          "oklch(84% 0.025 89.2)",
+          "oklch(95% 0.025 89.2)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "只用在統計卡片的數字。"
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "頂欄標題；彈窗標題用 17px。"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "管理卡片標題、登入按鈕。"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "表格內容、按鈕、輸入框。"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "表頭。"
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "小按鈕、人員小標籤、提示文字。"
+      },
+      "badge": {
+        "displayName": "Badge",
+        "purpose": "類型徽章。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "resting-card",
+        "value": "0 1px 3px rgba(0,0,0,.08)",
+        "purpose": "統計卡片、表格、管理卡片、服事表外框。"
+      },
+      {
+        "name": "floating-box",
+        "value": "0 4px 20px rgba(0,0,0,.1)",
+        "purpose": "只用在登入框。"
+      },
+      {
+        "name": "modal-scrim",
+        "value": "rgba(0,0,0,.4)",
+        "purpose": "彈窗遮罩（背景色，不是陰影）。"
+      }
+    ],
+    "motion": [],
+    "breakpoints": [
+      {
+        "name": "manage-stack",
+        "value": "640px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "主要動作：新增、儲存、進入。",
+      "html": "<button class=\"ds-btn-primary\">＋ 新增記錄</button>",
+      "css": ".ds-btn-primary{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;background:#007aff;color:#fff}"
+    },
+    {
+      "name": "Cancel Button",
+      "kind": "button",
+      "refersTo": "button-cancel",
+      "description": "彈窗內的取消。",
+      "html": "<button class=\"ds-btn-cancel\">取消</button>",
+      "css": ".ds-btn-cancel{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;background:#e5e5ea;color:#1d1d1f}"
+    },
+    {
+      "name": "Row Actions",
+      "kind": "button",
+      "refersTo": "button-row-done",
+      "description": "記錄列的小按鈕，用顏色區分動作。",
+      "html": "<div class=\"ds-row\"><button class=\"ds-sm ds-done\">完成</button><button class=\"ds-sm ds-edit\">編輯</button><button class=\"ds-sm ds-del\">刪除</button></div>",
+      "css": ".ds-row{display:flex;gap:4px}.ds-sm{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding:4px 10px;font-size:12px;border-radius:6px;border:none;cursor:pointer;color:#fff}.ds-done{background:#34c759}.ds-edit{background:#5856d6}.ds-del{background:#ff3b30}"
+    },
+    {
+      "name": "View Tabs",
+      "kind": "nav",
+      "refersTo": "button-tab",
+      "description": "服事表的分頁切換。",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab ds-tab-active\">格狀表格</button><button class=\"ds-tab\">人員查詢</button><button class=\"ds-tab\">⚙ 管理</button></div>",
+      "css": ".ds-tabs{display:flex;gap:10px}.ds-tab{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;background:#e5e5ea;color:#1d1d1f}.ds-tab-active{background:#007aff;color:#fff}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "篩選列與彈窗的輸入框。",
+      "html": "<input class=\"ds-input\" placeholder=\"搜尋...\">",
+      "css": ".ds-input{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding:8px 12px;border:1px solid #d2d2d7;border-radius:8px;font-size:14px;background:#fff;color:#1d1d1f}"
+    },
+    {
+      "name": "Project Tags",
+      "kind": "chip",
+      "refersTo": "project-tag",
+      "description": "Dashboard 的專案篩選膠囊。",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-tag ds-tag-active\">全部</span><span class=\"ds-tag\">Cell Reporter</span></div>",
+      "css": ".ds-tags{display:flex;gap:6px}.ds-tag{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding:6px 12px;background:#e5e5ea;border-radius:20px;font-size:13px;cursor:pointer;border:2px solid transparent;color:#1d1d1f}.ds-tag-active{border-color:#007aff;background:#e1f0ff;color:#007aff}"
+    },
+    {
+      "name": "Type Badges",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "四種記錄類型的徽章。",
+      "html": "<span class=\"ds-badge ds-task\">待辦</span> <span class=\"ds-badge ds-rem\">提醒</span> <span class=\"ds-badge ds-note\">筆記</span> <span class=\"ds-badge ds-proj\">專案更新</span>",
+      "css": ".ds-badge{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}.ds-task{background:#fff3cd;color:#856404}.ds-rem{background:#f8d7da;color:#721c24}.ds-note{background:#d1ecf1;color:#0c5460}.ds-proj{background:#d4edda;color:#155724}"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Dashboard 頂端的統計卡片。",
+      "html": "<div class=\"ds-stat\"><div class=\"ds-num\">12</div><div class=\"ds-lbl\">未完成待辦</div></div>",
+      "css": ".ds-stat{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);width:160px}.ds-num{font-size:32px;font-weight:700;color:#007aff}.ds-lbl{font-size:13px;color:#6e6e73;margin-top:4px}"
+    },
+    {
+      "name": "Person Chip",
+      "kind": "custom",
+      "refersTo": "person-chip",
+      "description": "服事表格子裡的人員小標籤，點擊可編輯。",
+      "html": "<span class=\"ds-person\">王小明</span><span class=\"ds-add\">＋</span>",
+      "css": ".ds-person{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;display:inline-block;background:#e1f0ff;color:#007aff;border-radius:12px;padding:2px 8px;font-size:12px;margin:2px;cursor:pointer}.ds-person:hover{background:#007aff;color:#fff}.ds-add{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;display:inline-block;background:#f2f2f7;color:#8e8e93;border-radius:12px;padding:2px 8px;font-size:12px;margin:2px;cursor:pointer;border:1px dashed #c7c7cc}.ds-add:hover{background:#e5e5ea}"
+    },
+    {
+      "name": "App Header",
+      "kind": "nav",
+      "refersTo": "app-header",
+      "description": "深炭色頂欄。",
+      "html": "<header class=\"ds-header\"><h1>EmmArk 小秘書 Dashboard</h1><a href=\"#\">⛪ 服事表</a></header>",
+      "css": ".ds-header{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;background:#1c1c1e;color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}.ds-header h1{font-size:18px;font-weight:600;margin:0}.ds-header a{color:#98989d;font-size:13px;text-decoration:none}.ds-header a:hover{color:#fff}"
+    }
+  ],
+  "narrative": {
+    "northStar": "小秘書的工作桌",
+    "overview": "這套介面就是一張整理好的工作桌：深炭色的頂欄像桌緣，淺灰的底像桌面，白色卡片和表格像攤在上面的單子。上面放的是 LINE 小秘書收進來的待辦、提醒、筆記，還有主日服事的排班格。整體密度偏高，畫面以表格為主，用顏色區分類型和狀態，幾乎沒有裝飾。\n\n目前沒有自己的品牌語言。顏色直接取自 iOS 系統色（系統藍、綠、紅、橘、紫），字體用作業系統預設字體，形狀和陰影也是同一套 Apple 風格的預設值。四種記錄類型的徽章色則來自 Bootstrap 的 alert 配色，跟其他元素不是同一個來源。\n\n兩個頁面都是單一 HTML 檔，樣式寫在 <style> 裡，沒有共用樣式表、沒有 CSS 變數、沒有 Tailwind，也沒有任何轉場或動畫。",
+    "keyCharacteristics": [
+      "深炭色頂欄 + 淺灰頁面底 + 白色卡片／表格三層結構",
+      "iOS 系統色當主色與狀態色，系統字體",
+      "以表格呈現資料，密度高、字級集中在 11–15px",
+      "平面為主，只有一層很淡的陰影",
+      "完全沒有動畫與轉場",
+      "兩頁各自複製一份相同的基礎樣式，沒有共用來源"
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "互動和強調都用系統藍；其他彩色只在記錄列的操作按鈕、徽章和「今天」標示裡出現。",
+        "section": "colors"
+      },
+      {
+        "name": "The Narrow Band Rule",
+        "body": "除了統計數字，所有文字都落在 11–18px 之間，用字重（400／600）而不是字級拉開層次。",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper-on-Desk Rule",
+        "body": "深度只有兩層：頁面底色和白色卡片。沒有 hover 浮起、沒有多層陰影。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 用系統藍 (#007aff) 表示主要動作和選中狀態。",
+      "Do 把內容放在 Page Gray (#f5f5f7) 上的白色 12px 圓角卡片或表格裡，搭配 Resting card 陰影。",
+      "Do 用系統字體，字級維持在 11–18px，用字重拉開層次。",
+      "Do 記錄類型用固定的四組徽章色。"
+    ],
+    "donts": [
+      "Don't 引入第二種主色；其他彩色只用於狀態和操作按鈕。",
+      "Don't 加多層陰影或 hover 浮起效果；現況只有兩層深度。"
+    ]
+  }
+}

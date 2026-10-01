@@ -1,4 +1,4 @@
-const CACHE = 'emmark-shell-v3';
+const CACHE = 'emmark-shell-v4';
 const SHELL_ASSETS = [
   '/manifest.json',
   '/icons/icon-192.png',
@@ -8,7 +8,7 @@ const SHELL_ASSETS = [
 
 // 離線時仍要能開的頁面/API：讀取用網路優先，失敗才退回上一次成功的快取
 const OFFLINE_FALLBACK_PATHS = [
-  '/', '/index.html', '/worship.html',
+  '/', '/index.html', '/worship.html', '/app.css',
   '/api/dashboard/notes', '/api/worship/schedule', '/api/worship/config',
 ];
 

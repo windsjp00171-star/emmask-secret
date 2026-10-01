@@ -6,27 +6,28 @@
   <title>設定精靈 - 小秘書</title>
   <style>
     :root {
-      --bg: #f4f6f4;
+      /* 與 app.css 同一套色票（LINE 對話原生） */
+      --bg: #ffffff;
       --surface: #ffffff;
-      --ink: #1b2420;
-      --muted: #6b7670;
-      --line: #e7ebe8;
-      --brand: #1f6f54;
-      --brand-ink: #16513d;
-      --brand-soft: #e8f2ed;
-      --warn: #b7791f;
-      --warn-soft: #fdf3e1;
-      --bad: #c53030;
-      --bad-soft: #fdecec;
-      --radius: 14px;
-      --shadow: 0 1px 2px rgba(20,40,30,.05), 0 6px 20px rgba(20,40,30,.05);
+      --ink: #111111;
+      --muted: #5f6469;
+      --line: #edeef0;
+      --brand: #06893d;
+      --brand-ink: #036b30;
+      --brand-soft: #e6f9ee;
+      --warn: #a34f00;
+      --warn-soft: #fff3e0;
+      --bad: #c81e33;
+      --bad-soft: #fdecee;
+      --radius: 12px;
+      --shadow: none;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
-    header { background: linear-gradient(160deg, #1b4536, #0f2b22); color: #fff; padding: 20px 16px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Segoe UI', sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+    header { background: var(--bg); color: var(--ink); padding: 20px 16px 12px; border-bottom: 1px solid var(--line); }
     header .wrap { max-width: 760px; margin: 0 auto; }
     header h1 { font-size: 20px; font-weight: 700; }
-    header p { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 4px; }
+    header p { font-size: 14px; color: var(--muted); margin-top: 4px; }
     main { max-width: 760px; margin: 0 auto; padding: 20px 16px 60px; }
     .progress { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 16px; }
     .progress-bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 8px; }
@@ -66,7 +67,7 @@
 <body>
 
 <div id="login">
-  <h2>🧭 設定精靈</h2>
+  <h2>設定精靈</h2>
   <p>輸入你在 Vercel 設定的 DASHBOARD_TOKEN（後台密碼）</p>
   <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" onkeydown="if(event.key==='Enter')doLogin()">
   <button class="btn btn-primary" onclick="doLogin()">開始檢查</button>
@@ -75,14 +76,14 @@
 
 <div id="main">
   <header><div class="wrap">
-    <h1>🧭 小秘書設定精靈</h1>
+    <h1>小秘書設定精靈</h1>
     <p>照順序把每一張卡片變成綠色「完成」，小秘書就可以用了。</p>
   </div></header>
   <main>
     <div class="progress">
       <div id="progressText">檢查中…</div>
       <div class="progress-bar"><div id="progressBar" style="width:0"></div></div>
-      <div class="row"><button class="btn btn-ghost" onclick="load()">🔄 重新檢查</button>
+      <div class="row"><button class="btn btn-ghost" onclick="load()">重新檢查</button>
         <a class="btn btn-ghost" href="/index.html">前往後台 →</a></div>
     </div>
     <div id="cards"></div>

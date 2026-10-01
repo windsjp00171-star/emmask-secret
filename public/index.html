@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>EmmArk 小秘書 Dashboard</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f0f2f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16181b" media="(prefers-color-scheme: dark)">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -31,31 +32,32 @@
     /* 列表／日曆切換 */
     .view-tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 19px; background: var(--fill); }
     .view-tab { height: 32px; padding: 0 16px; border-radius: 16px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); }
-    .view-tab.active { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+    .view-tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
     /* 專案膠囊 */
     .list-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .project-tags { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
     .project-tags::-webkit-scrollbar { display: none; }
     .project-tag { border: none; flex: none; height: 32px; padding: 0 14px; border-radius: 16px; background: var(--fill); font-size: 14px; color: var(--ink); white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; }
-    .project-tag:hover { background: #e8e9ec; }
-    .project-tag.active { background: var(--ink); color: #fff; }
+    .project-tag:hover { background: var(--fill-hover); }
+    .project-tag.active { background: var(--ink); color: var(--on-ink); }
     .filters { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
     .filters select { height: 36px; min-height: 36px; padding: 0 10px; border-radius: 18px; font-size: 14px; }
     .filters input[type=search] { flex: 1; min-width: 160px; height: 36px; min-height: 36px; border-radius: 18px; padding: 0 14px; font-size: 14px; }
     .select-all { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); padding: 0 6px; cursor: pointer; white-space: nowrap; }
-    #bulkBar { position: sticky; top: 96px; z-index: 30; display: none; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; background: var(--ink); color: #fff; border-radius: 22px; padding: 6px 6px 6px 16px; }
-    #bulkCount { font-weight: 700; flex: 1; font-size: 14px; }
-    #bulkBar .btn-sm { background: rgba(255,255,255,.14); color: #fff; }
-    #bulkBar .btn-sm:hover { background: rgba(255,255,255,.24); }
-    #bulkBar .btn-done { background: var(--green-btn); }
+    #bulkBar { position: sticky; top: 96px; z-index: 30; display: none; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 4px 16px rgba(0,0,0,.08); border-radius: 22px; padding: 6px 6px 6px 16px; }
+    #bulkCount { font-weight: 700; flex: 1; font-size: 14px; white-space: nowrap; }
+    #bulkBar .btn-sm { background: var(--fill); color: var(--ink); }
+    #bulkBar .btn-sm:hover { background: var(--fill-hover); }
+    #bulkBar .btn-del { background: var(--red-tint); color: var(--red); }
+    #bulkBar .btn-done { background: var(--green-btn); color: #fff; }
     /* LINE 聊天列表式的記錄列 */
     .note-list { margin: 0 -16px; }
     .row { display: flex; align-items: center; gap: 10px; padding: 6px 4px 6px 12px; transition: background-color .16s var(--ease); }
-    .row:hover { background: #fafafb; }
+    .row:hover { background: var(--row-hover); }
     .row .sel { flex: none; width: 24px; display: inline-flex; justify-content: center; }
     .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; cursor: pointer; border-radius: 8px; }
     .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; }
-    .avatar.task { background: #eef0f2; color: #3d4247; }
+    .avatar.task { background: var(--task-bg); color: var(--task-ink); }
     .avatar.reminder { background: var(--amber-tint); color: var(--amber); }
     .avatar.note { background: var(--blue-tint); color: var(--blue); }
     .avatar.project_update { background: var(--purple-tint); color: var(--purple); }
@@ -66,7 +68,7 @@
     .row .read { flex: none; font-size: 12px; font-weight: 600; color: var(--green-ink); }
     .check { width: 44px; height: 44px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; border-radius: 50%; }
     @media (min-width: 800px) { .check { width: 40px; height: 40px; } }
-    .check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #8a8f94; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s var(--ease), border-color .16s var(--ease); }
+    .check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ring); display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s var(--ease), border-color .16s var(--ease); }
     .check i svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; transition: opacity .16s var(--ease); }
     .check:hover i { border-color: var(--green-btn); }
     .row.done .check i { background: var(--green-btn); border-color: var(--green-btn); }
@@ -81,7 +83,7 @@
     .cal-head { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 10px; }
     .cal-head h2 { font-size: 17px; font-weight: 700; min-width: 140px; text-align: center; }
     .cal-nav { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--fill); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); }
-    .cal-nav:hover { background: #e8e9ec; }
+    .cal-nav:hover { background: var(--fill-hover); }
     .cal-showdone-row { text-align: center; margin: 0 0 10px; }
     .cal-showdone { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; color: var(--ink-2); cursor: pointer; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
@@ -89,13 +91,13 @@
     .cal-cell { min-height: 64px; border-radius: 10px; padding: 6px; cursor: pointer; position: relative; }
     .cal-cell:hover { background: var(--fill); }
     .cal-cell.empty { cursor: default; background: none; }
-    .cal-cell.today .cal-date { background: var(--ink); color: #fff; }
+    .cal-cell.today .cal-date { background: var(--ink); color: var(--on-ink); }
     .cal-cell.selected { background: var(--fill); box-shadow: inset 0 0 0 2px var(--ink); }
     .cal-date { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; border-radius: 12px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .cal-dots { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; padding-left: 4px; }
     .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
     .cal-dot.reminder { background: var(--amber); }
-    .cal-dot.task { background: #3d4247; }
+    .cal-dot.task { background: var(--task-ink); }
     .cal-dot.worship { background: var(--blue); }
     .cal-count { font-size: 11px; color: var(--ink-2); margin-top: 2px; padding-left: 4px; }
     .day-detail { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
@@ -104,7 +106,7 @@
     .day-item .dtime { font-variant-numeric: tabular-nums; color: var(--ink-2); min-width: 44px; }
     .actions { display: flex; gap: 6px; flex-wrap: wrap; }
     .type-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
-    .type-task { background: #eef0f2; color: #3d4247; }
+    .type-task { background: var(--task-bg); color: var(--task-ink); }
     .type-reminder { background: var(--amber-tint); color: var(--amber); }
     .type-note { background: var(--blue-tint); color: var(--blue); }
     .type-project_update { background: var(--purple-tint); color: var(--purple); }

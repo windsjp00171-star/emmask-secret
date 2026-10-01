@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>服事表 - EmmArk</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f0f2f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16181b" media="(prefers-color-scheme: dark)">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -33,14 +34,14 @@
     table.grid td { padding: 6px 8px; font-size: 14px; vertical-align: middle; min-width: 120px; white-space: nowrap; }
     table.grid td.role-label { position: sticky; left: 0; z-index: 1; background: var(--bg); font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: normal; min-width: 88px; width: 88px; border-right: 1px solid var(--line); }
     @media (min-width: 800px) { table.grid td.role-label, table.grid th.role-col { width: auto; white-space: nowrap; } }
-    table.grid td.today-col, table.grid th.today-col { background: #f6f7f8; }
-    table.grid th.today-col small { color: #fff; background: var(--ink); border-radius: 9px; padding: 0 7px; font-weight: 600; }
+    table.grid td.today-col, table.grid th.today-col { background: var(--today-col); }
+    table.grid th.today-col small { color: var(--on-ink); background: var(--ink); border-radius: 9px; padding: 0 7px; font-weight: 600; }
     table.grid td.cell { cursor: text; }
     table.grid td.cell:hover { background: var(--fill); }
-    .person-chip { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; margin: 2px; border-radius: 15px; border: 1px solid var(--line); background: var(--bg); font-size: 14px; }
+    .person-chip { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; margin: 2px; border-radius: 15px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; }
     .cell-empty { color: var(--ink-3); opacity: .5; font-size: 18px; padding: 0 8px; }
     td.cell:hover .cell-empty { opacity: 1; }
-    .cell-input { width: 100%; min-width: 140px; height: 36px; padding: 0 10px; border: 2px solid var(--green) !important; border-radius: 8px; font-size: 14px; background: var(--bg) !important; outline: none; }
+    .cell-input { width: 100%; min-width: 140px; height: 36px; padding: 0 10px; border: 2px solid var(--green) !important; border-radius: 8px; font-size: 14px; background: var(--surface) !important; outline: none; }
     /* 批次貼上 */
     .paste-area { width: 100%; min-height: 200px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; resize: vertical; }
     .paste-preview { max-height: 240px; overflow: auto; margin-top: 12px; }
@@ -57,7 +58,7 @@
     .person-view td.quarter-row { font-size: 13px; font-weight: 700; color: var(--ink-2); padding-top: 16px; }
     .date-badge { display: inline-block; min-width: 96px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .date-badge.soon { font-weight: 700; }
-    .date-badge.soon::after { content: "快到了"; margin-left: 6px; font-size: 11px; color: #fff; background: var(--ink); border-radius: 9px; padding: 1px 7px; vertical-align: 2px; }
+    .date-badge.soon::after { content: "快到了"; margin-left: 6px; font-size: 11px; color: var(--on-ink); background: var(--ink); border-radius: 9px; padding: 1px 7px; vertical-align: 2px; }
     .role-badge { display: inline-block; background: var(--fill); padding: 2px 10px; border-radius: 12px; font-size: 13px; margin: 2px; }
     /* 管理 */
     .manage-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; max-width: 900px; }
@@ -669,10 +670,10 @@ function renderPastePreview() {
   if (!parsed) { el.innerHTML = ''; return; }
   const { columns, rows } = parsed;
   const matched = columns.filter(c => c.date).length;
-  let html = `<div style="padding:6px 10px;font-size:12px;color:#6e6e73">對應到 ${matched}/${columns.length} 個日期欄、${rows.length} 個職位。<span style="color:#ff9500">紅字</span>＝找不到對應日期（會略過）。</div>`;
+  let html = `<div style="padding:6px 10px;font-size:12px;color:var(--ink-2)">對應到 ${matched}/${columns.length} 個日期欄、${rows.length} 個職位。<span style="color:var(--red)">紅字</span>＝找不到對應日期（會略過）。</div>`;
   html += '<table><thead><tr><th>職位</th>';
   columns.forEach(c => {
-    html += `<th${c.date ? '' : ' style="color:#ff9500"'}>${esc(c.label)}</th>`;
+    html += `<th${c.date ? '' : ' style="color:var(--red)"'}>${esc(c.label)}</th>`;
   });
   html += '</tr></thead><tbody>';
   rows.forEach(r => {

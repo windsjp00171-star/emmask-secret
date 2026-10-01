@@ -7,11 +7,11 @@
   <style>
     :root {
       /* 與 app.css 同一套色票（LINE 對話原生） */
-      --bg: #ffffff;
-      --surface: #ffffff;
+      --bg: #f0f2f4;
+      --surface: #f9fafb;
       --ink: #111111;
-      --muted: #5f6469;
-      --line: #edeef0;
+      --muted: #53585d;
+      --line: #dcdfe3;
       --brand: #06893d;
       --brand-ink: #036b30;
       --brand-soft: #e6f9ee;
@@ -21,6 +21,14 @@
       --bad-soft: #fdecee;
       --radius: 12px;
       --shadow: none;
+    }
+    :root { color-scheme: light dark; --code-bg: #e2e5e8; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #16181b; --surface: #1f2226; --ink: #e9ebee; --muted: #b0b5bb; --line: #2c3035;
+        --brand-ink: #4fd18a; --brand-soft: #12301f; --warn: #f2a65a; --warn-soft: #3a2a17;
+        --bad: #ff7a88; --bad-soft: #3b1c22; --code-bg: #2a2e33;
+      }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Segoe UI', sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
@@ -44,7 +52,7 @@
     .card li { margin: 2px 0; }
     .muted { color: var(--muted); font-size: 13px; }
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
-    code, .mono { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; background: #f3f6f4; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; word-break: break-all; }
+    code, .mono { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; word-break: break-all; }
     .mono { display: block; flex: 1; min-width: 0; }
     .btn { padding: 9px 16px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; text-decoration: none; display: inline-block; }
     .btn-primary { background: var(--brand); color: #fff; }

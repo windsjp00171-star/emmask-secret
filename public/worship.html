@@ -25,9 +25,10 @@
     .grid thead th.next .w { display: inline-block; margin-top: 2px; color: #fff; background: var(--ink); border-radius: 9px; padding: 0 7px; font-weight: 600; }
     .grid thead th.past .d { color: var(--ink-3); font-weight: 600; }
     .grid .role { position: sticky; left: 0; z-index: 1; background: var(--bg); padding: 8px 10px 8px 16px; font-size: 13px; font-weight: 600; color: var(--ink-2); width: 88px; min-width: 88px; text-align: left; line-height: 1.3; border-right: 1px solid var(--line); }
+    .grid-wrap.scrolled .role { box-shadow: 6px 0 8px -6px rgba(0,0,0,.22); }
     .grid thead th.role { z-index: 3; color: var(--ink-3); font-size: 12px; font-weight: 600; vertical-align: bottom; }
     .grid td.cell { padding: 6px 8px; }
-    @media (min-width: 800px) { .grid td.cell, .grid thead th:not(.role) { min-width: 176px; } .grid .role { max-width: none; white-space: nowrap; } }
+    @media (min-width: 800px) { .grid td.cell, .grid thead th:not(.role) { min-width: 236px; } .grid .role { max-width: none; white-space: nowrap; } }
     .grid td.cell.next, .grid thead th.next { background: #f6f7f8; }
     .grid td.cell.past { opacity: .55; }
     .grid tbody tr:hover .role, .grid tbody tr:hover td.cell:not(.next) { background: #fafafb; }
@@ -49,8 +50,8 @@
     .date-avatar { width: 44px; height: 44px; border-radius: 12px; background: var(--fill); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; flex: none; }
     .date-avatar b { font-size: 16px; }
     .date-avatar small { font-size: 11px; color: var(--ink-2); }
-    .date-avatar.soon { background: var(--ink); color: #fff; }
-    .date-avatar.soon small { color: rgba(255,255,255,.8); }
+    .date-avatar.soon { background: #e3e5e8; color: var(--ink); }
+    .date-avatar.soon small { color: var(--ink); font-weight: 600; }
     .soon-tag { color: var(--ink); font-weight: 700; }
     .section-title { padding: 18px 16px 6px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
     .add-row { display: flex; gap: 8px; padding: 6px 16px 10px; }
@@ -345,8 +346,12 @@ function renderGridView(scrollToNext) {
     const th = gridWrap.querySelector(`thead th[data-date="${next}"]`);
     const roleCol = gridWrap.querySelector('thead th.role');
     if (th) gridWrap.scrollLeft = Math.max(0, th.offsetLeft - roleCol.offsetWidth);
+    gridWrap.classList.toggle('scrolled', gridWrap.scrollLeft > 0);
   }
 }
+document.getElementById('gridWrap').addEventListener('scroll', e => {
+  e.currentTarget.classList.toggle('scrolled', e.currentTarget.scrollLeft > 0);
+}, { passive: true });
 document.getElementById('gridWrap').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   if (b.dataset.act === 'edit') openEditModal(b.dataset.id, b.dataset.name, b.dataset.role, b.dataset.date);

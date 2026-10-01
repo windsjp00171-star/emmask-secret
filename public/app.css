@@ -47,7 +47,7 @@ button { cursor: pointer; background: none; border: none; }
 .chip[aria-pressed="true"] { background: var(--ink); color: #fff; }
 
 /* Shared list parts */
-.sep { display: flex; justify-content: center; padding: 8px 0 3px; }
+.sep { display: flex; justify-content: center; padding: 6px 0 2px; }
 .sep span { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--fill); border-radius: 11px; padding: 3px 10px; display: inline-flex; gap: 6px; align-items: center; }
 .sep button { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--fill); border-radius: 11px; padding: 3px 10px; display: inline-flex; gap: 4px; align-items: center; }
 .sep.overdue span { background: var(--red-tint); color: var(--red); }
@@ -97,3 +97,4 @@ button { cursor: pointer; background: none; border: none; }
 @media (min-width: 800px) { .search { order: 1; flex: 0 1 300px; margin: 0; } .search ~ .icon-btn { order: 2; } }
 @media (max-width: 479px) { .wide-only { display: none; } }
 .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+@media (min-width: 800px) { .titlebar { padding-top: 10px; padding-bottom: 4px; } .chips { padding-top: 8px; padding-bottom: 8px; } }

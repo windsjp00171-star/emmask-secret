@@ -9,10 +9,10 @@
   <style>
     /* List */
     main { flex: 1; padding-bottom: 96px; }
-    .row { display: flex; align-items: center; gap: 12px; padding: 10px 8px 10px 16px; transition: background-color .16s var(--ease), opacity .16s var(--ease); }
+    .row { display: flex; align-items: center; gap: 12px; padding: 6px 4px 6px 16px; transition: background-color .16s var(--ease), opacity .16s var(--ease); }
     .row:hover { background: #fafafb; }
     .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; padding: 0; border-radius: 8px; }
-    .avatar.task { background: var(--t-task-bg); color: var(--t-task); }
+    .avatar.task { background: #eef0f2; color: #3d4247; }
     .avatar.reminder { background: var(--t-reminder-bg); color: var(--t-reminder); }
     .avatar.note { background: var(--t-note-bg); color: var(--t-note); }
     .avatar.project_update { background: var(--t-project-bg); color: var(--t-project); }
@@ -22,12 +22,12 @@
     .row-sub .late { color: var(--red); font-weight: 600; }
     .row-meta { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 12px; color: var(--ink-3); min-width: 44px; }
     .check { width: 44px; height: 44px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
-    .check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #c9ccd0; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s var(--ease), border-color .16s var(--ease); }
+    .check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #8a8f94; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s var(--ease), border-color .16s var(--ease); }
     .check i svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; transition: opacity .16s var(--ease); }
     .check:hover i { border-color: var(--green); }
     .row.done .check i { background: var(--green-btn); border-color: var(--green-btn); }
     .row.done .check i svg { opacity: 1; }
-    .row.done .row-title { color: var(--ink-3); font-weight: 400; text-decoration: line-through; text-decoration-color: #c9ccd0; }
+    .row.done .row-title { color: var(--ink-3); font-weight: 400; }
     .row.done .avatar { filter: grayscale(1); opacity: .55; }
     .read { color: var(--green-ink); font-weight: 600; }
 
@@ -39,7 +39,7 @@
     .composer-extra label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); flex: 1; min-width: 150px; }
     .composer-extra input { flex: 1; min-width: 0; height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; background: var(--fill); font-size: 14px; }
     .composer-row { display: flex; align-items: center; gap: 4px; }
-    .type-select { height: 40px; border: none; background: var(--fill); border-radius: 20px; padding: 0 10px 0 12px; font-size: 14px; font-weight: 600; color: var(--ink); appearance: none; -webkit-appearance: none; cursor: pointer; }
+    .type-select { height: 40px; border: none; background: var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f6469' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center; border-radius: 20px; padding: 0 28px 0 12px; font-size: 14px; font-weight: 600; color: var(--ink); appearance: none; -webkit-appearance: none; cursor: pointer; }
     .composer-input { flex: 1; min-width: 0; height: 40px; border: none; background: var(--fill); border-radius: 20px; padding: 0 16px; font-size: 15px; outline: none; }
     .composer-input::placeholder { color: var(--ink-3); }
     .composer .icon-btn[aria-pressed="true"] { color: var(--green-ink); background: var(--green-tint); }
@@ -51,7 +51,7 @@
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-task" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-task" viewBox="0 0 24 24"><circle cx="5.5" cy="7" r="1"/><circle cx="5.5" cy="12" r="1"/><circle cx="5.5" cy="17" r="1"/><path d="M9.5 7h9M9.5 12h9M9.5 17h6"/></symbol>
   <symbol id="i-reminder" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 004 0"/></symbol>
   <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20a.5.5 0 01-.5.5h-11A.5.5 0 016 20z"/><path d="M14 3.5V8h4M9 12.5h6M9 16h4"/></symbol>
   <symbol id="i-project_update" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></symbol>
@@ -79,10 +79,10 @@
   <div class="topbar">
     <div class="titlebar">
       <h1>小秘書<span class="sub num" id="summary"></span></h1>
+      <label class="search"><svg class="icon" style="width:18px;height:18px"><use href="#i-search"/></svg><input type="search" id="search" placeholder="搜尋內容或專案" oninput="render()" /></label>
       <button class="icon-btn" onclick="loadNotes()" title="重新整理" aria-label="重新整理"><svg class="icon"><use href="#i-refresh"/></svg></button>
       <a class="icon-btn" id="worshipLink" href="#" onclick="event.preventDefault(); goWorship()" title="服事表" aria-label="服事表"><svg class="icon"><use href="#i-calendar"/></svg></a>
     </div>
-    <label class="search"><svg class="icon" style="width:18px;height:18px"><use href="#i-search"/></svg><input type="search" id="search" placeholder="搜尋內容或專案" oninput="render()" /></label>
     <div class="tabs" role="tablist" id="tabs"></div>
     <div class="chips" id="projectTags" aria-label="專案"></div>
   </div>
@@ -203,15 +203,16 @@ function renderSummary() {
   const todos = allNotes.filter(n => n.type === 'task' || n.type === 'reminder');
   const done = todos.filter(n => n.is_done).length;
   const rate = todos.length ? Math.round(done / todos.length * 100) : 0;
-  document.getElementById('summary').textContent =
-    `未完成 ${todos.length - done}・已完成 ${done}（${rate}%）・共 ${allNotes.length} 筆・更新 ${hm(new Date())}`;
+  document.getElementById('summary').innerHTML =
+    `未完成 ${todos.length - done}<span class="wide-only">・已完成 ${done}（${rate}%）・共 ${allNotes.length} 筆</span>・更新 ${hm(new Date())}`;
 }
 
 function renderTabs() {
   document.getElementById('tabs').innerHTML = TABS.map(t => {
     const items = allNotes.filter(n => !t.types || t.types.includes(n.type));
     const count = t.id === 'todo' ? items.filter(n => !n.is_done).length : items.length;
-    return `<button class="tab" role="tab" aria-selected="${activeTab === t.id}" onclick="setTab('${t.id}')">${t.label}<span class="count num">${count}</span></button>`;
+    const late = t.id === 'todo' ? items.filter(n => !n.is_done && n.due_date && new Date(n.due_date).getTime() < Date.now()).length : 0;
+    return `<button class="tab" role="tab" aria-selected="${activeTab === t.id}" onclick="setTab('${t.id}')">${t.label}<span class="count num">${count}</span>${late ? `<span class="badge num" aria-label="過期 ${late}">${late}</span>` : ''}</button>`;
   }).join('');
 }
 
@@ -287,17 +288,17 @@ function dueText(n) {
   const k = dayKey(n.due_date), today = dayKey(Date.now());
   const late = !n.is_done && new Date(n.due_date).getTime() < Date.now();
   const when = k === today ? '今天' : k === dayKey(Date.now() + 864e5) ? '明天' : `${md(n.due_date)}（${weekday(n.due_date)}）`;
-  return late ? `<span class="late">逾期・${when}</span>` : when;
+  return late ? `<span class="late">逾期・${when} ${hm(n.due_date)}</span>` : `${when} ${hm(n.due_date)}`;
 }
 
 function rowHtml(n) {
   const sub = [n.project ? esc(n.project) : '', dueText(n), activeTab === 'all' ? TYPE_LABEL[n.type] : ''].filter(Boolean).join('・') || TYPE_LABEL[n.type];
-  const meta = n.is_done ? '<span class="read">已完成</span>' : `<span class="num">${n.due_date ? hm(n.due_date) : md(n.created_at)}</span>`;
+  const meta = n.is_done ? '<span class="read">已完成</span>' : '';
   return `<div class="row ${n.is_done ? 'done' : ''}" data-id="${esc(n.id)}">
     <button class="row-main" data-act="edit" aria-label="編輯：${esc(n.content)}">
       <span class="avatar ${esc(n.type)}" title="${TYPE_LABEL[n.type] || ''}">${icon(n.type)}</span>
       <span class="row-text"><span class="row-title">${esc(n.content)}</span><span class="row-sub num">${sub}</span></span>
-      <span class="row-meta">${meta}</span>
+      ${meta ? `<span class="row-meta">${meta}</span>` : ''}
     </button>
     <button class="check" data-act="toggle" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i>${icon('check')}</i></button>
   </div>`;

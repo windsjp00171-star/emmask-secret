@@ -1,7 +1,7 @@
 :root {
   --green: #06c755; --green-btn: #06893d; --green-press: #057433; --green-ink: #04833a; --green-tint: #e6f9ee;
   --red: #c81e33; --red-tint: #fdecee;
-  --ink: #111111; --ink-2: #5f6469; --ink-3: #767b80;
+  --ink: #111111; --ink-2: #5f6469; --ink-3: #62676c;
   --line: #edeef0; --fill: #f3f4f6; --bg: #ffffff; --shell: #f3f4f6;
   --t-task: #06a04a; --t-task-bg: #e6f9ee;
   --t-reminder: #c25e00; --t-reminder-bg: #fff3e0;
@@ -27,12 +27,12 @@ button { cursor: pointer; background: none; border: none; }
 
 /* Header */
 .topbar { position: sticky; top: 0; z-index: 20; background: var(--bg); }
-.titlebar { display: flex; align-items: center; gap: 8px; padding: 14px 16px 6px; }
+.titlebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 16px 6px; }
 .titlebar h1 { font-size: 21px; font-weight: 700; letter-spacing: -.01em; flex: 1; }
 .titlebar .sub { display: block; font-size: 12px; font-weight: 400; color: var(--ink-3); letter-spacing: 0; margin-top: 1px; }
 .icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink); text-decoration: none; }
 .icon-btn:hover { background: var(--fill); }
-.search { margin: 6px 16px 8px; display: flex; align-items: center; gap: 8px; background: var(--fill); border-radius: 10px; padding: 0 12px; height: 38px; color: var(--ink-3); }
+.search { order: 3; flex: 1 1 100%; margin: 4px 0 2px; display: flex; align-items: center; gap: 8px; background: var(--fill); border-radius: 10px; padding: 0 12px; height: 38px; color: var(--ink-3); }
 .search input { flex: 1; border: none; background: none; outline: none; height: 100%; color: var(--ink); font-size: 15px; }
 .search input::placeholder { color: var(--ink-3); }
 .tabs { display: flex; border-bottom: 1px solid var(--line); padding: 0 8px; }
@@ -47,11 +47,11 @@ button { cursor: pointer; background: none; border: none; }
 .chip[aria-pressed="true"] { background: var(--ink); color: #fff; }
 
 /* Shared list parts */
-.sep { display: flex; justify-content: center; padding: 14px 0 6px; }
+.sep { display: flex; justify-content: center; padding: 8px 0 3px; }
 .sep span { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--fill); border-radius: 11px; padding: 3px 10px; display: inline-flex; gap: 6px; align-items: center; }
 .sep button { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--fill); border-radius: 11px; padding: 3px 10px; display: inline-flex; gap: 4px; align-items: center; }
 .sep.overdue span { background: var(--red-tint); color: var(--red); }
-.avatar { width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .empty { padding: 72px 24px; text-align: center; color: var(--ink-2); }
 .empty strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
 
@@ -93,3 +93,7 @@ button { cursor: pointer; background: none; border: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+@media (min-width: 800px) { .search { order: 1; flex: 0 1 300px; margin: 0; } .search ~ .icon-btn { order: 2; } }
+@media (max-width: 479px) { .wide-only { display: none; } }
+.badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }

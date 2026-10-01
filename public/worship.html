@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="/app.css">
   <style>
     .app.wide { max-width: none; border: none; }
-    .wrap { max-width: 760px; margin: 0 auto; width: 100%; }
+    .wrap { max-width: 760px; width: 100%; }
+    .tabs { justify-content: flex-start; padding: 0; }
+    .tabs .tab { flex: 0 0 auto; padding: 0 22px; }
+    .tabs .tab[aria-selected="true"]::after { left: 14px; right: 14px; }
     main { flex: 1; padding-bottom: 32px; }
 
     /* Grid */
@@ -18,13 +21,14 @@
     .grid thead th { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 10px 8px 8px; text-align: left; font-weight: 400; white-space: nowrap; }
     .grid thead th .d { display: block; font-size: 17px; font-weight: 700; color: var(--ink); }
     .grid thead th .w { display: block; font-size: 12px; color: var(--ink-3); }
-    .grid thead th.next .d { color: var(--green-ink); }
-    .grid thead th.next .w { color: var(--green-ink); font-weight: 600; }
+    .grid thead th.next .d { color: var(--ink); }
+    .grid thead th.next .w { display: inline-block; margin-top: 2px; color: #fff; background: var(--ink); border-radius: 9px; padding: 0 7px; font-weight: 600; }
     .grid thead th.past .d { color: var(--ink-3); font-weight: 600; }
-    .grid .role { position: sticky; left: 0; z-index: 1; background: var(--bg); padding: 10px 12px 10px 16px; font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; border-right: 1px solid var(--line); }
+    .grid .role { position: sticky; left: 0; z-index: 1; background: var(--bg); padding: 8px 10px 8px 16px; font-size: 13px; font-weight: 600; color: var(--ink-2); width: 88px; min-width: 88px; text-align: left; line-height: 1.3; border-right: 1px solid var(--line); }
     .grid thead th.role { z-index: 3; color: var(--ink-3); font-size: 12px; font-weight: 600; vertical-align: bottom; }
     .grid td.cell { padding: 6px 8px; }
-    .grid td.cell.next, .grid thead th.next { background: var(--green-tint); }
+    @media (min-width: 800px) { .grid td.cell, .grid thead th:not(.role) { min-width: 176px; } .grid .role { max-width: none; white-space: nowrap; } }
+    .grid td.cell.next, .grid thead th.next { background: #f6f7f8; }
     .grid td.cell.past { opacity: .55; }
     .grid tbody tr:hover .role, .grid tbody tr:hover td.cell:not(.next) { background: #fafafb; }
     .cell-inner { display: flex; flex-wrap: nowrap; gap: 4px; align-items: center; min-height: 32px; }
@@ -45,9 +49,9 @@
     .date-avatar { width: 44px; height: 44px; border-radius: 12px; background: var(--fill); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; flex: none; }
     .date-avatar b { font-size: 16px; }
     .date-avatar small { font-size: 11px; color: var(--ink-2); }
-    .date-avatar.soon { background: var(--green-tint); color: var(--green-ink); }
-    .date-avatar.soon small { color: var(--green-ink); }
-    .soon-tag { color: var(--green-ink); font-weight: 600; }
+    .date-avatar.soon { background: var(--ink); color: #fff; }
+    .date-avatar.soon small { color: rgba(255,255,255,.8); }
+    .soon-tag { color: var(--ink); font-weight: 700; }
     .section-title { padding: 18px 16px 6px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
     .add-row { display: flex; gap: 8px; padding: 6px 16px 10px; }
     .add-row input { flex: 1; min-width: 0; height: 42px; border: 1px solid var(--line); background: var(--fill); border-radius: 10px; padding: 0 12px; font-size: 15px; }
@@ -90,7 +94,7 @@
       <h1>服事表<span class="sub num" id="summary"></span></h1>
       <button class="icon-btn" id="addEntryBtn" onclick="openAddModal()" aria-label="新增服事" title="新增服事"><svg class="icon"><use href="#i-plus"/></svg></button>
     </div>
-    <div class="tabs wrap" role="tablist">
+    <div class="tabs" role="tablist">
       <button class="tab" role="tab" id="tabGrid" aria-selected="true" onclick="switchView('grid')">排班表</button>
       <button class="tab" role="tab" id="tabPerson" aria-selected="false" onclick="switchView('person')">人員</button>
       <button class="tab" role="tab" id="tabManage" aria-selected="false" onclick="switchView('manage')">管理</button>
@@ -179,7 +183,7 @@ let editingId = null;
 let activePerson = '';
 
 const TZ = 'Asia/Taipei';
-const TINTS = [['#e6f9ee', '#04833a'], ['#eaf0fa', '#3f67a8'], ['#fff3e0', '#a34f00'], ['#f1ecfb', '#6b46c1'], ['#fdecee', '#b81d30'], ['#e8f6f8', '#126c7a']];
+const TINTS = [['#eaf0fa', '#3f67a8'], ['#fff3e0', '#a34f00'], ['#f1ecfb', '#6b46c1'], ['#fdecee', '#b81d30'], ['#e8f6f8', '#126c7a']];
 
 function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');

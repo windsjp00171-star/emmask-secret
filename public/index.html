@@ -2,175 +2,171 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EmmArk 小秘書 Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>EmmArk 小秘書</title>
+  <link rel="stylesheet" href="/app.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
-    header { background: #1c1c1e; color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-    header h1 { font-size: 18px; font-weight: 600; }
-    header span { font-size: 13px; color: #98989d; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    .stat-card .num { font-size: 32px; font-weight: 700; color: #007aff; }
-    .stat-card .label { font-size: 13px; color: #6e6e73; margin-top: 4px; }
-    .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-    .filters select, .filters input { padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; background: #fff; }
-    .filters input { flex: 1; min-width: 160px; }
-    .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
-    .btn-primary { background: #007aff; color: #fff; }
-    .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; }
-    .btn-done { background: #34c759; color: #fff; }
-    .btn-del { background: #ff3b30; color: #fff; }
-    .btn-undone { background: #ff9500; color: #fff; }
-    table { width: 100%; background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-collapse: collapse; overflow: hidden; }
-    th { background: #f2f2f7; padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #6e6e73; }
-    td { padding: 12px 16px; border-top: 1px solid #f2f2f7; font-size: 14px; vertical-align: middle; }
-    tr:hover td { background: #f9f9fb; }
-    .type-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-    .type-task { background: #fff3cd; color: #856404; }
-    .type-reminder { background: #f8d7da; color: #721c24; }
-    .type-note { background: #d1ecf1; color: #0c5460; }
-    .type-project_update { background: #d4edda; color: #155724; }
-    .done-row td { opacity: 0.45; text-decoration: line-through; }
-    .done-row:hover td { opacity: 0.6; }
-    .actions { display: flex; gap: 4px; }
-    #login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .login-box { background: #fff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.1); min-width: 280px; }
-    .login-box h2 { margin-bottom: 8px; }
-    .login-box p { color: #6e6e73; font-size: 14px; margin-bottom: 24px; }
-    .login-box input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 15px; margin-bottom: 12px; }
-    .login-box button { width: 100%; padding: 12px; background: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
-    #main { display: none; }
-    .project-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-    .project-tag { padding: 6px 12px; background: #e5e5ea; border-radius: 20px; font-size: 13px; cursor: pointer; border: 2px solid transparent; }
-    .project-tag.active { border-color: #007aff; background: #e1f0ff; color: #007aff; }
-    .empty { text-align: center; color: #6e6e73; padding: 40px; font-size: 15px; }
-    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; align-items: center; justify-content: center; }
-    .modal-bg.open { display: flex; }
-    .modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 460px; margin: 16px; }
-    .modal h3 { margin-bottom: 20px; font-size: 17px; }
-    .modal label { display: block; font-size: 13px; color: #6e6e73; margin-bottom: 4px; margin-top: 14px; }
-    .modal input, .modal select, .modal textarea { width: 100%; padding: 10px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px; font-family: inherit; }
-    .modal textarea { resize: vertical; min-height: 80px; }
-    .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
-    .btn-cancel { background: #e5e5ea; color: #1d1d1f; }
-    .btn-edit { background: #5856d6; color: #fff; }
+    /* List */
+    main { flex: 1; padding-bottom: 96px; }
+    .row { display: flex; align-items: center; gap: 12px; padding: 10px 8px 10px 16px; transition: background-color .16s var(--ease), opacity .16s var(--ease); }
+    .row:hover { background: #fafafb; }
+    .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; padding: 0; border-radius: 8px; }
+    .avatar.task { background: var(--t-task-bg); color: var(--t-task); }
+    .avatar.reminder { background: var(--t-reminder-bg); color: var(--t-reminder); }
+    .avatar.note { background: var(--t-note-bg); color: var(--t-note); }
+    .avatar.project_update { background: var(--t-project-bg); color: var(--t-project); }
+    .row-text { flex: 1; min-width: 0; }
+    .row-title { font-size: 15px; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+    .row-sub { display: block; font-size: 13px; color: var(--ink-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-sub .late { color: var(--red); font-weight: 600; }
+    .row-meta { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 12px; color: var(--ink-3); min-width: 44px; }
+    .check { width: 44px; height: 44px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #c9ccd0; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s var(--ease), border-color .16s var(--ease); }
+    .check i svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; transition: opacity .16s var(--ease); }
+    .check:hover i { border-color: var(--green); }
+    .row.done .check i { background: var(--green-btn); border-color: var(--green-btn); }
+    .row.done .check i svg { opacity: 1; }
+    .row.done .row-title { color: var(--ink-3); font-weight: 400; text-decoration: line-through; text-decoration-color: #c9ccd0; }
+    .row.done .avatar { filter: grayscale(1); opacity: .55; }
+    .read { color: var(--green-ink); font-weight: 600; }
+
+    /* Composer */
+    .composer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; pointer-events: none; }
+    .composer-inner { pointer-events: auto; max-width: 760px; margin: 0 auto; background: var(--bg); border-top: 1px solid var(--line); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
+    @media (min-width: 800px) { .composer-inner { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
+    .composer-extra { display: flex; gap: 8px; padding: 0 4px 8px; flex-wrap: wrap; }
+    .composer-extra label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); flex: 1; min-width: 150px; }
+    .composer-extra input { flex: 1; min-width: 0; height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; background: var(--fill); font-size: 14px; }
+    .composer-row { display: flex; align-items: center; gap: 4px; }
+    .type-select { height: 40px; border: none; background: var(--fill); border-radius: 20px; padding: 0 10px 0 12px; font-size: 14px; font-weight: 600; color: var(--ink); appearance: none; -webkit-appearance: none; cursor: pointer; }
+    .composer-input { flex: 1; min-width: 0; height: 40px; border: none; background: var(--fill); border-radius: 20px; padding: 0 16px; font-size: 15px; outline: none; }
+    .composer-input::placeholder { color: var(--ink-3); }
+    .composer .icon-btn[aria-pressed="true"] { color: var(--green-ink); background: var(--green-tint); }
+    .send { width: 40px; height: 40px; border-radius: 50%; background: var(--green-btn); color: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .send:hover { background: var(--green-press); }
+    .send:disabled { background: #c9ccd0; cursor: default; }
   </style>
 </head>
 <body>
 
-<div id="login">
-  <div class="login-box">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-task" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-reminder" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 004 0"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20a.5.5 0 01-.5.5h-11A.5.5 0 016 20z"/><path d="M14 3.5V8h4M9 12.5h6M9 16h4"/></symbol>
+  <symbol id="i-project_update" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 11-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+</svg>
+
+<div class="login" id="login">
+  <form class="login-box" onsubmit="event.preventDefault(); doLogin()">
     <h2>EmmArk 小秘書</h2>
-    <p>請輸入 Dashboard 密碼</p>
-    <input type="password" id="tokenInput" placeholder="DASHBOARD_TOKEN" />
-    <button onclick="doLogin()">進入</button>
-  </div>
+    <p>輸入 Dashboard 密碼</p>
+    <input type="password" id="tokenInput" placeholder="密碼" autocomplete="current-password" aria-label="Dashboard 密碼" />
+    <div class="err" id="loginErr" role="alert"></div>
+    <button class="btn btn-primary" type="submit">進入</button>
+  </form>
 </div>
 
-<div class="modal-bg" id="editModal">
-  <div class="modal">
-    <h3>編輯記錄</h3>
-    <label>內容 *</label>
-    <textarea id="editContent" style="resize:vertical;min-height:80px"></textarea>
-    <label>類型 *</label>
-    <select id="editType">
-      <option value="task">待辦</option>
-      <option value="reminder">提醒</option>
-      <option value="note">筆記</option>
-      <option value="project_update">專案更新</option>
-    </select>
-    <label>專案（可留空）</label>
-    <input type="text" id="editProject" list="projectList" />
-    <label>到期時間（可留空）</label>
-    <input type="datetime-local" id="editDueDate" />
-    <div class="modal-actions">
-      <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
+<div class="app" id="main" hidden>
+  <div class="topbar">
+    <div class="titlebar">
+      <h1>小秘書<span class="sub num" id="summary"></span></h1>
+      <button class="icon-btn" onclick="loadNotes()" title="重新整理" aria-label="重新整理"><svg class="icon"><use href="#i-refresh"/></svg></button>
+      <a class="icon-btn" id="worshipLink" href="#" onclick="event.preventDefault(); goWorship()" title="服事表" aria-label="服事表"><svg class="icon"><use href="#i-calendar"/></svg></a>
     </div>
+    <label class="search"><svg class="icon" style="width:18px;height:18px"><use href="#i-search"/></svg><input type="search" id="search" placeholder="搜尋內容或專案" oninput="render()" /></label>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="chips" id="projectTags" aria-label="專案"></div>
   </div>
+  <main id="list" aria-live="polite"></main>
 </div>
 
-<div class="modal-bg" id="addModal">
-  <div class="modal">
-    <h3>新增記錄</h3>
-    <label>內容 *</label>
-    <textarea id="newContent" placeholder="要記錄的事..."></textarea>
-    <label>類型 *</label>
-    <select id="newType">
-      <option value="task">待辦</option>
-      <option value="reminder">提醒</option>
-      <option value="note">筆記</option>
-      <option value="project_update">專案更新</option>
-    </select>
-    <label>專案（可留空）</label>
-    <input type="text" id="newProject" placeholder="Cell Reporter" list="projectList" />
-    <datalist id="projectList"></datalist>
-    <label>到期時間（可留空）</label>
-    <input type="datetime-local" id="newDueDate" />
-    <div class="modal-actions">
-      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="submitNote()">新增</button>
+<form class="composer" id="composer" hidden onsubmit="event.preventDefault(); submitNote()">
+  <div class="composer-inner">
+    <div class="composer-extra" id="composerExtra" hidden>
+      <label><svg class="icon" style="width:18px;height:18px"><use href="#i-clock"/></svg><input type="datetime-local" id="newDueDate" aria-label="到期時間" /></label>
+      <label>專案<input type="text" id="newProject" list="projectList" placeholder="可留空" /></label>
+      <datalist id="projectList"></datalist>
     </div>
-  </div>
-</div>
-
-<div id="main">
-  <header>
-    <h1>EmmArk 小秘書 Dashboard</h1>
-    <a id="worshipLink" href="#" onclick="goWorship()" style="color:#98989d;font-size:13px;text-decoration:none;margin-right:12px">⛪ 服事表</a>
-    <span id="lastRefresh"></span>
-  </header>
-  <div class="container">
-    <div class="stats" id="stats"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div class="project-tags" id="projectTags" style="margin-bottom:0"></div>
-      <button class="btn btn-primary" onclick="openModal()">＋ 新增記錄</button>
-    </div>
-    <div class="filters">
-      <select id="filterType" onchange="applyFilters()">
-        <option value="">全部類型</option>
+    <div class="composer-row">
+      <select class="type-select" id="newType" aria-label="類型">
         <option value="task">待辦</option>
         <option value="reminder">提醒</option>
         <option value="note">筆記</option>
         <option value="project_update">專案更新</option>
       </select>
-      <select id="filterDone" onchange="applyFilters()">
-        <option value="">全部狀態</option>
-        <option value="false">未完成</option>
-        <option value="true">已完成</option>
-      </select>
-      <input type="text" id="search" placeholder="搜尋..." oninput="applyFilters()" />
+      <input class="composer-input" id="newContent" placeholder="記一件事…" autocomplete="off" oninput="syncSend()" aria-label="內容" />
+      <button class="icon-btn" type="button" id="extraBtn" aria-pressed="false" onclick="toggleExtra()" title="時間與專案" aria-label="時間與專案"><svg class="icon"><use href="#i-clock"/></svg></button>
+      <button class="send" type="submit" id="sendBtn" disabled aria-label="新增"><svg class="icon"><use href="#i-send"/></svg></button>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>內容</th>
-          <th>類型</th>
-          <th>專案</th>
-          <th>時間</th>
-          <th>記錄於</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
   </div>
+</form>
+
+<div class="scrim" id="editModal" hidden onclick="if (event.target === this) closeEditModal()">
+  <form class="sheet" role="dialog" aria-modal="true" aria-labelledby="editTitle" onsubmit="event.preventDefault(); saveEdit()">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <h2 id="editTitle">編輯記錄</h2>
+      <button class="icon-btn" type="button" onclick="closeEditModal()" aria-label="關閉"><svg class="icon"><use href="#i-close"/></svg></button>
+    </div>
+    <label class="field"><span>內容</span><textarea id="editContent" required></textarea></label>
+    <div class="field"><span>類型</span><div class="seg" id="editTypeSeg"></div></div>
+    <label class="field"><span>專案（可留空）</span><input type="text" id="editProject" list="projectList" /></label>
+    <label class="field"><span>到期時間（可留空）</span><input type="datetime-local" id="editDueDate" /></label>
+    <div class="sheet-actions">
+      <button class="btn btn-danger" type="button" onclick="deleteNote(editingNoteId)">刪除</button>
+      <button class="btn btn-primary" type="submit">儲存</button>
+    </div>
+  </form>
 </div>
+
+<div class="toast" id="toast" role="status" hidden></div>
 
 <script>
 let token = '';
 let allNotes = [];
 let activeProject = '';
+let activeTab = 'todo';
+let showDone = false;
+let editingNoteId = null;
+let editType = 'task';
 
 const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project_update: '專案更新' };
-const TYPE_CLASS = { task: 'type-task', reminder: 'type-reminder', note: 'type-note', project_update: 'type-project_update' };
+const TABS = [
+  { id: 'todo', label: '待辦', types: ['task', 'reminder'] },
+  { id: 'note', label: '筆記', types: ['note'] },
+  { id: 'project_update', label: '專案更新', types: ['project_update'] },
+  { id: 'all', label: '全部', types: null },
+];
+const TZ = 'Asia/Taipei';
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function icon(id, cls = 'icon') { return `<svg class="${cls}"><use href="#i-${id}"/></svg>`; }
+function dayKey(d) { return new Date(d).toLocaleDateString('en-CA', { timeZone: TZ }); }
+function hm(d) { return new Date(d).toLocaleTimeString('zh-TW', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }); }
+function md(d) { return new Date(d).toLocaleDateString('zh-TW', { timeZone: TZ, month: 'numeric', day: 'numeric' }); }
+function weekday(d) { return '日一二三四五六'[new Date(new Date(d).toLocaleString('en-US', { timeZone: TZ })).getDay()]; }
+function addDays(key, n) { const d = new Date(key + 'T12:00:00+08:00'); d.setDate(d.getDate() + n); return dayKey(d); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => { t.hidden = true; }, 2400);
+}
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
-  if (!token) return alert('請輸入密碼');
+  if (!token) { document.getElementById('loginErr').textContent = '請輸入密碼'; return; }
   loadNotes();
 }
 
@@ -180,192 +176,274 @@ async function api(method, body) {
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (res.status === 401) { alert('密碼錯誤'); return null; }
-  return res.json();
+  if (res.status === 401) {
+    document.getElementById('login').hidden = false;
+    document.getElementById('main').hidden = true;
+    document.getElementById('composer').hidden = true;
+    document.getElementById('loginErr').textContent = '密碼錯誤，請再試一次';
+    return null;
+  }
+  const data = await res.json();
+  if (data && data.error) { toast('發生錯誤：' + data.error); return null; }
+  return data;
 }
 
 async function loadNotes() {
   const data = await api('GET');
   if (!data) return;
   allNotes = data;
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('main').style.display = 'block';
-  document.getElementById('lastRefresh').textContent = '更新：' + new Date().toLocaleTimeString('zh-TW');
-  renderStats();
-  renderProjectTags();
+  document.getElementById('login').hidden = true;
+  document.getElementById('main').hidden = false;
+  document.getElementById('composer').hidden = false;
   updateProjectList();
-  applyFilters();
+  render();
 }
 
-function renderStats() {
-  const total = allNotes.length;
-  const done = allNotes.filter(n => n.is_done).length;
-  const pending = allNotes.filter(n => !n.is_done && (n.type === 'task' || n.type === 'reminder')).length;
-  const rate = total ? Math.round(done / allNotes.filter(n => n.type === 'task' || n.type === 'reminder').length * 100) || 0 : 0;
-  document.getElementById('stats').innerHTML = `
-    <div class="stat-card"><div class="num">${total}</div><div class="label">總記錄數</div></div>
-    <div class="stat-card"><div class="num">${pending}</div><div class="label">未完成待辦</div></div>
-    <div class="stat-card"><div class="num">${done}</div><div class="label">已完成</div></div>
-    <div class="stat-card"><div class="num">${rate}%</div><div class="label">完成率</div></div>
-  `;
+function renderSummary() {
+  const todos = allNotes.filter(n => n.type === 'task' || n.type === 'reminder');
+  const done = todos.filter(n => n.is_done).length;
+  const rate = todos.length ? Math.round(done / todos.length * 100) : 0;
+  document.getElementById('summary').textContent =
+    `未完成 ${todos.length - done}・已完成 ${done}（${rate}%）・共 ${allNotes.length} 筆・更新 ${hm(new Date())}`;
+}
+
+function renderTabs() {
+  document.getElementById('tabs').innerHTML = TABS.map(t => {
+    const items = allNotes.filter(n => !t.types || t.types.includes(n.type));
+    const count = t.id === 'todo' ? items.filter(n => !n.is_done).length : items.length;
+    return `<button class="tab" role="tab" aria-selected="${activeTab === t.id}" onclick="setTab('${t.id}')">${t.label}<span class="count num">${count}</span></button>`;
+  }).join('');
 }
 
 function renderProjectTags() {
   const projects = [...new Set(allNotes.map(n => n.project).filter(Boolean))];
-  const container = document.getElementById('projectTags');
-  container.innerHTML = `<span class="project-tag ${activeProject === '' ? 'active' : ''}" onclick="setProject('')">全部</span>` +
-    projects.map(p => `<span class="project-tag ${activeProject === p ? 'active' : ''}" onclick="setProject('${p}')">${p}</span>`).join('');
+  const box = document.getElementById('projectTags');
+  box.hidden = projects.length === 0;
+  box.innerHTML = [''].concat(projects).map(p =>
+    `<button class="chip" aria-pressed="${activeProject === p}" data-project="${esc(p)}">${p ? esc(p) : '全部專案'}</button>`
+  ).join('');
 }
+document.getElementById('projectTags').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (b) setProject(b.dataset.project);
+});
 
-function setProject(p) {
-  activeProject = p;
-  renderProjectTags();
-  applyFilters();
-}
+function setTab(id) { activeTab = id; render(); }
+function setProject(p) { activeProject = p; render(); }
 
-function applyFilters() {
-  const type = document.getElementById('filterType').value;
-  const done = document.getElementById('filterDone').value;
-  const search = document.getElementById('search').value.toLowerCase();
-
-  let filtered = allNotes.filter(n => {
-    if (type && n.type !== type) return false;
-    if (done !== '' && String(n.is_done) !== done) return false;
+function filtered() {
+  const tab = TABS.find(t => t.id === activeTab);
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  return allNotes.filter(n => {
+    if (tab.types && !tab.types.includes(n.type)) return false;
     if (activeProject && n.project !== activeProject) return false;
-    if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
+    if (q && !n.content.toLowerCase().includes(q) && !(n.project || '').toLowerCase().includes(q)) return false;
     return true;
   });
+}
 
-  const tbody = document.getElementById('tableBody');
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">沒有符合的記錄</td></tr>';
+function groupTodos(items) {
+  const now = Date.now();
+  const today = dayKey(now), tomorrow = addDays(today, 1), weekEnd = addDays(today, 7);
+  const groups = { overdue: [], today: [], tomorrow: [], week: [], later: [], none: [], done: [] };
+  for (const n of items) {
+    if (n.is_done) { groups.done.push(n); continue; }
+    if (!n.due_date) { groups.none.push(n); continue; }
+    const k = dayKey(n.due_date);
+    if (new Date(n.due_date).getTime() < now) groups.overdue.push(n);
+    else if (k === today) groups.today.push(n);
+    else if (k === tomorrow) groups.tomorrow.push(n);
+    else if (k <= weekEnd) groups.week.push(n);
+    else groups.later.push(n);
+  }
+  const byDue = (a, b) => new Date(a.due_date) - new Date(b.due_date);
+  ['overdue', 'today', 'tomorrow', 'week', 'later'].forEach(g => groups[g].sort(byDue));
+  groups.none.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return [
+    ['overdue', `過期 ${groups.overdue.length}`, groups.overdue],
+    ['today', '今天', groups.today],
+    ['tomorrow', '明天', groups.tomorrow],
+    ['week', '這七天', groups.week],
+    ['later', '之後', groups.later],
+    ['none', '未排時間', groups.none],
+    ['done', '已完成', groups.done],
+  ];
+}
+
+function groupByDay(items) {
+  const today = dayKey(Date.now()), yesterday = addDays(today, -1);
+  const sorted = [...items].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const map = new Map();
+  for (const n of sorted) {
+    const k = dayKey(n.created_at);
+    const label = k === today ? '今天' : k === yesterday ? '昨天' : `${md(n.created_at)}（${weekday(n.created_at)}）`;
+    if (!map.has(k)) map.set(k, [k, label, []]);
+    map.get(k)[2].push(n);
+  }
+  return [...map.values()];
+}
+
+function dueText(n) {
+  if (!n.due_date) return '';
+  const k = dayKey(n.due_date), today = dayKey(Date.now());
+  const late = !n.is_done && new Date(n.due_date).getTime() < Date.now();
+  const when = k === today ? '今天' : k === dayKey(Date.now() + 864e5) ? '明天' : `${md(n.due_date)}（${weekday(n.due_date)}）`;
+  return late ? `<span class="late">逾期・${when}</span>` : when;
+}
+
+function rowHtml(n) {
+  const sub = [n.project ? esc(n.project) : '', dueText(n), activeTab === 'all' ? TYPE_LABEL[n.type] : ''].filter(Boolean).join('・') || TYPE_LABEL[n.type];
+  const meta = n.is_done ? '<span class="read">已完成</span>' : `<span class="num">${n.due_date ? hm(n.due_date) : md(n.created_at)}</span>`;
+  return `<div class="row ${n.is_done ? 'done' : ''}" data-id="${esc(n.id)}">
+    <button class="row-main" data-act="edit" aria-label="編輯：${esc(n.content)}">
+      <span class="avatar ${esc(n.type)}" title="${TYPE_LABEL[n.type] || ''}">${icon(n.type)}</span>
+      <span class="row-text"><span class="row-title">${esc(n.content)}</span><span class="row-sub num">${sub}</span></span>
+      <span class="row-meta">${meta}</span>
+    </button>
+    <button class="check" data-act="toggle" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i>${icon('check')}</i></button>
+  </div>`;
+}
+
+function render() {
+  renderSummary();
+  renderTabs();
+  renderProjectTags();
+  const items = filtered();
+  const list = document.getElementById('list');
+  if (items.length === 0) {
+    const q = document.getElementById('search').value.trim();
+    list.innerHTML = `<div class="empty"><strong>${q || activeProject ? '沒有符合的記錄' : '這裡還是空的'}</strong>${q || activeProject ? '換個關鍵字或專案看看。' : '在下方輸入列打一句話，或直接傳給 LINE 小秘書。'}</div>`;
     return;
   }
-
-  tbody.innerHTML = filtered.map(n => {
-    const due = n.due_date ? new Date(n.due_date).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '-';
-    const created = new Date(n.created_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
-    const doneBtn = n.is_done
-      ? `<button class="btn-sm btn-undone" onclick="toggleDone('${n.id}', false)">撤銷</button>`
-      : `<button class="btn-sm btn-done" onclick="toggleDone('${n.id}', true)">完成</button>`;
-    const safeContent = n.content.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-    const safeProject = (n.project || '').replace(/'/g, '&#39;');
-    return `<tr class="${n.is_done ? 'done-row' : ''}">
-      <td>${n.content}</td>
-      <td><span class="type-badge ${TYPE_CLASS[n.type]}">${TYPE_LABEL[n.type]}</span></td>
-      <td>${n.project || '-'}</td>
-      <td>${due}</td>
-      <td>${created}</td>
-      <td><div class="actions">${doneBtn}<button class="btn-sm btn-edit" onclick="openEditModal('${n.id}','${safeContent}','${n.type}','${safeProject}','${n.due_date||''}')">編輯</button><button class="btn-sm btn-del" onclick="deleteNote('${n.id}')">刪除</button></div></td>
-    </tr>`;
+  const groups = activeTab === 'todo' ? groupTodos(items) : groupByDay(items);
+  list.innerHTML = groups.filter(g => g[2].length).map(([key, label, rows]) => {
+    if (key === 'done') {
+      return `<div class="sep"><button onclick="showDone = !showDone; render()" aria-expanded="${showDone}">已完成 <span class="num">${rows.length}</span><svg class="icon" style="width:14px;height:14px;transform:rotate(${showDone ? 90 : 0}deg)"><use href="#i-chevron"/></svg></button></div>` +
+        (showDone ? rows.map(rowHtml).join('') : '');
+    }
+    return `<div class="sep ${key === 'overdue' ? 'overdue' : ''}"><span>${label}</span></div>` + rows.map(rowHtml).join('');
   }).join('');
 }
 
+document.getElementById('list').addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]'); if (!btn) return;
+  const id = btn.closest('.row').dataset.id;
+  if (btn.dataset.act === 'toggle') {
+    const note = allNotes.find(n => String(n.id) === id);
+    if (note) toggleDone(note.id, !note.is_done);
+  } else {
+    openEditModal(id);
+  }
+});
+
 async function toggleDone(id, is_done) {
-  await api('PATCH', { id, is_done });
   const note = allNotes.find(n => n.id === id);
-  if (note) note.is_done = is_done;
-  renderStats();
-  applyFilters();
+  if (!note) return;
+  note.is_done = is_done;
+  const row = document.querySelector(`.row[data-id="${CSS.escape(String(id))}"]`);
+  if (row) row.classList.toggle('done', is_done);
+  const res = await api('PATCH', { id, is_done });
+  if (!res) { note.is_done = !is_done; }
+  setTimeout(render, row && is_done ? 420 : 0);
 }
 
 async function deleteNote(id) {
-  if (!confirm('確定刪除？')) return;
-  await api('DELETE', { id });
+  if (!confirm('確定刪除這筆記錄？')) return;
+  const res = await api('DELETE', { id });
+  if (!res) return;
   allNotes = allNotes.filter(n => n.id !== id);
-  renderStats();
-  renderProjectTags();
-  applyFilters();
+  closeEditModal();
+  updateProjectList();
+  render();
+  toast('已刪除');
 }
 
-function openModal() {
-  document.getElementById('newContent').value = '';
-  document.getElementById('newType').value = 'task';
-  document.getElementById('newProject').value = '';
-  document.getElementById('newDueDate').value = '';
-  document.getElementById('addModal').classList.add('open');
-  document.getElementById('newContent').focus();
-}
-
-function closeModal() {
-  document.getElementById('addModal').classList.remove('open');
+function syncSend() { document.getElementById('sendBtn').disabled = !document.getElementById('newContent').value.trim(); }
+function toggleExtra() {
+  const box = document.getElementById('composerExtra'), btn = document.getElementById('extraBtn');
+  box.hidden = !box.hidden; btn.setAttribute('aria-pressed', String(!box.hidden));
 }
 
 async function submitNote() {
   const content = document.getElementById('newContent').value.trim();
+  if (!content) return;
   const type = document.getElementById('newType').value;
   const project = document.getElementById('newProject').value.trim();
   const dueDateLocal = document.getElementById('newDueDate').value;
-  if (!content) return alert('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type, project, content, due_date }),
-  });
-  if (res.status === 401) { alert('密碼錯誤'); return; }
-  const data = await res.json();
-  if (data.error) { alert('錯誤：' + data.error); return; }
+  document.getElementById('sendBtn').disabled = true;
+  const data = await api('POST', { type, project, content, due_date });
+  if (!data) { syncSend(); return; }
   allNotes.unshift(data);
-  closeModal();
-  renderStats();
-  renderProjectTags();
-  applyFilters();
+  document.getElementById('newContent').value = '';
+  document.getElementById('newProject').value = '';
+  document.getElementById('newDueDate').value = '';
+  syncSend();
+  updateProjectList();
+  render();
+  toast(`${TYPE_LABEL[type]}已記錄`);
 }
 
-// Update datalist when projects change
 function updateProjectList() {
   const projects = [...new Set(allNotes.map(n => n.project).filter(Boolean))];
-  document.getElementById('projectList').innerHTML = projects.map(p => `<option value="${p}">`).join('');
+  document.getElementById('projectList').innerHTML = projects.map(p => `<option value="${esc(p)}">`).join('');
 }
 
-let editingNoteId = null;
+function renderEditSeg() {
+  document.getElementById('editTypeSeg').innerHTML = Object.entries(TYPE_LABEL).map(([v, l]) =>
+    `<button type="button" aria-pressed="${editType === v}" onclick="editType='${v}'; renderEditSeg()">${l}</button>`).join('');
+}
 
-function openEditModal(id, content, type, project, due_date) {
-  editingNoteId = id;
-  document.getElementById('editContent').value = content;
-  document.getElementById('editType').value = type;
-  document.getElementById('editProject').value = project;
-  if (due_date) {
-    const local = new Date(due_date);
+function openEditModal(id) {
+  const n = allNotes.find(x => String(x.id) === String(id));
+  if (!n) return;
+  editingNoteId = n.id;
+  editType = n.type;
+  document.getElementById('editContent').value = n.content;
+  document.getElementById('editProject').value = n.project || '';
+  if (n.due_date) {
+    const local = new Date(n.due_date);
     local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
-    document.getElementById('editDueDate').value = local.toISOString().slice(0,16);
+    document.getElementById('editDueDate').value = local.toISOString().slice(0, 16);
   } else {
     document.getElementById('editDueDate').value = '';
   }
-  document.getElementById('editModal').classList.add('open');
+  renderEditSeg();
+  document.getElementById('editModal').hidden = false;
   document.getElementById('editContent').focus();
 }
 
 function closeEditModal() {
-  document.getElementById('editModal').classList.remove('open');
+  document.getElementById('editModal').hidden = true;
   editingNoteId = null;
 }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('editModal').hidden) closeEditModal(); });
 
 async function saveEdit() {
   const content = document.getElementById('editContent').value.trim();
-  const type = document.getElementById('editType').value;
   const project = document.getElementById('editProject').value.trim();
   const dueDateLocal = document.getElementById('editDueDate').value;
-  if (!content) return alert('請填寫內容');
+  if (!content) return;
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
-  const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date });
+  const updated = await api('PATCH', { id: editingNoteId, content, type: editType, project, due_date });
   if (!updated) return;
-  const idx = allNotes.findIndex(n => n.id === editingNoteId);
-  if (idx !== -1) Object.assign(allNotes[idx], { content, type, project: project || null, due_date });
+  const n = allNotes.find(x => x.id === editingNoteId);
+  if (n) Object.assign(n, { content, type: editType, project: project || null, due_date });
   closeEditModal();
-  renderStats();
-  renderProjectTags();
   updateProjectList();
-  applyFilters();
+  render();
+  toast('已儲存');
 }
 
-// Auto refresh every 60s
-setInterval(loadNotes, 60000);
+// Auto refresh every 60s (skip while editing)
+setInterval(() => { if (token && document.getElementById('editModal').hidden) loadNotes(); }, 60000);
 
 function goWorship() {
   window.location.href = '/worship.html?token=' + encodeURIComponent(token);
 }
+
+// Coming back from 服事表 carries the token in the URL
+const urlToken = new URLSearchParams(location.search).get('token');
+if (urlToken) { token = urlToken; history.replaceState(null, '', location.pathname); loadNotes(); }
 </script>
 </body>
 </html>

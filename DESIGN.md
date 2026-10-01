@@ -6,18 +6,20 @@ colors:
   green-btn: "#06893d"
   green-press: "#057433"
   green-ink: "#04833a"
-  green-tint: "#e6f9ee"
+  green-tint: "#e2f6e9"
   red: "#c81e33"
-  red-tint: "#fdecee"
+  red-tint: "#fbe4e7"
   ink: "#111111"
   ink-2: "#5f6469"
   ink-3: "#62676c"
-  line: "#edeef0"
-  fill: "#f3f4f6"
-  bg: "#ffffff"
-  row-hover: "#fafafb"
-  next-wash: "#f6f7f8"
-  check-ring: "#8a8f94"
+  line: "#dcdfe3"
+  fill: "#e2e5e8"
+  bg: "#f0f2f4"
+  surface: "#f9fafb"
+  fill-hover: "#d8dbdf"
+  row-hover: "#e8eaed"
+  next-wash: "#e6e8eb"
+  check-ring: "#858a8f"
   disabled: "#c9ccd0"
   t-reminder: "#c25e00"
   t-reminder-bg: "#fff3e0"
@@ -181,6 +183,12 @@ components:
 - **填色灰 (fill)**：膠囊、搜尋框、輸入框、ghost 按鈕、圖示鍵 hover 的底。
 - **白底 (bg)**：內容欄與 sheet 的底；電腦寬螢幕的外圍是 fill 灰。
 - **列 hover (row-hover)**、**下一次底 (next-wash)**、**勾選環 (check-ring)**、**停用灰 (disabled)**：列 hover、服事表下一次那一欄的淡底、未勾選圓圈的 2px 邊、送出鍵停用。
+
+### 底色與深色模式
+- **淡灰底**（#f0f2f4）：頁面與標題列的底色，不用純白，避免長時間看螢幕刺眼。面板、輸入框聚焦時用略亮的 surface（#f9fafb）。
+- **深色模式**：跟著系統設定（`prefers-color-scheme: dark`）自動切換，所有顏色都是 `public/app.css` 的變數，深色值寫在同一檔的 media 區塊。底 #16181b、面板 #1f2226、文字 #e9ebee；綠色按鈕維持 #06893d 白字。
+- **面板**（`.panel`）：列表、日曆、清單、服事表格線一律放進 surface 色、1px 邊框、16px 圓角的面板，讓內容從淡灰底上浮出來。列之間的分隔線從頭像右側開始（LINE 列表的做法）。
+- 新增元件一律用變數（`--bg`、`--surface`、`--fill`、`--ink`、`--on-ink`…），不要寫死色碼，否則深色模式會破。
 
 ### Named Rules
 **The 綠色只給行動 Rule.** LINE 綠只出現在行動（送出、主要按鈕、聚焦）與完成（勾選填綠、「已完成」字）。「下一次／即將」一律用墨色標示，不准用綠；狀態、類型、裝飾都不准用綠。

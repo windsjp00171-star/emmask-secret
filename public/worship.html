@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>服事表 - EmmArk</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f0f2f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16181b" media="(prefers-color-scheme: dark)">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -13,34 +14,35 @@
   <link rel="stylesheet" href="/app.css">
   <style>
     #main { display: none; }
-    .container { max-width: none; padding: 12px 16px 64px; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 16px 16px 64px; }
     .toolbar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
     /* 季別區塊 */
     details.quarter { margin-bottom: 8px; }
-    details.quarter > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 8px; padding: 10px 0; font-size: 16px; font-weight: 700; border-bottom: 1px solid var(--line); }
+    details.quarter > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 8px; padding: 10px 0; font-size: 16px; font-weight: 700; }
     details.quarter > summary::-webkit-details-marker { display: none; }
     details.quarter > summary::before { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: rotate(-45deg); margin-right: 4px; align-self: center; transition: transform .16s var(--ease); }
     details.quarter[open] > summary::before { transform: rotate(45deg); }
     details.quarter > summary small { font-weight: 400; font-size: 13px; color: var(--ink-3); }
     .quarter-heading { font-size: 13px; font-weight: 700; color: var(--ink-2); margin: 14px 0 4px; }
     /* 格狀表 */
-    .grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); margin: 8px 0 4px; }
+    table.grid tbody tr:last-child td { border-bottom: none; }
     table.grid { border-collapse: separate; border-spacing: 0; min-width: 100%; }
     table.grid th, table.grid td { border-bottom: 1px solid var(--line); }
-    table.grid th { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 10px 8px 8px; font-size: 16px; font-weight: 700; text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    table.grid th { position: sticky; top: 0; z-index: 2; background: var(--surface); padding: 10px 8px 8px; font-size: 16px; font-weight: 700; text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
     table.grid th small { display: inline-block; font-size: 12px; font-weight: 400; color: var(--ink-3); }
     table.grid th.role-col { position: sticky; left: 0; z-index: 3; font-size: 12px; font-weight: 600; color: var(--ink-3); vertical-align: bottom; width: 88px; min-width: 88px; }
     table.grid td { padding: 6px 8px; font-size: 14px; vertical-align: middle; min-width: 120px; white-space: nowrap; }
-    table.grid td.role-label { position: sticky; left: 0; z-index: 1; background: var(--bg); font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: normal; min-width: 88px; width: 88px; border-right: 1px solid var(--line); }
+    table.grid td.role-label { position: sticky; left: 0; z-index: 1; background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: normal; min-width: 88px; width: 88px; border-right: 1px solid var(--line); }
     @media (min-width: 800px) { table.grid td.role-label, table.grid th.role-col { width: auto; white-space: nowrap; } }
-    table.grid td.today-col, table.grid th.today-col { background: #f6f7f8; }
-    table.grid th.today-col small { color: #fff; background: var(--ink); border-radius: 9px; padding: 0 7px; font-weight: 600; }
+    table.grid td.today-col, table.grid th.today-col { background: var(--today-col); }
+    table.grid th.today-col small { color: var(--on-ink); background: var(--ink); border-radius: 9px; padding: 0 7px; font-weight: 600; }
     table.grid td.cell { cursor: text; }
     table.grid td.cell:hover { background: var(--fill); }
-    .person-chip { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; margin: 2px; border-radius: 15px; border: 1px solid var(--line); background: var(--bg); font-size: 14px; }
+    .person-chip { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; margin: 2px; border-radius: 15px; background: var(--fill); font-size: 14px; }
     .cell-empty { color: var(--ink-3); opacity: .5; font-size: 18px; padding: 0 8px; }
     td.cell:hover .cell-empty { opacity: 1; }
-    .cell-input { width: 100%; min-width: 140px; height: 36px; padding: 0 10px; border: 2px solid var(--green) !important; border-radius: 8px; font-size: 14px; background: var(--bg) !important; outline: none; }
+    .cell-input { width: 100%; min-width: 140px; height: 36px; padding: 0 10px; border: 2px solid var(--green) !important; border-radius: 8px; font-size: 14px; background: var(--surface) !important; outline: none; }
     /* 批次貼上 */
     .paste-area { width: 100%; min-height: 200px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; resize: vertical; }
     .paste-preview { max-height: 240px; overflow: auto; margin-top: 12px; }
@@ -50,17 +52,21 @@
     .modal p code { background: var(--fill); border-radius: 4px; padding: 0 4px; }
     /* 人員查詢 */
     #personSelect { min-width: 200px; }
-    .person-view { max-width: 760px; }
+    .person-view { max-width: 760px; padding: 4px 16px; }
+    .person-view:empty { display: none; }
+    .person-view tr:last-child td { border-bottom: none; }
     .person-view table { width: 100%; border-collapse: collapse; }
     .person-view th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-3); padding: 8px 0; border-bottom: 1px solid var(--line); }
     .person-view td { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
     .person-view td.quarter-row { font-size: 13px; font-weight: 700; color: var(--ink-2); padding-top: 16px; }
     .date-badge { display: inline-block; min-width: 96px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .date-badge.soon { font-weight: 700; }
-    .date-badge.soon::after { content: "快到了"; margin-left: 6px; font-size: 11px; color: #fff; background: var(--ink); border-radius: 9px; padding: 1px 7px; vertical-align: 2px; }
+    .date-badge.soon::after { content: "快到了"; margin-left: 6px; font-size: 11px; color: var(--on-ink); background: var(--ink); border-radius: 9px; padding: 1px 7px; vertical-align: 2px; }
     .role-badge { display: inline-block; background: var(--fill); padding: 2px 10px; border-radius: 12px; font-size: 13px; margin: 2px; }
     /* 管理 */
-    .manage-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; max-width: 900px; }
+    .manage-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; }
+    .manage-card { padding: 4px 16px 16px; }
+    .manage-item:last-child { border-bottom: none; }
     @media (max-width: 640px) { .manage-panels { grid-template-columns: 1fr; } }
     .manage-card h2 { font-size: 15px; font-weight: 700; margin: 12px 0 8px; }
     .manage-add-row { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -72,7 +78,7 @@
     .manage-tip { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
   </style>
 </head>
-<body>
+<body class="wide">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></symbol>
@@ -152,9 +158,11 @@
   </header>
   <div class="container">
     <div class="toolbar" data-tour="worship-toolbar">
-      <button class="btn btn-tab active" id="tabGrid" onclick="switchView('grid')">格狀表格</button>
-      <button class="btn btn-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
-      <button class="btn btn-tab" id="tabManage" onclick="switchView('manage')">管理</button>
+      <div class="view-tabs">
+        <button class="view-tab active" id="tabGrid" onclick="switchView('grid')">格狀表格</button>
+        <button class="view-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
+        <button class="view-tab" id="tabManage" onclick="switchView('manage')">管理</button>
+      </div>
       <button class="btn btn-manage" id="pasteBtn" data-tour="paste-btn" onclick="openPasteModal()" style="margin-left:auto"><svg class="icon"><use href="#i-paste"/></svg>批次貼上</button>
       <button class="btn btn-primary" id="addEntryBtn" data-tour="add-entry" onclick="openAddModal()"><svg class="icon"><use href="#i-plus"/></svg>新增服事</button>
     </div>
@@ -170,13 +178,13 @@
           <option value="">— 選擇人員 —</option>
         </select>
       </div>
-      <div class="person-view" id="personTable"></div>
+      <div class="person-view panel" id="personTable"></div>
     </div>
 
     <div id="manageView" style="display:none">
       <div class="manage-panels">
         <!-- Dates panel -->
-        <div class="manage-card">
+        <div class="manage-card panel">
           <h2>主日日期</h2>
           <div class="manage-add-row">
             <input type="date" id="newDateInput" />
@@ -186,7 +194,7 @@
           <p class="manage-tip">刪除日期不會刪除該日的服事記錄，僅移除格子顯示。</p>
         </div>
         <!-- Roles panel -->
-        <div class="manage-card">
+        <div class="manage-card panel">
           <h2>職位</h2>
           <div class="manage-add-row">
             <input type="text" id="newRoleInput" placeholder="新職位名稱" onkeydown="if(event.key==='Enter')addRole()" />
@@ -669,10 +677,10 @@ function renderPastePreview() {
   if (!parsed) { el.innerHTML = ''; return; }
   const { columns, rows } = parsed;
   const matched = columns.filter(c => c.date).length;
-  let html = `<div style="padding:6px 10px;font-size:12px;color:#6e6e73">對應到 ${matched}/${columns.length} 個日期欄、${rows.length} 個職位。<span style="color:#ff9500">紅字</span>＝找不到對應日期（會略過）。</div>`;
+  let html = `<div style="padding:6px 10px;font-size:12px;color:var(--ink-2)">對應到 ${matched}/${columns.length} 個日期欄、${rows.length} 個職位。<span style="color:var(--red)">紅字</span>＝找不到對應日期（會略過）。</div>`;
   html += '<table><thead><tr><th>職位</th>';
   columns.forEach(c => {
-    html += `<th${c.date ? '' : ' style="color:#ff9500"'}>${esc(c.label)}</th>`;
+    html += `<th${c.date ? '' : ' style="color:var(--red)"'}>${esc(c.label)}</th>`;
   });
   html += '</tr></thead><tbody>';
   rows.forEach(r => {

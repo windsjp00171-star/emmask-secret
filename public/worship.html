@@ -345,7 +345,13 @@ function renderGridView(scrollToNext) {
   if (scrollToNext && next) {
     const th = gridWrap.querySelector(`thead th[data-date="${next}"]`);
     const roleCol = gridWrap.querySelector('thead th.role');
-    if (th) gridWrap.scrollLeft = Math.max(0, th.offsetLeft - roleCol.offsetWidth);
+    if (th) {
+      // Land on a column edge so no date column sits half under the role column
+      const max = gridWrap.scrollWidth - gridWrap.clientWidth;
+      const want = Math.min(th.offsetLeft - roleCol.offsetWidth, max);
+      const stops = [...gridWrap.querySelectorAll('thead th:not(.role)')].map(h => h.offsetLeft - roleCol.offsetWidth);
+      gridWrap.scrollLeft = Math.max(0, ...stops.filter(s => s <= want));
+    }
     gridWrap.classList.toggle('scrolled', gridWrap.scrollLeft > 0);
   }
 }

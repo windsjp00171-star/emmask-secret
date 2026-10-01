@@ -30,9 +30,6 @@
     .stat-pill.late b { color: var(--red); }
     .trunc-warn { background: var(--amber-tint); color: var(--amber); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px; }
     /* 列表／日曆切換 */
-    .view-tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 19px; background: var(--fill); }
-    .view-tab { height: 32px; padding: 0 16px; border-radius: 16px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); }
-    .view-tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
     /* 專案膠囊 */
     .list-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .project-tags { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
@@ -51,7 +48,10 @@
     #bulkBar .btn-del { background: var(--red-tint); color: var(--red); }
     #bulkBar .btn-done { background: var(--green-btn); color: #fff; }
     /* LINE 聊天列表式的記錄列 */
-    .note-list { margin: 0 -16px; }
+    .note-list { padding: 4px 0; }
+    .note-list .row + .row { background-image: linear-gradient(var(--line), var(--line)); background-repeat: no-repeat; background-size: calc(100% - 98px) 1px; background-position: 98px 0; }
+    .note-list .row:first-child { border-radius: 16px 16px 0 0; }
+    .note-list .row:last-child { border-radius: 0 0 16px 16px; }
     .row { display: flex; align-items: center; gap: 10px; padding: 6px 4px 6px 12px; transition: background-color .16s var(--ease); }
     .row:hover { background: var(--row-hover); }
     .row .sel { flex: none; width: 24px; display: inline-flex; justify-content: center; }
@@ -86,7 +86,7 @@
     .cal-nav:hover { background: var(--fill-hover); }
     .cal-showdone-row { text-align: center; margin: 0 0 10px; }
     .cal-showdone { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; color: var(--ink-2); cursor: pointer; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 8px; }
     .cal-wd { text-align: center; font-size: 12px; font-weight: 600; color: var(--ink-3); padding: 4px 0; }
     .cal-cell { min-height: 64px; border-radius: 10px; padding: 6px; cursor: pointer; position: relative; }
     .cal-cell:hover { background: var(--fill); }
@@ -100,8 +100,9 @@
     .cal-dot.task { background: var(--task-ink); }
     .cal-dot.worship { background: var(--blue); }
     .cal-count { font-size: 11px; color: var(--ink-2); margin-top: 2px; padding-left: 4px; }
-    .day-detail { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
+    .day-detail { margin-top: 12px; padding: 8px 16px; }
     .day-detail h3 { font-size: 15px; font-weight: 700; margin: 8px 0; }
+    .day-item:last-child { border-bottom: none; }
     .day-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; flex-wrap: wrap; }
     .day-item .dtime { font-variant-numeric: tabular-nums; color: var(--ink-2); min-width: 44px; }
     .actions { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -116,6 +117,9 @@
     .add-row { display: flex; gap: 8px; margin-bottom: 10px; }
     .add-row input { flex: 1; }
     .link-filters { display: flex; gap: 6px; margin-bottom: 6px; }
+    .list-panel:empty { display: none; }
+    .list-panel { padding: 0 16px; }
+    .list-panel .card:last-child { border-bottom: none; }
     .card { border-bottom: 1px solid var(--line); padding: 12px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
     .card.done { opacity: .55; }
     .card-head { flex: 1 1 100%; display: flex; align-items: center; gap: 10px; cursor: pointer; min-height: 32px; }
@@ -349,7 +353,7 @@
       <button class="btn-sm btn-del" onclick="bulkDelete()">批次刪除</button>
       <button class="btn-sm btn-cancel" onclick="clearSelection()">取消選取</button>
     </div>
-    <div class="note-list" id="tableBody" data-tour="list-table" aria-live="polite"></div>
+    <div class="note-list panel" id="tableBody" data-tour="list-table" aria-live="polite"></div>
     </div><!-- /listView -->
     <div id="calendarView" style="display:none">
       <div class="cal-head">
@@ -363,8 +367,8 @@
           顯示已完成
         </label>
       </div>
-      <div class="cal-grid" id="calGrid"></div>
-      <div class="day-detail" id="dayDetail" style="display:none"></div>
+      <div class="cal-grid panel" id="calGrid"></div>
+      <div class="day-detail panel" id="dayDetail" style="display:none"></div>
     </div>
   </div>
 
@@ -373,21 +377,21 @@
       <input type="text" id="songsSearch" placeholder="搜尋歌名..." oninput="Songs.render()" />
       <button class="btn btn-primary" onclick="Songs.openAdd()"><svg class="icon"><use href="#i-plus"/></svg>新增歌曲</button>
     </div>
-    <div id="songsList"></div>
+    <div id="songsList" class="panel list-panel"></div>
   </div>
 
   <div id="panel-order" class="tab-panel container" style="display:none">
     <div class="toolbar" style="justify-content:flex-end">
       <button class="btn btn-primary" onclick="Order.openAdd()"><svg class="icon"><use href="#i-plus"/></svg>新增順序</button>
     </div>
-    <div id="orderList"></div>
+    <div id="orderList" class="panel list-panel"></div>
   </div>
 
   <div id="panel-meetings" class="tab-panel container" style="display:none">
     <div class="toolbar" style="justify-content:flex-end">
       <button class="btn btn-primary" onclick="Meetings.openAdd()"><svg class="icon"><use href="#i-plus"/></svg>新增會議記錄</button>
     </div>
-    <div id="meetingsList"></div>
+    <div id="meetingsList" class="panel list-panel"></div>
   </div>
 
   <div id="panel-links" class="tab-panel container" style="display:none">
@@ -400,7 +404,7 @@
       <button class="btn-tab" id="linksTabDone" onclick="Links.setFilter('done')">已封存</button>
       <button class="btn-tab" id="linksTabAll" onclick="Links.setFilter('all')">全部</button>
     </div>
-    <div id="linksList"></div>
+    <div id="linksList" class="panel list-panel"></div>
   </div>
 
   <div id="panel-album" class="tab-panel container" style="display:none">

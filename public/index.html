@@ -26,6 +26,10 @@
     .stat-pill b { font-size: 15px; color: var(--ink); font-weight: 700; }
     .stat-pill.late { background: var(--red-tint); color: var(--red); }
     .stat-pill.late b { color: var(--red); }
+    button.stat-pill { border: none; cursor: pointer; font-family: inherit; }
+    button.stat-pill.late:hover { background: var(--red-hover); }
+    .stat-pill.late[aria-pressed="true"] { background: var(--red); color: #fff; }
+    .stat-pill.late[aria-pressed="true"] b { color: #fff; }
     .trunc-warn { background: var(--amber-tint); color: var(--amber); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px; }
     /* 列表／日曆切換 */
     /* 專案膠囊 */
@@ -735,15 +739,26 @@ async function loadNotes() {
   }
 }
 
+// 點上方「過期 N」：只看過期的待辦和提醒；再點一次回到全部
+let overdueOnly = false;
+function toggleOverdueOnly() {
+  overdueOnly = !overdueOnly;
+  if (overdueOnly) switchView('list');
+  renderStats();
+  applyFilters();
+}
+function isOverdue(n) { return !n.is_done && n.due_date && isActionable(n) && new Date(n.due_date) < new Date(); }
+
 function renderStats() {
   const total = allNotes.length;
   const done = allNotes.filter(n => n.is_done).length;
   const pending = allNotes.filter(n => !n.is_done && (n.type === 'task' || n.type === 'reminder')).length;
   const rate = total ? Math.round(done / allNotes.filter(n => n.type === 'task' || n.type === 'reminder').length * 100) || 0 : 0;
-  const late = allNotes.filter(n => !n.is_done && n.due_date && (n.type === 'task' || n.type === 'reminder') && new Date(n.due_date) < new Date()).length;
+  const late = allNotes.filter(isOverdue).length;
+  if (!late) overdueOnly = false; // 過期的都處理完了，自動回到全部
   document.getElementById('stats').innerHTML = `
     <span class="stat-pill num">未完成 <b>${pending}</b></span>
-    ${late ? `<span class="stat-pill late num">過期 <b>${late}</b></span>` : ''}
+    ${late ? `<button type="button" class="stat-pill late num" onclick="toggleOverdueOnly()" aria-pressed="${overdueOnly}" title="${overdueOnly ? '回到全部' : '只看過期的'}">過期 <b>${late}</b></button>` : ''}
   `;
 }
 
@@ -786,6 +801,7 @@ function applyFilters() {
     if (type && n.type !== type) return false;
     if (done !== '' && String(n.is_done) !== done) return false;
     if (activeProject && n.project !== activeProject) return false;
+    if (overdueOnly && !isOverdue(n)) return false;
     if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
     return true;
   });
@@ -795,12 +811,13 @@ function applyFilters() {
   document.querySelector('#filterBtn .dot').hidden = !nonDefault;
   const list = document.getElementById('tableBody');
   if (filtered.length === 0) {
-    list.innerHTML = '<div class="empty">沒有符合的記錄</div>';
+    list.innerHTML = overdueOnly ? '<div class="empty">沒有過期的事了</div>' : '<div class="empty">沒有符合的記錄</div>';
     updateBulkBar();
     return;
   }
   const sortBy = document.getElementById('sortBy').value;
-  const groups = sortBy === 'due_asc' ? groupByDue(filtered)
+  const groups = overdueOnly ? [['overdue', `過期 ${filtered.length}`, sortNotes(filtered, 'due_asc')]]
+    : sortBy === 'due_asc' ? groupByDue(filtered)
     : sortBy.startsWith('created') ? groupByCreated(filtered)
     : [['all', '', filtered]];
   list.innerHTML = groups.filter(g => g[2].length).map(([key, label, rows]) => {
@@ -847,7 +864,7 @@ function groupByCreated(items) {
   const today = todayKey(), yesterday = addDaysKey(today, -1), map = new Map();
   items.forEach(n => {
     const k = taipeiKey(n.created_at);
-    const label = k === today ? '今天' : k === yesterday ? '昨天' : mdw(n.created_at);
+    const label = (k === today ? '今天' : k === yesterday ? '昨天' : mdw(n.created_at)) + '建立';
     if (!map.has(k)) map.set(k, [k, label, []]);
     map.get(k)[2].push(n);
   });
@@ -995,6 +1012,7 @@ function getShownIds() {
     if (type && n.type !== type) return false;
     if (done !== '' && String(n.is_done) !== done) return false;
     if (activeProject && n.project !== activeProject) return false;
+    if (overdueOnly && !isOverdue(n)) return false;
     if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
     return true;
   }).map(n => n.id);
@@ -1789,13 +1807,22 @@ const Album = {
     document.getElementById('lightboxImg').src = '';
   },
 
-  async remove(id) {
-    if (!confirm('刪除這張圖片？圖檔會一起刪掉，無法復原。')) return;
-    let res = null;
-    try { res = await fetch(`/api/dashboard/album?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'x-dashboard-token': token } }); } catch (e) { /* 下面一起處理 */ }
-    if (!res || !res.ok) { toastErr(res ? '刪除失敗，請再試一次' : '連不上伺服器，請確認網路後再試一次'); return; }
-    this.items = this.items.filter(i => i.id !== id);
+  // 跟其他刪除一樣：先從畫面拿掉，5 秒內可以「復原」，時間到才真的刪圖檔
+  remove(id) {
+    const idx = this.items.findIndex(i => i.id === id);
+    if (idx < 0) return;
+    const item = this.items[idx];
+    this.items.splice(idx, 1);
+    this.closeLightbox();
     this.render();
+    toast('已刪除這張圖片', {
+      action: { label: '復原', run: () => { this.items.splice(Math.min(idx, this.items.length), 0, item); this.render(); } },
+      onExpire: async () => {
+        let res = null;
+        try { res = await fetch(`/api/dashboard/album?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'x-dashboard-token': token }, keepalive: true }); } catch (e) { /* 下面一起處理 */ }
+        if (!res || !res.ok) { toastErr(res ? '圖片沒有刪成功，已放回相簿' : '連不上伺服器，圖片沒有刪掉'); this.load(); }
+      },
+    });
   },
 };
 
@@ -1913,7 +1940,7 @@ Tour.mount({
   steps: [
     { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、服事表、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上可以左右滑。' },
     { target: 'worship-link', title: '服事表', text: '主日服事表在第二個分頁，點進去可以看整季班表。' },
-    { target: 'stats', title: '總覽', text: '一眼看到還有幾件沒做完、有幾件已經過期（紅色）。', before: () => switchTab('dashboard') },
+    { target: 'stats', title: '總覽', text: '一眼看到還有幾件沒做完、有幾件已經過期（紅色）。\n點紅色的「過期」只看過期的事，再點一次回到全部。', before: () => switchTab('dashboard') },
     { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },
     { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n「篩選」可以改類型、完成狀態和排序，有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
     { target: 'list-table', title: '每一筆都能直接操作', text: '點右邊的圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一列可以編輯，刪除也在編輯面板裡。\n有排到你服事時，列表上方會多一列「下一次服事」，點了直接到服事表。' },

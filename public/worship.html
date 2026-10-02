@@ -76,7 +76,14 @@
     .manage-item .del-btn { width: 40px; height: 40px; border: none; background: none; border-radius: 50%; color: var(--ink-3); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
     .manage-item .del-btn:hover { background: var(--red-tint); color: var(--red); }
     .manage-tip { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
-    @media (max-width: 600px) { .toolbar { flex-wrap: nowrap; } .toolbar .btn { width: 40px; padding: 0; flex: none; } .toolbar .btn .lbl { display: none; } .view-tab { padding: 0 12px; } }
+    .toolbar .btn .lbl-short { display: none; }
+    @media (max-width: 600px) {
+      .toolbar { flex-wrap: nowrap; gap: 6px; } .toolbar .btn { padding: 0 12px; flex: none; gap: 4px; } .toolbar .btn .lbl { display: none; } .toolbar .btn .lbl-short { display: inline; } .view-tab { padding: 0 10px; }
+      /* 手機上一個畫面多看幾週：職位欄縮窄（長的職位換成兩行小字），日期欄和人名膠囊也縮小 */
+      table.grid td.role-label, table.grid th.role-col { width: 72px; min-width: 72px; max-width: 72px; white-space: normal; font-size: 12px; line-height: 1.25; word-break: break-all; }
+      table.grid td { min-width: 96px; padding: 6px 4px; }
+      .person-chip { height: 28px; padding: 0 9px; font-size: 13px; }
+    }
     .grid-wrap { width: fit-content; max-width: calc(100vw - 32px - max(0px, (100vw - 900px) / 2)); }
     @media (min-width: 800px) { table.grid td.cell, table.grid thead th:not(.role-col) { min-width: 200px; } }
     .toast { bottom: calc(20px + env(safe-area-inset-bottom)); }
@@ -168,8 +175,8 @@
         <button class="view-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
         <button class="view-tab" id="tabManage" onclick="switchView('manage')">管理</button>
       </div>
-      <button class="btn btn-manage" id="pasteBtn" aria-label="批次貼上" data-tour="paste-btn" onclick="openPasteModal()" style="margin-left:auto"><svg class="icon"><use href="#i-paste"/></svg><span class="lbl">批次貼上</span></button>
-      <button class="btn btn-primary" id="addEntryBtn" aria-label="新增服事" data-tour="add-entry" onclick="openAddModal()"><svg class="icon"><use href="#i-plus"/></svg><span class="lbl">新增服事</span></button>
+      <button class="btn btn-manage" id="pasteBtn" aria-label="批次貼上" data-tour="paste-btn" onclick="openPasteModal()" style="margin-left:auto"><svg class="icon"><use href="#i-paste"/></svg><span class="lbl">批次貼上</span><span class="lbl-short">貼上</span></button>
+      <button class="btn btn-primary" id="addEntryBtn" aria-label="新增服事" data-tour="add-entry" onclick="openAddModal()"><svg class="icon"><use href="#i-plus"/></svg><span class="lbl">新增服事</span><span class="lbl-short">新增</span></button>
     </div>
 
     <div id="gridView">
@@ -429,7 +436,7 @@ function buildGridTable(roles, idxs, todayIdx) {
 
   roles.forEach((role, ri) => {
     html += '<tr>';
-    html += `<td class="role-label">${esc(role)}</td>`;
+    html += `<td class="role-label" title="${esc(role)}">${esc(role)}</td>`;
     idxs.forEach(di => {
       const cls = (di === todayIdx) ? 'cell today-col' : 'cell';
       html += `<td id="c-${ri}-${di}" class="${cls}" tabindex="0" aria-label="${esc(role)} ${esc(gridDates[di])}" onclick="startEdit(${ri},${di})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startEdit(${ri},${di})}">${cellInner(ri, di)}</td>`;

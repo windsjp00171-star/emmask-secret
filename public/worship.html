@@ -40,8 +40,8 @@
     table.grid td.cell { cursor: text; }
     @media (hover: hover) { table.grid td.cell:hover { background: var(--fill); } }
     .person-chip { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; margin: 2px; border-radius: 9999px; background: var(--fill); font-size: 14px; }
-    .cell-empty { color: var(--ink-3); opacity: .5; font-size: 17px; padding: 0 8px; }
-    @media (hover: hover) { td.cell:hover .cell-empty { opacity: 1; } }
+    .cell-empty { color: var(--ink-3); font-size: 17px; padding: 0 8px; }
+    @media (hover: hover) { td.cell:hover .cell-empty { color: var(--ink); } }
     .cell-input { width: 100%; min-width: 140px; height: 36px; padding: 0 10px; border: 2px solid var(--green) !important; border-radius: 8px; font-size: 14px; background: var(--surface) !important; outline: none; }
     /* 批次貼上 */
     .paste-area { width: 100%; min-height: 200px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; resize: vertical; }
@@ -340,8 +340,10 @@ async function loadAll() {
   renderManageView();
 }
 
+// 「備註」那一列放的是說明文字，不是人名，不列入人員查詢和名字提示
+const NOTE_ROLE = '備註';
 function buildPersonList() {
-  const people = [...new Set(allData.map(d => d.person_name))].sort();
+  const people = [...new Set(allData.filter(d => d.role !== NOTE_ROLE).map(d => d.person_name))].sort();
   const dl = document.getElementById('personList');
   dl.innerHTML = people.map(p => `<option value="${p}">`).join('');
   const sel = document.getElementById('personSelect');
@@ -525,7 +527,7 @@ function renderPersonView() {
   if (!person) { el.innerHTML = '<div class="empty">請選擇一位人員</div>'; return; }
 
   const today = new Date().toISOString().split('T')[0];
-  const items = allData.filter(d => d.person_name === person).sort((a, b) => a.service_date.localeCompare(b.service_date));
+  const items = allData.filter(d => d.person_name === person && d.role !== NOTE_ROLE).sort((a, b) => a.service_date.localeCompare(b.service_date));
   if (items.length === 0) { el.innerHTML = '<div class="empty">找不到此人的服事記錄</div>'; return; }
 
   const byDate = {};

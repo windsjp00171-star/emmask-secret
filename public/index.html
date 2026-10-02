@@ -72,9 +72,15 @@
     .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; cursor: pointer; border-radius: 8px; }
     .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; }
     .avatar.task { background: var(--task-bg); color: var(--task-ink); }
-    .duty { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; margin-bottom: 8px; color: inherit; text-decoration: none; }
+    .duty { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 12px; margin-bottom: 8px; color: inherit; text-decoration: none; font-size: 14px; }
+    .duty-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .duty-text b { font-weight: 600; }
+    .duty-text span { color: var(--ink-2); margin-left: 6px; }
     .duty[hidden] { display: none; }
-    .duty-av { background: var(--fill); color: var(--ink); }
+    .due-preview { font-size: 13px; color: var(--ink-2); margin-top: 4px; min-height: 0; }
+    .due-preview:empty { display: none; }
+    .duty-av { width: 28px; height: 28px; background: var(--fill); color: var(--ink); }
+    .duty-av .icon { width: 16px; height: 16px; }
     .duty-go { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
     @media (hover: hover) { .duty:hover { background: var(--row-hover); } }
     .avatar.reminder { background: var(--amber-tint); color: var(--amber); }
@@ -227,7 +233,8 @@
     <label>專案（可留空）</label>
     <input type="text" id="editProject" list="projectList" />
     <label>到期時間（可留空）</label>
-    <input type="datetime-local" id="editDueDate" />
+    <input type="datetime-local" id="editDueDate" lang="zh-Hant-TW" oninput="duePreview('editDueDate')" />
+    <div class="due-preview num" id="editDueDatePreview"></div>
     <label>提前多久提醒（預設 5 分鐘）</label>
     <div style="display:flex;gap:8px">
       <input type="number" id="editLeadValue" min="0" placeholder="例如 5" style="flex:1" />
@@ -261,7 +268,8 @@
     <input type="text" id="newProject" placeholder="Cell Reporter" list="projectList" />
     <datalist id="projectList"></datalist>
     <label>到期時間（可留空）</label>
-    <input type="datetime-local" id="newDueDate" />
+    <input type="datetime-local" id="newDueDate" lang="zh-Hant-TW" oninput="duePreview('newDueDate')" />
+    <div class="due-preview num" id="newDueDatePreview"></div>
     <label>提前多久提醒（預設 5 分鐘）</label>
     <div style="display:flex;gap:8px">
       <input type="number" id="newLeadValue" min="0" placeholder="例如 5" style="flex:1" />
@@ -408,7 +416,7 @@
     </div>
     <a class="duty panel" id="nextDuty" href="worship.html" hidden onclick="event.preventDefault(); goPage('worship.html')">
       <span class="avatar duty-av"><svg class="icon"><use href="#i-calendar"/></svg></span>
-      <span class="row-text"><span class="row-title" id="nextDutyTitle"></span><span class="row-sub num" id="nextDutySub"></span></span>
+      <span class="duty-text"><b id="nextDutyTitle"></b><span class="num" id="nextDutySub"></span></span>
       <svg class="icon duty-go" aria-hidden="true"><use href="#i-right"/></svg>
     </a>
     <div class="note-list panel" id="tableBody" data-tour="list-table" aria-live="polite"></div>
@@ -584,6 +592,15 @@ async function loadNextDuty() {
   document.getElementById('nextDutyTitle').textContent = `下一次服事：${when}`;
   document.getElementById('nextDutySub').textContent = roles.join('、');
   el.hidden = false;
+}
+
+// 日期欄位的顯示格式跟著瀏覽器語系走（可能出現 AM/PM），下面再用中文寫一次
+function duePreview(id) {
+  const v = document.getElementById(id).value;
+  const out = document.getElementById(id + 'Preview');
+  if (!v) { out.textContent = ''; return; }
+  const d = new Date(v);
+  out.textContent = `${d.getMonth() + 1}/${d.getDate()}（${'日一二三四五六'[d.getDay()]}）${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 function goPage(page) {
@@ -826,7 +843,7 @@ function noteRow(n) {
     const day = k === today ? '今天' : k === addDaysKey(today, 1) ? '明天' : mdw(n.due_date);
     due = `${day} ${hm(n.due_date)}`;
     if (n.remind_lead_minutes != null) due += `・提前${formatLeadMinutes(n.remind_lead_minutes)}`;
-    if (!n.is_done && new Date(n.due_date) < new Date()) due = `<span class="late">過期・${due}</span>`;
+    if (!n.is_done && new Date(n.due_date) < new Date()) due = `<span class="late">${due}</span>`;
   }
   // 類型看頭像就知道；最常見的「待辦」不再重複寫一次
   const sub = [n.project ? esc(n.project) : '', due, n.type === 'task' ? '' : TYPE_LABEL[n.type]].filter(Boolean).join('・') || TYPE_LABEL[n.type];
@@ -1052,6 +1069,7 @@ function openModal() {
   document.getElementById('newType').value = 'task';
   document.getElementById('newProject').value = '';
   document.getElementById('newDueDate').value = '';
+  duePreview('newDueDate');
   document.getElementById('newLeadValue').value = '';
   document.getElementById('newLeadUnit').value = '1';
   document.getElementById('addModal').classList.add('open');
@@ -1106,8 +1124,10 @@ function openEditModal(id) {
     const local = new Date(note.due_date);
     local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
     document.getElementById('editDueDate').value = local.toISOString().slice(0,16);
+    duePreview('editDueDate');
   } else {
     document.getElementById('editDueDate').value = '';
+    duePreview('editDueDate');
   }
   const leadSplit = minutesToUnit(note.remind_lead_minutes);
   document.getElementById('editLeadValue').value = leadSplit.value;

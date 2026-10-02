@@ -20,6 +20,11 @@ module.exports = async function handler(req, res) {
     let query = supabase.from('worship_schedule').select('*').order('service_date').order('role');
     if (req.query.date) query = query.eq('service_date', req.query.date);
     if (req.query.person) query = query.eq('person_name', req.query.person);
+    // 後台待辦頁要顯示「下一次服事」：只回主人自己的（名字在伺服器端，不必讓前端知道）
+    if (req.query.mine) {
+      if (!process.env.WORSHIP_MY_NAME) return res.status(200).json([]);
+      query = query.eq('person_name', process.env.WORSHIP_MY_NAME);
+    }
     if (req.query.from) query = query.gte('service_date', req.query.from);
     const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });

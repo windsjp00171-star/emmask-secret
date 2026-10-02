@@ -40,6 +40,7 @@
     .filter-row input[type=search] { flex: 1; min-width: 0; height: 38px; min-height: 38px; border-radius: 9999px; padding: 0 14px; font-size: 14px; }
     .chip-btn { flex: none; position: relative; height: 38px; padding: 0 12px; border-radius: 9999px; border: none; background: var(--fill); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
     .chip-btn:hover { background: var(--fill-hover); }
+    .project-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
     .chip-btn .icon { width: 16px; height: 16px; }
     .chip-btn[aria-expanded="true"], .chip-btn[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
     .chip-btn .dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
@@ -71,6 +72,11 @@
     .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; cursor: pointer; border-radius: 8px; }
     .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; }
     .avatar.task { background: var(--task-bg); color: var(--task-ink); }
+    .duty { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; margin-bottom: 8px; color: inherit; text-decoration: none; }
+    .duty[hidden] { display: none; }
+    .duty-av { background: var(--fill); color: var(--ink); }
+    .duty-go { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
+    @media (hover: hover) { .duty:hover { background: var(--row-hover); } }
     .avatar.reminder { background: var(--amber-tint); color: var(--amber); }
     .avatar.note { background: var(--blue-tint); color: var(--blue); }
     .avatar.project_update { background: var(--purple-tint); color: var(--purple); }
@@ -222,7 +228,7 @@
     <input type="text" id="editProject" list="projectList" />
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="editDueDate" />
-    <label>提前多久提醒（可留空＝用系統預設5分鐘）</label>
+    <label>提前多久提醒（預設 5 分鐘）</label>
     <div style="display:flex;gap:8px">
       <input type="number" id="editLeadValue" min="0" placeholder="例如 1" style="flex:1" />
       <select id="editLeadUnit" style="width:100px">
@@ -232,7 +238,7 @@
       </select>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-danger" onclick="deleteNote(editingNoteId)">刪除</button>
+      <button class="btn btn-text-danger" onclick="deleteNote(editingNoteId)">刪除</button>
       <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
       <button class="btn btn-primary" onclick="saveEdit()">儲存</button>
     </div>
@@ -256,7 +262,7 @@
     <datalist id="projectList"></datalist>
     <label>到期時間（可留空）</label>
     <input type="datetime-local" id="newDueDate" />
-    <label>提前多久提醒（可留空＝用系統預設5分鐘）</label>
+    <label>提前多久提醒（預設 5 分鐘）</label>
     <div style="display:flex;gap:8px">
       <input type="number" id="newLeadValue" min="0" placeholder="例如 1" style="flex:1" />
       <select id="newLeadUnit" style="width:100px">
@@ -268,6 +274,19 @@
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="submitNote()">新增</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="projectModal">
+  <div class="modal">
+    <h3 id="projectModalTitle">改專案</h3>
+    <div class="project-pick" id="projectPick"></div>
+    <label>或輸入新的專案名稱</label>
+    <input type="text" id="bulkProjectInput" list="projectList" />
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeProjectModal()">取消</button>
+      <button class="btn btn-primary" onclick="applyBulkProject(document.getElementById('bulkProjectInput').value.trim())">套用</button>
     </div>
   </div>
 </div>
@@ -387,6 +406,11 @@
       <button class="btn-sm btn-del" onclick="bulkDelete()">刪除</button>
       <button class="btn-sm btn-cancel" onclick="setSelectMode(false)">取消</button>
     </div>
+    <a class="duty panel" id="nextDuty" href="worship.html" hidden onclick="event.preventDefault(); goPage('worship.html')">
+      <span class="avatar duty-av"><svg class="icon"><use href="#i-calendar"/></svg></span>
+      <span class="row-text"><span class="row-title" id="nextDutyTitle"></span><span class="row-sub num" id="nextDutySub"></span></span>
+      <svg class="icon duty-go" aria-hidden="true"><use href="#i-right"/></svg>
+    </a>
     <div class="note-list panel" id="tableBody" data-tour="list-table" aria-live="polite"></div>
     </div><!-- /listView -->
     <div id="calendarView" style="display:none">
@@ -504,20 +528,27 @@ function switchTab(name) {
 
 // ---- 提示（可帶「復原」） ----
 let toastTimer = null;
+let toastExpire = null; // 被下一則提示蓋掉時也要執行（例如送出延後的刪除）
 function toast(msg, opts = {}) {
+  hideToast();
+  toastExpire = opts.onExpire || null;
   const el = document.getElementById('toast');
   const btn = document.getElementById('toastAction');
   document.getElementById('toastText').textContent = msg;
   el.classList.toggle('error', !!opts.error);
   btn.hidden = !opts.action;
   btn.textContent = opts.action ? opts.action.label : '';
-  btn.onclick = opts.action ? () => { hideToast(); opts.action.run(); } : null;
+  btn.onclick = opts.action ? () => { hideToast(true); opts.action.run(); } : null;
   el.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { hideToast(); if (opts.onExpire) opts.onExpire(); }, opts.ms || (opts.action ? 5000 : 3000));
+  toastTimer = setTimeout(() => hideToast(), opts.ms || (opts.action ? 5000 : 3000));
 }
 function toastErr(msg) { toast(msg, { error: true }); }
-function hideToast() { clearTimeout(toastTimer); document.getElementById('toast').hidden = true; }
+function hideToast(undone) {
+  clearTimeout(toastTimer);
+  document.getElementById('toast').hidden = true;
+  const f = toastExpire; toastExpire = null;
+  if (f && !undone) f();
+}
 
 // ---- 輸入列：跟 LINE 一樣打一句話就送出（同一套 AI 分類與指令） ----
 async function sendText() {
@@ -532,6 +563,27 @@ async function sendText() {
   input.value = '';
   toast((data.reply || '收到了') + (data.needs_line ? '\n（這一步要到 LINE 按「確定」才會生效）' : ''), { ms: 6000 });
   loadNotes();
+}
+
+// 待辦上方一列「下一次服事」，點了到服事表；沒排到或沒設定名字就不顯示
+async function loadNextDuty() {
+  const el = document.getElementById('nextDuty');
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  let rows = null;
+  try {
+    const res = await fetch(`/api/worship/schedule?mine=1&from=${from}`, { headers: { 'x-dashboard-token': token } });
+    if (res.ok) rows = await res.json();
+  } catch (e) { /* 服事表讀不到不影響待辦 */ }
+  if (!Array.isArray(rows) || !rows.length) { el.hidden = true; return; }
+  const date = rows[0].service_date;
+  const roles = [...new Set(rows.filter(r => r.service_date === date).map(r => r.role))];
+  const d = new Date(date + 'T00:00:00');
+  const days = Math.round((d - today) / 86400000);
+  const when = days === 0 ? '今天' : days === 1 ? '明天' : `${d.getMonth() + 1}/${d.getDate()}（${'日一二三四五六'[d.getDay()]}）`;
+  document.getElementById('nextDutyTitle').textContent = `下一次服事：${when}`;
+  document.getElementById('nextDutySub').textContent = roles.join('、');
+  el.hidden = false;
 }
 
 function goPage(page) {
@@ -606,6 +658,7 @@ async function api(method, body) {
 
 async function loadNotes() {
   if (!token) return; // 還沒登入時，不要讓自動刷新的 60 秒計時器一直跳密碼錯誤
+  loadNextDuty();
   const data = await api('GET');
   if (!data) return;
   allNotes = data;
@@ -845,8 +898,30 @@ async function flushDeletes() {
   pendingDeletes.clear();
   for (const id of ids) {
     const res = await api('DELETE', { id });
-    if (!res) loadNotes(); // 沒刪成功就重新載入，讓那一筆回到畫面上
+    if (!res) { const reload = deleteReloads.get(id) || loadNotes; reload(); } // 沒刪成功就重新載入，讓那一筆回到畫面上
+    deleteReloads.delete(id);
   }
+}
+// 詩歌、敬拜順序、會議記錄、收藏：一樣先拿掉、5 秒內可復原
+const deleteReloads = new Map(); // id -> 刪除失敗時要重新載入的函式
+function deleteItem(store, key, id, label) {
+  const list = store[key];
+  const idx = list.findIndex(n => n.id === id);
+  if (idx < 0) return;
+  const item = list[idx];
+  list.splice(idx, 1);
+  store.render();
+  pendingDeletes.set(id, item);
+  deleteReloads.set(id, () => store.load());
+  const name = label || String(item.content || '').replace(/https?:\/\/\S+/g, '').replace(/^[#\s]+/, '').split('\n')[0].trim().slice(0, 30);
+  toast(name ? `已刪除：${name}` : '已刪除', {
+    action: { label: '復原', run: () => {
+      pendingDeletes.delete(id); deleteReloads.delete(id);
+      store[key].splice(Math.min(idx, store[key].length), 0, item);
+      store.render();
+    } },
+    onExpire: () => flushDeletes(),
+  });
 }
 // 關掉分頁時還沒送出的刪除也要送出去
 window.addEventListener('pagehide', () => {
@@ -943,17 +1018,33 @@ async function bulkDelete() {
   deleteNotes(ids);
 }
 
-async function bulkSetProject() {
+function bulkSetProject() {
   const ids = [...selectedIds];
   if (ids.length === 0) return;
-  const project = prompt(`把這 ${ids.length} 筆改成哪個專案？（留空＝清空專案）`);
-  if (project === null) return;
+  const projects = [...new Set(allNotes.map(n => n.project).filter(Boolean))];
+  document.getElementById('projectModalTitle').textContent = `把這 ${ids.length} 筆改成哪個專案？`;
+  document.getElementById('projectPick').innerHTML = projects.map(p =>
+    `<button type="button" class="project-tag" data-project="${esc(p)}">${esc(p)}</button>`).join('')
+    + '<button type="button" class="project-tag" data-project="">不分專案</button>';
+  document.getElementById('projectPick').onclick = e => {
+    const b = e.target.closest('.project-tag'); if (b) applyBulkProject(b.dataset.project);
+  };
+  document.getElementById('bulkProjectInput').value = '';
+  document.getElementById('projectModal').classList.add('open');
+}
+function closeProjectModal() { document.getElementById('projectModal').classList.remove('open'); }
+
+async function applyBulkProject(project) {
+  const ids = [...selectedIds];
+  closeProjectModal();
+  if (ids.length === 0) return;
   await Promise.all(ids.map(id => api('PATCH', { id, project })));
   ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.project = project || null; });
   setSelectMode(false);
   renderProjectTags();
   updateProjectList();
   applyFilters();
+  toast(project ? `已改到「${project}」` : '已改成不分專案');
 }
 
 function openModal() {
@@ -1357,10 +1448,7 @@ const Songs = {
   },
 
   async del(id) {
-    if (!confirm('確定刪除這首歌？')) return;
-    await api('DELETE', { id });
-    this.items = this.items.filter(n => n.id !== id);
-    this.render();
+    deleteItem(this, 'items', id);
   },
 };
 
@@ -1451,10 +1539,7 @@ const Order = {
   },
 
   async del(id) {
-    if (!confirm('確定刪除這份敬拜順序？')) return;
-    await api('DELETE', { id });
-    this.items = this.items.filter(n => n.id !== id);
-    this.render();
+    deleteItem(this, 'items', id);
   },
 };
 
@@ -1596,10 +1681,7 @@ const Meetings = {
   },
 
   async del(id) {
-    if (!confirm('確定刪除這則會議記錄？（不會一併刪除已拆出的待辦）')) return;
-    await api('DELETE', { id });
-    this.items = this.items.filter(n => n.id !== id);
-    this.render();
+    deleteItem(this, 'items', id);
   },
 
   async doneItem(id) {
@@ -1610,10 +1692,7 @@ const Meetings = {
   },
 
   async delItem(id) {
-    if (!confirm('確定刪除這個待辦？')) return;
-    await api('DELETE', { id });
-    this.actionItems = this.actionItems.filter(t => t.id !== id);
-    this.render();
+    deleteItem(this, 'actionItems', id);
   },
 };
 
@@ -1763,10 +1842,7 @@ const Links = {
   },
 
   async del(id) {
-    if (!confirm('確定刪除這則收藏？')) return;
-    await api('DELETE', { id });
-    this.items = this.items.filter(n => n.id !== id);
-    this.render();
+    deleteItem(this, 'items', id);
   },
 };
 </script>
@@ -1785,6 +1861,11 @@ document.addEventListener('keydown', e => {
   if (e.key === 'n') { e.preventDefault(); document.getElementById('composerInput').focus(); }
 });
 document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+// 有實體鍵盤的電腦上，把快捷鍵寫在輸入框裡
+if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  document.getElementById('composerInput').placeholder = '跟小秘書說一句話…（按 n）';
+  document.getElementById('search').placeholder = '搜尋內容或專案（按 /）';
+}
 </script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 <script src="/tour.js"></script>
@@ -1792,12 +1873,12 @@ document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', 
 Tour.mount({
   anchor: 'header',
   steps: [
-    { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上可以左右滑。' },
+    { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、服事表、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上可以左右滑。' },
     { target: 'worship-link', title: '服事表', text: '主日服事表在第二個分頁，點進去可以看整季班表。' },
     { target: 'stats', title: '總覽', text: '一眼看到還有幾件沒做完、有幾件已經過期（紅色）。', before: () => switchTab('dashboard') },
     { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },
     { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n「篩選」可以改類型、完成狀態和排序，有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
-    { target: 'list-table', title: '每一筆都能直接操作', text: '點右邊的圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一列可以編輯，刪除也在編輯面板裡。' },
+    { target: 'list-table', title: '每一筆都能直接操作', text: '點右邊的圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一列可以編輯，刪除也在編輯面板裡。\n有排到你服事時，列表上方會多一列「下一次服事」，點了直接到服事表。' },
     { target: 'fab', title: '跟小秘書說一句話', text: '在最下面打一句話就好，例如「明天下午三點看牙醫」「午餐 120」「這週要幹嘛」，跟在 LINE 傳給小秘書一模一樣。\n要設定專案或提前提醒，按左邊的＋用表單新增。', before: () => switchTab('dashboard') },
   ],
 });

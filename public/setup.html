@@ -7,18 +7,20 @@
   <style>
     :root {
       /* 與 app.css 同一套色票（LINE 對話原生） */
-      --bg: #f0f2f4;
-      --surface: #f9fafb;
+      --bg: #eef0f3;
+      --surface: #fcfcfd;
       --ink: #111111;
       --muted: #53585d;
       --line: #dcdfe3;
       --brand: #06893d;
-      --brand-ink: #036b30;
-      --brand-soft: #e6f9ee;
+      --brand-ink: #04833a;
+      --brand-soft: #e2f6e9;
       --warn: #a34f00;
-      --warn-soft: #fff3e0;
+      --warn-soft: #fdecd6;
       --bad: #c81e33;
-      --bad-soft: #fdecee;
+      --bad-soft: #fbe4e7;
+      --fill: #e2e5e8;
+      --fill-hover: #d8dbdf;
       --radius: 12px;
       --shadow: none;
     }
@@ -27,7 +29,7 @@
       :root {
         --bg: #16181b; --surface: #1f2226; --ink: #e9ebee; --muted: #b0b5bb; --line: #2c3035;
         --brand-ink: #4fd18a; --brand-soft: #12301f; --warn: #f2a65a; --warn-soft: #3a2a17;
-        --bad: #ff7a88; --bad-soft: #3b1c22; --code-bg: #2a2e33;
+        --bad: #ff7a88; --bad-soft: #3b1c22; --code-bg: #2a2e33; --fill: #2a2e33; --fill-hover: #343940;
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,9 +56,10 @@
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
     code, .mono { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; word-break: break-all; }
     .mono { display: block; flex: 1; min-width: 0; }
-    .btn { padding: 9px 16px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; text-decoration: none; display: inline-block; }
+    .btn { padding: 9px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; text-decoration: none; display: inline-block; }
     .btn-primary { background: var(--brand); color: #fff; }
-    .btn-ghost { background: var(--brand-soft); color: var(--brand-ink); }
+    .btn-ghost { background: var(--fill); color: var(--ink); }
+    .btn-ghost:hover { background: var(--fill-hover); }
     .btn:disabled { opacity: .5; cursor: default; }
     .ok-text { color: var(--brand-ink); }
     .bad-text { color: var(--bad); }
@@ -148,7 +151,7 @@ function copyBtn(text) {
 
 async function copyText(btn, text) {
   try { await navigator.clipboard.writeText(text); btn.textContent = '已複製 ✓'; }
-  catch (e) { prompt('請手動複製：', text); }
+  catch (e) { btn.textContent = '複製失敗，請手動選取'; }
 }
 
 function card(num, title, state, body) {
@@ -273,7 +276,7 @@ async function copySchema(btn) {
     await navigator.clipboard.writeText(sql);
     btn.textContent = '已複製 ✓ 去 SQL Editor 貼上';
   } catch (err) {
-    alert('複製失敗：' + err.message);
+    btn.textContent = '複製失敗：' + err.message;
   }
 }
 

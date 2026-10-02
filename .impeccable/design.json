@@ -1,353 +1,178 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-01T01:51:42.281728+00:00",
+  "generatedAt": "2026-10-02T01:02:30.308186+00:00",
   "title": "Design System: 小秘書 Dashboard",
   "extensions": {
     "colorMeta": {
       "green": {
         "role": "primary",
         "displayName": "LINE 亮綠",
-        "canonical": "#06c755",
-        "tonalRamp": [
-          "#023c1a",
-          "#03642a",
-          "#048b3b",
-          "#05af4b",
-          "#51d888",
-          "#8fe6b2",
-          "#c8f3da",
-          "#eefbf3"
-        ]
+        "canonical": "#06c755"
       },
       "green-btn": {
         "role": "primary",
         "displayName": "行動綠",
-        "canonical": "#06893d",
-        "tonalRamp": [
-          "#022912",
-          "#03441e",
-          "#04602b",
-          "#057936",
-          "#51ac77",
-          "#8fcaa8",
-          "#c8e5d4",
-          "#eef7f1"
-        ]
+        "canonical": "#06893d"
       },
       "green-press": {
         "role": "primary",
         "displayName": "按下綠",
-        "canonical": "#057433",
-        "tonalRamp": [
-          "#02230f",
-          "#023a1a",
-          "#045124",
-          "#04662d",
-          "#509e70",
-          "#8ec0a3",
-          "#c8e0d2",
-          "#eef5f1"
-        ]
+        "canonical": "#057433"
       },
       "green-ink": {
         "role": "primary",
         "displayName": "完成綠字",
         "canonical": "#04833a",
-        "tonalRamp": [
-          "#012711",
-          "#02421d",
-          "#035c29",
-          "#047333",
-          "#4fa875",
-          "#8ec7a6",
-          "#c8e4d4",
-          "#edf6f1"
-        ]
+        "dark": "#4fd18a"
       },
       "green-tint": {
         "role": "primary",
         "displayName": "淡綠底",
-        "canonical": "#e6f9ee",
-        "tonalRamp": [
-          "#454b47",
-          "#737c77",
-          "#a1aea7",
-          "#cadbd1",
-          "#eefbf3",
-          "#f4fcf7",
-          "#fafefb",
-          "#fdfffe"
-        ]
+        "canonical": "#e2f6e9",
+        "dark": "#12301f"
       },
       "red": {
         "role": "secondary",
         "displayName": "過期紅",
         "canonical": "#c81e33",
-        "tonalRamp": [
-          "#3c090f",
-          "#640f1a",
-          "#8c1524",
-          "#b01a2d",
-          "#d86270",
-          "#e69aa3",
-          "#f3ced2",
-          "#fbeff1"
-        ]
+        "dark": "#ff7a88"
       },
       "red-tint": {
         "role": "secondary",
         "displayName": "過期淡紅",
-        "canonical": "#fdecee",
-        "tonalRamp": [
-          "#4c4747",
-          "#7e7677",
-          "#b1a5a7",
-          "#dfd0d1",
-          "#fef2f3",
-          "#fef6f7",
-          "#fffbfb",
-          "#fffefe"
-        ]
+        "canonical": "#fbe4e7",
+        "dark": "#3b1c22"
+      },
+      "red-hover": {
+        "role": "secondary",
+        "displayName": "刪除 hover",
+        "canonical": "#f7d5da",
+        "dark": "#4a222a"
+      },
+      "amber": {
+        "role": "secondary",
+        "displayName": "提醒琥珀",
+        "canonical": "#a34f00",
+        "dark": "#f2a65a"
+      },
+      "amber-tint": {
+        "role": "secondary",
+        "displayName": "提醒淡底",
+        "canonical": "#fdecd6",
+        "dark": "#3a2a17"
+      },
+      "blue": {
+        "role": "secondary",
+        "displayName": "筆記藍",
+        "canonical": "#3f67a8",
+        "dark": "#8db4f2"
+      },
+      "blue-tint": {
+        "role": "secondary",
+        "displayName": "筆記淡底",
+        "canonical": "#e2e9f5",
+        "dark": "#1d2a3f"
+      },
+      "purple": {
+        "role": "secondary",
+        "displayName": "專案紫",
+        "canonical": "#6b46c1",
+        "dark": "#b9a0f5"
+      },
+      "purple-tint": {
+        "role": "secondary",
+        "displayName": "專案淡底",
+        "canonical": "#ebe4f8",
+        "dark": "#2b2341"
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "淡灰底",
+        "canonical": "#eef0f3",
+        "dark": "#16181b"
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "面板",
+        "canonical": "#fcfcfd",
+        "dark": "#1f2226"
+      },
+      "fill": {
+        "role": "neutral",
+        "displayName": "填色灰",
+        "canonical": "#e2e5e8",
+        "dark": "#2a2e33"
+      },
+      "fill-hover": {
+        "role": "neutral",
+        "displayName": "填色 hover",
+        "canonical": "#d8dbdf",
+        "dark": "#343940"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "分隔線",
+        "canonical": "#dcdfe3",
+        "dark": "#2c3035"
+      },
+      "row-hover": {
+        "role": "neutral",
+        "displayName": "列 hover",
+        "canonical": "#f2f4f6",
+        "dark": "#262a2f"
+      },
+      "today-col": {
+        "role": "neutral",
+        "displayName": "下一次欄底",
+        "canonical": "#f2f4f6",
+        "dark": "#262a30"
+      },
+      "ring": {
+        "role": "neutral",
+        "displayName": "勾選環",
+        "canonical": "#858a8f",
+        "dark": "#8c939a"
       },
       "ink": {
         "role": "neutral",
         "displayName": "墨色",
         "canonical": "#111111",
-        "tonalRamp": [
-          "#050505",
-          "#080808",
-          "#0c0c0c",
-          "#0f0f0f",
-          "#585858",
-          "#949494",
-          "#cbcbcb",
-          "#eeeeee"
-        ]
+        "dark": "#e9ebee"
       },
       "ink-2": {
         "role": "neutral",
         "displayName": "次灰",
-        "canonical": "#5f6469",
-        "tonalRamp": [
-          "#1d1e20",
-          "#303234",
-          "#42464a",
-          "#54585c",
-          "#8f9296",
-          "#b7b9bc",
-          "#dcddde",
-          "#f4f4f4"
-        ]
+        "canonical": "#53585d",
+        "dark": "#b0b5bb"
       },
       "ink-3": {
         "role": "neutral",
         "displayName": "淡灰字",
-        "canonical": "#62676c",
-        "tonalRamp": [
-          "#1d1f20",
-          "#313436",
-          "#45484c",
-          "#565b5f",
-          "#919598",
-          "#b8bbbd",
-          "#dcdedf",
-          "#f4f4f5"
-        ]
+        "canonical": "#5a5f64",
+        "dark": "#9ba1a7"
       },
-      "line": {
+      "on-ink": {
         "role": "neutral",
-        "displayName": "分隔線",
-        "canonical": "#edeef0",
-        "tonalRamp": [
-          "#474748",
-          "#767778",
-          "#a6a7a8",
-          "#d1d1d3",
-          "#f2f3f4",
-          "#f7f7f8",
-          "#fbfbfc",
-          "#fefefe"
-        ]
-      },
-      "fill": {
-        "role": "neutral",
-        "displayName": "填色灰",
-        "canonical": "#f3f4f6",
-        "tonalRamp": [
-          "#49494a",
-          "#7a7a7b",
-          "#aaabac",
-          "#d6d7d8",
-          "#f7f7f9",
-          "#fafafb",
-          "#fcfdfd",
-          "#fefefe"
-        ]
-      },
-      "bg": {
-        "role": "neutral",
-        "displayName": "白底",
+        "displayName": "墨上字",
         "canonical": "#ffffff",
-        "tonalRamp": [
-          "#4d4d4d",
-          "#808080",
-          "#b2b2b2",
-          "#e0e0e0",
-          "#ffffff",
-          "#ffffff",
-          "#ffffff",
-          "#ffffff"
-        ]
+        "dark": "#16181b"
       },
-      "row-hover": {
+      "on-solid": {
         "role": "neutral",
-        "displayName": "列 hover",
-        "canonical": "#fafafb",
-        "tonalRamp": [
-          "#4b4b4b",
-          "#7d7d7e",
-          "#afafb0",
-          "#dcdcdd",
-          "#fcfcfc",
-          "#fdfdfd",
-          "#fefefe",
-          "#ffffff"
-        ]
+        "displayName": "實心色上白字",
+        "canonical": "#ffffff"
       },
-      "next-wash": {
+      "task-bg": {
         "role": "neutral",
-        "displayName": "下一次底",
-        "canonical": "#f6f7f8",
-        "tonalRamp": [
-          "#4a4a4a",
-          "#7b7c7c",
-          "#acadae",
-          "#d8d9da",
-          "#f9f9fa",
-          "#fbfbfc",
-          "#fdfdfd",
-          "#fefeff"
-        ]
+        "displayName": "待辦頭像底",
+        "canonical": "#e2e5e8",
+        "dark": "#2a2e33"
       },
-      "check-ring": {
+      "task-ink": {
         "role": "neutral",
-        "displayName": "勾選環",
-        "canonical": "#8a8f94",
-        "tonalRamp": [
-          "#292b2c",
-          "#45484a",
-          "#616468",
-          "#797e82",
-          "#adb1b4",
-          "#cacdcf",
-          "#e5e6e7",
-          "#f7f7f8"
-        ]
-      },
-      "disabled": {
-        "role": "neutral",
-        "displayName": "停用灰",
-        "canonical": "#c9ccd0",
-        "tonalRamp": [
-          "#3c3d3e",
-          "#646668",
-          "#8d8f92",
-          "#b1b4b7",
-          "#d9dbde",
-          "#e7e8ea",
-          "#f3f4f5",
-          "#fbfbfc"
-        ]
-      },
-      "t-reminder": {
-        "role": "tertiary",
-        "displayName": "提醒琥珀",
-        "canonical": "#c25e00",
-        "tonalRamp": [
-          "#3a1c00",
-          "#612f00",
-          "#884200",
-          "#ab5300",
-          "#d48e4c",
-          "#e4b78c",
-          "#f2dcc7",
-          "#fbf4ed"
-        ]
-      },
-      "t-reminder-bg": {
-        "role": "tertiary",
-        "displayName": "提醒淡底",
-        "canonical": "#fff3e0",
-        "tonalRamp": [
-          "#4d4943",
-          "#807a70",
-          "#b2aa9d",
-          "#e0d6c5",
-          "#fff7e9",
-          "#fffaf1",
-          "#fffcf8",
-          "#fffefd"
-        ]
-      },
-      "t-note": {
-        "role": "tertiary",
-        "displayName": "筆記藍",
-        "canonical": "#3f67a8",
-        "tonalRamp": [
-          "#131f32",
-          "#203454",
-          "#2c4876",
-          "#375b94",
-          "#7995c2",
-          "#a9bbd8",
-          "#d5deec",
-          "#f2f4f9"
-        ]
-      },
-      "t-note-bg": {
-        "role": "tertiary",
-        "displayName": "筆記淡底",
-        "canonical": "#eaf0fa",
-        "tonalRamp": [
-          "#46484b",
-          "#75787d",
-          "#a4a8af",
-          "#ced3dc",
-          "#f0f4fc",
-          "#f6f8fd",
-          "#fafcfe",
-          "#fefeff"
-        ]
-      },
-      "t-project": {
-        "role": "tertiary",
-        "displayName": "專案紫",
-        "canonical": "#6b46c1",
-        "tonalRamp": [
-          "#20153a",
-          "#362360",
-          "#4b3187",
-          "#5e3eaa",
-          "#977ed4",
-          "#bcace3",
-          "#ded6f1",
-          "#f5f2fb"
-        ]
-      },
-      "t-project-bg": {
-        "role": "tertiary",
-        "displayName": "專案淡底",
-        "canonical": "#f1ecfb",
-        "tonalRamp": [
-          "#48474b",
-          "#78767e",
-          "#a9a5b0",
-          "#d4d0dd",
-          "#f5f2fc",
-          "#f9f6fd",
-          "#fcfbfe",
-          "#fefeff"
-        ]
+        "displayName": "待辦頭像字",
+        "canonical": "#3d4247",
+        "dark": "#c9ced4"
       }
     },
     "typographyMeta": {
@@ -458,7 +283,7 @@
       "refersTo": "button-ghost",
       "description": "取消用 fill 灰底；刪除用淡紅底紅字。",
       "html": "<div style=\"display:flex;gap:8px\"><button class=\"ds-btn-g\">取消</button><button class=\"ds-btn-d\">刪除</button></div>",
-      "css": ".ds-btn-g, .ds-btn-d { height: 46px; border-radius: 12px; font-size: 15px; font-weight: 700; padding: 0 18px; border: none; cursor: pointer; font-family: inherit; } .ds-btn-g { background: #f3f4f6; color: #111111; } .ds-btn-d { background: #fdecee; color: #c81e33; } .ds-btn-g:focus-visible, .ds-btn-d:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
+      "css": ".ds-btn-g, .ds-btn-d { height: 46px; border-radius: 12px; font-size: 15px; font-weight: 700; padding: 0 18px; border: none; cursor: pointer; font-family: inherit; } .ds-btn-g { background: #e2e5e8; color: #111111; } .ds-btn-d { background: #fbe4e7; color: #c81e33; } .ds-btn-g:focus-visible, .ds-btn-d:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
     },
     {
       "name": "Project Chips",
@@ -466,7 +291,7 @@
       "refersTo": "chip",
       "description": "專案篩選膠囊；選中反轉為墨色，不用綠。",
       "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">全部</button><button class=\"ds-chip\" aria-pressed=\"false\">小秘書系統</button><button class=\"ds-chip\" aria-pressed=\"false\">教會入口</button></div>",
-      "css": ".ds-chips { display: flex; gap: 6px; } .ds-chip { height: 32px; padding: 0 14px; border-radius: 16px; background: #f3f4f6; color: #111111; font-size: 14px; border: none; cursor: pointer; white-space: nowrap; font-family: inherit; } .ds-chip:hover { background: #e8e9ec; } .ds-chip[aria-pressed=\"true\"] { background: #111111; color: #fff; } .ds-chip:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
+      "css": ".ds-chips { display: flex; gap: 6px; } .ds-chip { height: 32px; padding: 0 14px; border-radius: 16px; background: #e2e5e8; color: #111111; font-size: 14px; border: none; cursor: pointer; white-space: nowrap; font-family: inherit; } .ds-chip:hover { background: #e8e9ec; } .ds-chip[aria-pressed=\"true\"] { background: #111111; color: #fff; } .ds-chip:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
     },
     {
       "name": "Field Input",
@@ -474,7 +299,7 @@
       "refersTo": "field-input",
       "description": "sheet 內的表單欄位，聚焦時邊框轉亮綠、底轉白。",
       "html": "<label class=\"ds-field\"><span>內容</span><input value=\"週五前回覆排班\"></label>",
-      "css": ".ds-field { display: block; width: 280px; } .ds-field span { display: block; font-size: 13px; font-weight: 600; color: #5f6469; margin-bottom: 6px; } .ds-field input { width: 100%; box-sizing: border-box; border: 1px solid #edeef0; background: #f3f4f6; border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; color: #111111; } .ds-field input:focus { outline: none; border-color: #06c755; background: #fff; }"
+      "css": ".ds-field { display: block; width: 280px; } .ds-field span { display: block; font-size: 13px; font-weight: 600; color: #53585d; margin-bottom: 6px; } .ds-field input { width: 100%; box-sizing: border-box; border: 1px solid #dcdfe3; background: #e2e5e8; border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; color: #111111; } .ds-field input:focus { outline: none; border-color: #06c755; background: #fcfcfd; }"
     },
     {
       "name": "Underline Tabs",
@@ -482,7 +307,7 @@
       "refersTo": "tabs",
       "description": "LINE 式底線分頁，帶計數與過期紅點。",
       "html": "<div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab\" aria-selected=\"true\">待辦<span class=\"ds-count\">12</span><span class=\"ds-badge\">3</span></button><button class=\"ds-tab\" aria-selected=\"false\">筆記<span class=\"ds-count\">8</span></button><button class=\"ds-tab\" aria-selected=\"false\">全部<span class=\"ds-count\">20</span></button></div>",
-      "css": ".ds-tabs { display: flex; border-bottom: 1px solid #edeef0; width: 360px; background: #fff; } .ds-tab { flex: 1; height: 44px; font-size: 15px; font-weight: 600; color: #62676c; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: inherit; } .ds-tab[aria-selected=\"true\"] { color: #111111; } .ds-tab[aria-selected=\"true\"]::after { content: \"\"; position: absolute; left: 20%; right: 20%; bottom: -1px; height: 2px; background: #111111; border-radius: 2px; } .ds-count { font-size: 12px; color: #62676c; font-variant-numeric: tabular-nums; } .ds-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #c81e33; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; } .ds-tab:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
+      "css": ".ds-tabs { display: flex; border-bottom: 1px solid #dcdfe3; width: 360px; background: #fcfcfd; } .ds-tab { flex: 1; height: 44px; font-size: 15px; font-weight: 600; color: #5a5f64; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: inherit; } .ds-tab[aria-selected=\"true\"] { color: #111111; } .ds-tab[aria-selected=\"true\"]::after { content: \"\"; position: absolute; left: 20%; right: 20%; bottom: -1px; height: 2px; background: #111111; border-radius: 2px; } .ds-count { font-size: 12px; color: #5a5f64; font-variant-numeric: tabular-nums; } .ds-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #c81e33; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; } .ds-tab:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
     },
     {
       "name": "Record Row + Check",
@@ -490,7 +315,7 @@
       "refersTo": "record-row",
       "description": "招牌元件：聊天列表式記錄列；勾選後 160ms 填綠、列轉灰並標已完成。",
       "html": "<div class=\"ds-sep ds-sep-over\"><span>過期 1</span></div><div class=\"ds-row\"><span class=\"ds-av\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9\"/><path d=\"M10.3 21a1.94 1.94 0 0 0 3.4 0\"/></svg></span><span class=\"ds-text\"><b>回覆小組長排班</b><small>教會入口・<em>昨天 18:00</em></small></span><span class=\"ds-meta\">18:00</span><button class=\"ds-check\" onclick=\"this.parentNode.classList.toggle('done')\" aria-label=\"完成\"><i><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg></i></button></div><div class=\"ds-row done\"><span class=\"ds-av\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9\"/><path d=\"M10.3 21a1.94 1.94 0 0 0 3.4 0\"/></svg></span><span class=\"ds-text\"><b>寄週報</b><small>小秘書系統・今天 08:00</small></span><span class=\"ds-meta\"><span class=\"ds-read\">已完成</span></span><button class=\"ds-check\" onclick=\"this.parentNode.classList.toggle('done')\" aria-label=\"完成\"><i><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg></i></button></div>",
-      "css": "font-family: -apple-system, BlinkMacSystemFont, \"PingFang TC\", \"Noto Sans TC\", \"Microsoft JhengHei\", \"Segoe UI\", sans-serif; .ds-row { display: flex; align-items: center; gap: 12px; padding: 6px 4px 6px 16px; width: 380px; background: #fff; transition: background-color .16s cubic-bezier(.16,1,.3,1); } .ds-row:hover { background: #fafafb; } .ds-av { width: 40px; height: 40px; border-radius: 50%; background: #fff3e0; color: #c25e00; display: inline-flex; align-items: center; justify-content: center; flex: none; } .ds-text { flex: 1; min-width: 0; } .ds-text b { display: block; font-size: 15px; font-weight: 600; line-height: 1.35; color: #111111; } .ds-text small { display: block; font-size: 13px; color: #5f6469; margin-top: 2px; } .ds-text em { font-style: normal; color: #c81e33; font-weight: 600; } .ds-meta { font-size: 12px; color: #62676c; font-variant-numeric: tabular-nums; min-width: 44px; text-align: right; } .ds-read { color: #04833a; font-weight: 600; } .ds-check { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; } .ds-check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #8a8f94; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s cubic-bezier(.16,1,.3,1), border-color .16s cubic-bezier(.16,1,.3,1); } .ds-check svg { opacity: 0; transition: opacity .16s; } .ds-check:hover i { border-color: #06c755; } .ds-check:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; } .ds-row.done .ds-check i { background: #06893d; border-color: #06893d; } .ds-row.done .ds-check svg { opacity: 1; } .ds-row.done .ds-text b { color: #62676c; font-weight: 400; } .ds-row.done .ds-av { filter: grayscale(1); opacity: .55; } .ds-sep { display: flex; justify-content: center; padding: 6px 0 2px; width: 380px; } .ds-sep span { font-size: 12px; font-weight: 600; color: #5f6469; background: #f3f4f6; border-radius: 11px; padding: 3px 10px; } .ds-sep-over span { background: #fdecee; color: #c81e33; } @media (prefers-reduced-motion: reduce) { .ds-row, .ds-check i, .ds-check svg { transition: none; } }"
+      "css": "font-family: -apple-system, BlinkMacSystemFont, \"PingFang TC\", \"Noto Sans TC\", \"Microsoft JhengHei\", \"Segoe UI\", sans-serif; .ds-row { display: flex; align-items: center; gap: 12px; padding: 6px 4px 6px 16px; width: 380px; background: #fcfcfd; transition: background-color .16s cubic-bezier(.16,1,.3,1); } .ds-row:hover { background: #f2f4f6; } .ds-av { width: 40px; height: 40px; border-radius: 50%; background: #fdecd6; color: #a34f00; display: inline-flex; align-items: center; justify-content: center; flex: none; } .ds-text { flex: 1; min-width: 0; } .ds-text b { display: block; font-size: 15px; font-weight: 600; line-height: 1.35; color: #111111; } .ds-text small { display: block; font-size: 13px; color: #53585d; margin-top: 2px; } .ds-text em { font-style: normal; color: #c81e33; font-weight: 600; } .ds-meta { font-size: 12px; color: #5a5f64; font-variant-numeric: tabular-nums; min-width: 44px; text-align: right; } .ds-read { color: #04833a; font-weight: 600; } .ds-check { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; } .ds-check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #858a8f; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s cubic-bezier(.16,1,.3,1), border-color .16s cubic-bezier(.16,1,.3,1); } .ds-check svg { opacity: 0; transition: opacity .16s; } .ds-check:hover i { border-color: #06c755; } .ds-check:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; } .ds-row.done .ds-check i { background: #06893d; border-color: #06893d; } .ds-row.done .ds-check svg { opacity: 1; } .ds-row.done .ds-text b { color: #5a5f64; font-weight: 400; } .ds-row.done .ds-av { filter: grayscale(1); opacity: .55; } .ds-sep { display: flex; justify-content: center; padding: 6px 0 2px; width: 380px; } .ds-sep span { font-size: 12px; font-weight: 600; color: #53585d; background: #e2e5e8; border-radius: 11px; padding: 3px 10px; } .ds-sep-over span { background: #fbe4e7; color: #c81e33; } @media (prefers-reduced-motion: reduce) { .ds-row, .ds-check i, .ds-check svg { transition: none; } }"
     },
     {
       "name": "Composer Bar",
@@ -498,67 +323,79 @@
       "refersTo": "composer-input",
       "description": "底部固定的聊天輸入列：類型選單、文字框、圓形綠色送出鍵。",
       "html": "<div class=\"ds-comp\"><button class=\"ds-type\">待辦</button><input class=\"ds-cin\" placeholder=\"輸入要記的事…\"><button class=\"ds-send\" aria-label=\"送出\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 19V5M5 12l7-7 7 7\"/></svg></button></div>",
-      "css": ".ds-comp { display: flex; align-items: center; gap: 4px; padding: 8px; border-top: 1px solid #edeef0; background: #fff; width: 380px; } .ds-type { height: 40px; border: none; background: #f3f4f6; border-radius: 20px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #111111; cursor: pointer; font-family: inherit; } .ds-cin { flex: 1; min-width: 0; height: 40px; border: none; background: #f3f4f6; border-radius: 20px; padding: 0 16px; font-size: 15px; font-family: inherit; outline: none; } .ds-cin::placeholder { color: #62676c; } .ds-send { width: 40px; height: 40px; border-radius: 50%; background: #06893d; color: #fff; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; } .ds-send:hover { background: #057433; } .ds-send:disabled { background: #c9ccd0; } .ds-send:focus-visible, .ds-type:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
+      "css": ".ds-comp { display: flex; align-items: center; gap: 4px; padding: 8px; border-top: 1px solid #dcdfe3; background: #fcfcfd; width: 380px; } .ds-type { height: 40px; border: none; background: #e2e5e8; border-radius: 20px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #111111; cursor: pointer; font-family: inherit; } .ds-cin { flex: 1; min-width: 0; height: 40px; border: none; background: #e2e5e8; border-radius: 20px; padding: 0 16px; font-size: 15px; font-family: inherit; outline: none; } .ds-cin::placeholder { color: #5a5f64; } .ds-send { width: 40px; height: 40px; border-radius: 50%; background: #06893d; color: #fff; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; } .ds-send:hover { background: #057433; } .ds-send:disabled { background: #c9ccd0; } .ds-send:focus-visible, .ds-type:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; }"
     },
     {
       "name": "Person Pill",
       "kind": "chip",
       "refersTo": "person-pill",
       "description": "服事表格中的人員：縮寫圓形頭像＋名字膠囊。",
-      "html": "<div style=\"display:flex;gap:4px\"><button class=\"ds-person\"><span class=\"ds-ini\" style=\"background:#eaf0fa;color:#3f67a8\">恩</span>恩典</button><button class=\"ds-person\"><span class=\"ds-ini\" style=\"background:#f1ecfb;color:#6b46c1\">約</span>約翰</button></div>",
-      "css": ".ds-person { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 3px; border-radius: 15px; background: #fff; border: 1px solid #edeef0; font-size: 14px; color: #111111; cursor: pointer; font-family: inherit; } .ds-person:hover { border-color: #c9ccd0; } .ds-person:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; } .ds-ini { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }"
+      "html": "<div style=\"display:flex;gap:4px\"><button class=\"ds-person\"><span class=\"ds-ini\" style=\"background:#e2e9f5;color:#3f67a8\">恩</span>恩典</button><button class=\"ds-person\"><span class=\"ds-ini\" style=\"background:#ebe4f8;color:#6b46c1\">約</span>約翰</button></div>",
+      "css": ".ds-person { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 3px; border-radius: 15px; background: #fcfcfd; border: 1px solid #dcdfe3; font-size: 14px; color: #111111; cursor: pointer; font-family: inherit; } .ds-person:hover { border-color: #c9ccd0; } .ds-person:focus-visible { outline: 2px solid #06c755; outline-offset: 2px; } .ds-ini { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }"
     }
   ],
   "narrative": {
     "northStar": "LINE 對話原生",
-    "overview": "網頁不是另一個後台，而是 LINE 小秘書那個聊天室的「另一面」。每一筆記錄都排成 LINE 聊天列表的一列：左邊 40px 圓形類型頭像，中間粗體內容加一行灰色副標，右邊時間與一顆圓形勾選。日期用置中的灰色膠囊分隔（過期／今天／明天），頂欄是白色標題列加底線分頁，新增是固定在底部的聊天輸入列。使用者從 LINE 點連結進來，應該覺得還在同一個地方。\n\n密度是這個世界的核心：白底、細分隔線、沒有卡片、沒有統計方塊、沒有表格式後台版型。內容欄置中 760px，電腦上兩側只有一條細線，不加側欄；一個視窗至少容得下 10 列。顏色極少，LINE 綠只出現在「做事」與「做完」的那一刻，紅色只屬於過期。\n\n動作語法借自「訊息已讀」：勾一下，圓圈填綠、列淡成灰並標「已完成」，接著沉進底部折疊的已完成群組。借用的是 LINE 的介面語法，不是 LINE 的商標或 logo。",
+    "overview": "網頁是 LINE 小秘書那個聊天室的「另一面」。後台（`public/index.html`）和服事表（`public/worship.html`）共用 `public/app.css`：淡灰底（bg）上浮著一塊塊 surface 色的面板，面板裡是 LINE 聊天列表式的密集列；日期用置中的灰色膠囊分隔，頂欄是 sticky 標題列加可橫向捲動的底線分頁（待辦／服事表／詩歌庫／敬拜順序／會議記錄／收藏／相簿），新增則是底部固定的聊天輸入列，打一句話送出，走的是和 LINE bot 同一套分類與指令。\n\n密度是這個世界的核心。總覽只有一行統計膠囊（未完成 N、過期 N）加一個「列表／日曆」分段控制，不做大數字卡片；專案膠囊、搜尋框、「篩選」與「選取」兩顆膠囊鈕排在列表上方，次要控制收進可展開的篩選面板。顏色極少：綠色只在行動與完成的那一刻出現，紅色只屬於過期與刪除，「下一次／快到了」用墨色。\n\n動作語法借自 LINE「訊息已讀」：點右側圓圈，圓圈填綠、列轉灰並標「已完成」，沉進底部折疊的「已完成 N」群組；完成與刪除都以底部提示條加「復原」收尾，而不是先跳確認視窗。借用的是 LINE 的介面語法，不是商標或 logo。",
     "keyCharacteristics": [
-      "聊天列表列語法：圓形頭像＋粗體標題＋灰副標＋右側時間與勾選。",
-      "白底、1px 淺灰分隔線、平面；只有底部 sheet 帶陰影。",
-      "綠色只給行動與完成，紅色只給過期，「下一次」用墨色標示。",
-      "系統字體，時間與數字一律 tabular-nums。",
-      "線條 SVG 圖示（1.75 stroke），不用 emoji。",
-      "唯一的招牌互動是勾選完成；所有動畫在 reduced-motion 下關閉。"
+      "淡灰底（不用純白）上的 surface 面板：16px 圓角、1px line 邊、極淡陰影。",
+      "聊天列表列語法：40px 圓形類型頭像＋粗體標題＋灰副標＋右側圓形勾選。",
+      "綠色只給行動與完成，紅色只給過期與刪除，「下一次／快到了」用墨色。",
+      "全部顏色走 CSS 變數，深色模式跟隨系統設定自動切換。",
+      "膠囊與圓形是主要形狀；系統字體，數字一律 tabular-nums。",
+      "線條 SVG 圖示（stroke 1.75），不用 emoji。",
+      "可逆動作用提示條「復原」，不用確認對話框；所有動畫在 reduced-motion 下關閉。"
     ],
     "rules": [
       {
-        "name": "The 綠色只給行動 Rule",
-        "body": "LINE 綠只出現在行動（送出、主要按鈕、聚焦）與完成（勾選填綠、「已完成」字）。「下一次／即將」一律用墨色標示，不准用綠；狀態、類型、裝飾都不准用綠。",
+        "name": "The 綠色只給行動與完成 Rule",
+        "body": "綠色只出現在行動（送出、主要按鈕、聚焦）與完成（勾選填綠、「已完成」字）。狀態、類型、裝飾、「即將」都不准用綠。",
         "section": "colors"
       },
       {
-        "name": "The 紅色只給過期 Rule",
-        "body": "紅色只表示過期或破壞性動作的警示。不要用紅色做強調或裝飾。",
+        "name": "The 紅色只給過期與刪除 Rule",
+        "body": "紅色只表示過期，或刪除這類破壞性動作。不用紅色做強調或裝飾。",
+        "section": "colors"
+      },
+      {
+        "name": "The 下一次用墨色 Rule",
+        "body": "「下一次」「快到了」「今天」與所有選中狀態用墨色（實心墨色底或墨色字），不用綠。",
+        "section": "colors"
+      },
+      {
+        "name": "The 只用變數 Rule",
+        "body": "新元件一律用 `--bg`、`--surface`、`--fill`、`--line`、`--ink`、`--on-ink` 等變數，不寫死色碼，否則深色模式會破。唯一例外是兩種模式都不變的實心綠底上的白字。",
         "section": "colors"
       },
       {
         "name": "The 表格數字 Rule",
-        "body": "所有時間、日期、計數都套 tabular-nums，讓整欄數字對齊不跳動。",
+        "body": "所有時間、日期、計數套 tabular-nums（`.num` 或 `font-variant-numeric`），整欄數字對齊不跳動。",
         "section": "typography"
       },
       {
-        "name": "The 沒有卡片 Rule",
-        "body": "記錄是列，不是卡片。不要把列包進帶陰影或圓角邊框的容器，也不要加統計方塊。",
-        "section": "elevation"
+        "name": "The 面板承載 Rule",
+        "body": "內容（列表、日曆、格狀表、人員查詢、管理清單、篩選面板、詩歌與會議等清單）一律放在 surface 面板上，浮在淡灰底之上；控制列（膠囊、搜尋、分段控制）直接放在灰底上。",
+        "section": "layout"
       }
     ],
     "dos": [
-      "Do 把每筆記錄排成聊天列表的一列：40px 圓形頭像、粗體標題、灰副標、右側時間與勾選。",
-      "Do 實心綠底白字時用 green-btn（#06893d）；亮綠 #06c755 只給 focus ring 與聚焦邊框。",
-      "Do 用墨色標示「下一次／即將」與選中狀態（膠囊、分段按鈕、分頁底線）。",
-      "Do 所有時間、日期、計數套 tabular-nums。",
-      "Do 圖示用線條 SVG：22px、stroke 1.75、round cap／join。",
-      "Do 招牌互動維持：勾選 160ms 填綠＋列轉灰，之後沉進折疊的已完成群組；sheet 220ms 升起；`prefers-reduced-motion: reduce` 時關閉全部 animation 與 transition。",
-      "Do 讓狀態先在畫面上切換，再等 API；動畫永遠不擋輸入。"
+      "**Do** 把內容放在 surface 面板上（16px 圓角、1px line 邊、`0 1px 2px rgba(0,0,0,.04)`），面板浮在 bg 淡灰底上。",
+      "**Do** 用變數上色，讓深色模式自動成立；實心行動綠上的白字是唯一的字面色。",
+      "**Do** 綠色只給行動與完成；紅色只給過期與刪除；「下一次／快到了」與選中狀態用墨色。",
+      "**Do** 每列只留一個主要操作（右側勾選）；批次 checkbox 只在選取模式出現。",
+      "**Do** 完成與刪除用提示條「復原」收尾（刪除延後 5 秒執行），讓操作可逆。",
+      "**Do** 次要控制收進可展開的面板（篩選），非預設時用 8px 紅點提示。",
+      "**Do** 所有時間、日期、計數套 tabular-nums；圖示用線條 SVG（stroke 1.75、round cap／join）。",
+      "**Do** 控制元件用 14px，按鈕與膠囊全圓角；`prefers-reduced-motion: reduce` 時關閉全部 animation 與 transition。"
     ],
     "donts": [
-      "Don't 用綠色標示「即將」、類型或裝飾；綠色只屬於行動與完成。",
-      "Don't 把紅色 #c81e33 用在過期與破壞性動作以外的地方。",
-      "Don't 做統計卡片、數字方塊或 admin 表格版型；不要把列包成卡片。",
-      "Don't 使用 emoji 當圖示或裝飾。",
-      "Don't 引入展示字體或網路字型；用系統字體堆疊。",
-      "Don't 使用 LINE 的商標或 logo；借的是介面語法。",
-      "Don't 在 760px 內容欄旁加側欄。"
+      "**Don't** 寫死色碼（`#fff` 底、`#000` 字之類）；深色模式會破。",
+      "**Don't** 用綠色標示「即將」、類型或裝飾，也不要用紅色做強調。",
+      "**Don't** 做大數字統計卡片或 admin 表格版型；總覽只用一行統計膠囊。",
+      "**Don't** 用 confirm() 對話框擋可逆的完成或刪除；用提示條加「復原」。",
+      "**Don't** 讓每列同時常駐 checkbox 和勾選兩個主要操作。",
+      "**Don't** 使用 emoji 當圖示，或引入展示字體、網路字型。",
+      "**Don't** 使用 LINE 的商標或 logo；借的是介面語法。"
     ]
   }
 }

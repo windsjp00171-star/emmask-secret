@@ -230,7 +230,7 @@
     <input type="datetime-local" id="editDueDate" />
     <label>提前多久提醒（預設 5 分鐘）</label>
     <div style="display:flex;gap:8px">
-      <input type="number" id="editLeadValue" min="0" placeholder="例如 1" style="flex:1" />
+      <input type="number" id="editLeadValue" min="0" placeholder="例如 5" style="flex:1" />
       <select id="editLeadUnit" style="width:100px">
         <option value="1">分鐘</option>
         <option value="60">小時</option>
@@ -264,7 +264,7 @@
     <input type="datetime-local" id="newDueDate" />
     <label>提前多久提醒（預設 5 分鐘）</label>
     <div style="display:flex;gap:8px">
-      <input type="number" id="newLeadValue" min="0" placeholder="例如 1" style="flex:1" />
+      <input type="number" id="newLeadValue" min="0" placeholder="例如 5" style="flex:1" />
       <select id="newLeadUnit" style="width:100px">
         <option value="1">分鐘</option>
         <option value="60">小時</option>
@@ -826,7 +826,7 @@ function noteRow(n) {
     const day = k === today ? '今天' : k === addDaysKey(today, 1) ? '明天' : mdw(n.due_date);
     due = `${day} ${hm(n.due_date)}`;
     if (n.remind_lead_minutes != null) due += `・提前${formatLeadMinutes(n.remind_lead_minutes)}`;
-    if (!n.is_done && new Date(n.due_date) < new Date()) due = `<span class="late">逾期・${due}</span>`;
+    if (!n.is_done && new Date(n.due_date) < new Date()) due = `<span class="late">過期・${due}</span>`;
   }
   // 類型看頭像就知道；最常見的「待辦」不再重複寫一次
   const sub = [n.project ? esc(n.project) : '', due, n.type === 'task' ? '' : TYPE_LABEL[n.type]].filter(Boolean).join('・') || TYPE_LABEL[n.type];

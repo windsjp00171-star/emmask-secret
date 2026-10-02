@@ -405,7 +405,7 @@ function renderGridView() {
     gridScrolled = true;
     requestAnimationFrame(() => gridWrap.querySelectorAll('.grid-wrap').forEach(w => {
       const th = w.querySelector('th.today-col'), role = w.querySelector('th.role-col');
-      if (th && role) w.scrollLeft = th.offsetLeft - role.offsetWidth;
+      if (th && role) w.scrollLeft += th.getBoundingClientRect().left - w.getBoundingClientRect().left - role.offsetWidth;
     }));
   }
 }

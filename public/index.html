@@ -93,8 +93,7 @@
     .row-sub { display: block; font-size: 13px; color: var(--ink-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .row-sub .late { color: var(--red); font-weight: 600; }
     .row .read { flex: none; font-size: 12px; font-weight: 600; color: var(--green-ink); }
-    .check { width: 44px; height: 44px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; border-radius: 50%; }
-    @media (min-width: 800px) { .check { width: 40px; height: 40px; } }
+    .check { width: 36px; height: 36px; margin-left: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; border-radius: 50%; }
     .check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ring); display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s var(--ease), border-color .16s var(--ease); }
     .check i svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; transition: opacity .16s var(--ease); }
     .check:hover i { border-color: var(--green-btn); }
@@ -882,7 +881,7 @@ function noteRow(n) {
       <span class="row-text"><span class="row-title">${esc(n.content)}</span><span class="row-sub num">${sub}</span>${rawBlock}</span>
     </div>
     ${n.is_done ? '<span class="read">已完成</span>' : ''}
-    <button class="check" onclick="toggleDone('${esc(n.id)}', ${!n.is_done})" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i><svg class="icon"><use href="#i-check"/></svg></i></button>
+    <button class="check" onclick="tapDone('${esc(n.id)}', ${!n.is_done})" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i><svg class="icon"><use href="#i-check"/></svg></i></button>
   </div>`;
 }
 
@@ -891,6 +890,14 @@ function rowClick(id) {
   toggleSelect(id, !selectedIds.has(id));
   const box = document.querySelector(`.row[data-id="${CSS.escape(String(id))}"] .rowCheck`);
   if (box) box.checked = selectedIds.has(id);
+}
+
+// 手機滑動列表時手指常落在右邊的圓圈上：剛捲動完 0.4 秒內的點擊不算完成
+let lastScrollAt = 0;
+document.addEventListener('scroll', () => { lastScrollAt = Date.now(); }, { passive: true, capture: true });
+function tapDone(id, is_done) {
+  if (Date.now() - lastScrollAt < 400) return;
+  toggleDone(id, is_done);
 }
 
 async function toggleDone(id, is_done, quiet) {

@@ -569,8 +569,13 @@ async function sendText() {
   btn.classList.remove('busy');
   if (!data) { btn.disabled = false; return; }
   input.value = '';
-  toast((data.reply || '收到了') + (data.needs_line ? '\n（這一步要到 LINE 按「確定」才會生效）' : ''), { ms: 6000 });
-  loadNotes();
+  const msg = (data.reply || '收到了') + (data.needs_line ? '\n（這一步要到 LINE 按「確定」才會生效）' : '');
+  const before = new Set(allNotes.map(n => n.id));
+  toast(msg, { ms: 6000 });
+  await loadNotes();
+  // 這句話新建了記錄（AI 分錯類也一樣）就給「復原」；查詢類的話不會有新記錄
+  const added = allNotes.filter(n => !before.has(n.id)).map(n => n.id);
+  if (added.length) toast(msg, { ms: 6000, action: { label: '復原', run: () => deleteNotes(added) } });
 }
 
 // 待辦上方一列「下一次服事」，點了到服事表；沒排到或沒設定名字就不顯示
@@ -670,6 +675,17 @@ async function api(method, body) {
     toast('沒有存成功，請再試一次' + (data && data.error ? `（${data.error}）` : ''), { error: true });
     return null;
   }
+  return data;
+}
+
+async function getJSON(url) {
+  let res;
+  try { res = await fetch(url, { headers: { 'x-dashboard-token': token } }); }
+  catch (e) { toastErr('連不上伺服器，請確認網路後再試一次'); return null; }
+  if (res.status === 401) { toastErr('密碼錯誤'); return null; }
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* 沒有內容 */ }
+  if (!res.ok || (data && data.error)) { toastErr('讀取失敗，請稍後再試' + (data && data.error ? `（${data.error}）` : '')); return null; }
   return data;
 }
 
@@ -1090,14 +1106,8 @@ async function submitNote() {
   if (!content) return toast('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
   const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
-  const res = await fetch(`/api/dashboard/notes`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
-    body: JSON.stringify({ type, project, content, due_date, remind_lead_minutes }),
-  });
-  if (res.status === 401) { toastErr('密碼錯誤'); return; }
-  const data = await res.json();
-  if (data.error) { toastErr('錯誤：' + data.error); return; }
+  const data = await api('POST', { type, project, content, due_date, remind_lead_minutes });
+  if (!data) return; // api 已經提示原因；面板保持開著，內容不會不見
   allNotes.unshift(data);
   closeModal();
   renderStats();
@@ -1354,9 +1364,9 @@ const Songs = {
   openCardId: null,
 
   async load() {
-    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('詩歌')}&limit=200`, { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { toastErr('密碼錯誤'); return; }
-    this.items = await res.json();
+    const data = await getJSON(`/api/dashboard/notes?type=note&project=${encodeURIComponent('詩歌')}&limit=200`);
+    if (!data) return;
+    this.items = data;
     this.render();
   },
 
@@ -1460,7 +1470,7 @@ const Songs = {
       if (idx !== -1) this.items[idx].content = content;
     } else {
       const data = await api('POST', { type: 'note', project: '詩歌', content });
-      if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
+      if (!data) return; // api 已經提示原因
       this.items.unshift(data);
     }
     this.closeModal();
@@ -1479,9 +1489,9 @@ const Order = {
   openCardId: null,
 
   async load() {
-    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('敬拜順序')}&limit=200`, { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { toastErr('密碼錯誤'); return; }
-    this.items = (await res.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    const data = await getJSON(`/api/dashboard/notes?type=note&project=${encodeURIComponent('敬拜順序')}&limit=200`);
+    if (!data) return;
+    this.items = data.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
     this.render();
   },
 
@@ -1550,7 +1560,7 @@ const Order = {
       if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
     } else {
       const data = await api('POST', { type: 'note', project: '敬拜順序', content, due_date });
-      if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
+      if (!data) return; // api 已經提示原因
       this.items.unshift(data);
     }
     this.items.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
@@ -1591,13 +1601,13 @@ const Meetings = {
   openCardId: null,
 
   async load() {
-    const [mRes, tRes] = await Promise.all([
-      fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
-      fetch(`/api/dashboard/notes?type=task&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
+    const [mData, tData] = await Promise.all([
+      getJSON(`/api/dashboard/notes?type=note&project=${encodeURIComponent('會議記錄')}&limit=200`),
+      getJSON(`/api/dashboard/notes?type=task&project=${encodeURIComponent('會議記錄')}&limit=200`),
     ]);
-    if (mRes.status === 401) { toastErr('密碼錯誤'); return; }
-    this.items = (await mRes.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
-    this.actionItems = await tRes.json();
+    if (!mData || !tData) return;
+    this.items = mData.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+    this.actionItems = tData;
     this.render();
   },
 
@@ -1686,7 +1696,7 @@ const Meetings = {
       if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
     } else {
       const data = await api('POST', { type: 'note', project: '會議記錄', content, due_date });
-      if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
+      if (!data) return; // api 已經提示原因
       this.items.unshift(data);
 
       const actionTexts = extractActionItems(content);
@@ -1726,9 +1736,8 @@ const Album = {
   items: [],
 
   async load() {
-    const res = await fetch('/api/dashboard/album?limit=120', { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { toastErr('密碼錯誤'); return; }
-    const json = await res.json();
+    const json = await getJSON('/api/dashboard/album?limit=120');
+    if (!json) return;
     this.items = (json && json.items) || [];
     this.render();
   },
@@ -1772,10 +1781,9 @@ const Album = {
 
   async remove(id) {
     if (!confirm('刪除這張圖片？圖檔會一起刪掉，無法復原。')) return;
-    const res = await fetch(`/api/dashboard/album?id=${encodeURIComponent(id)}`, {
-      method: 'DELETE', headers: { 'x-dashboard-token': token },
-    });
-    if (!res.ok) { toastErr('刪除失敗'); return; }
+    let res = null;
+    try { res = await fetch(`/api/dashboard/album?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'x-dashboard-token': token } }); } catch (e) { /* 下面一起處理 */ }
+    if (!res || !res.ok) { toastErr(res ? '刪除失敗，請再試一次' : '連不上伺服器，請確認網路後再試一次'); return; }
     this.items = this.items.filter(i => i.id !== id);
     this.render();
   },
@@ -1787,9 +1795,9 @@ const Links = {
   titleCache: {}, // url -> 抓到的網頁標題（或 null 代表抓不到），同一個網址一個 session 只抓一次
 
   async load() {
-    const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('收藏')}&limit=200`, { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { toastErr('密碼錯誤'); return; }
-    this.items = await res.json();
+    const data = await getJSON(`/api/dashboard/notes?type=note&project=${encodeURIComponent('收藏')}&limit=200`);
+    if (!data) return;
+    this.items = data;
     this.render();
   },
 
@@ -1848,7 +1856,7 @@ const Links = {
     const content = input.value.trim();
     if (!content) return;
     const data = await api('POST', { type: 'note', project: '收藏', content, is_done: false });
-    if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
+    if (!data) return; // api 已經提示原因
     this.items.unshift(data);
     input.value = '';
     this.render();

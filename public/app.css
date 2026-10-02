@@ -43,7 +43,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 header { position: sticky; top: 0; z-index: 40; background: var(--bg); border-bottom: 1px solid var(--line); padding: 10px 16px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 header h1 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; flex: 1; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
 header h1 small, header #lastRefresh { font-size: 12px; font-weight: 400; color: var(--ink-3); letter-spacing: 0; }
-.head-link { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 18px; color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.head-link { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 9999px; color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600; white-space: nowrap; }
 .head-link:hover { background: var(--fill); }
 .head-link .icon { width: 18px; height: 18px; }
 /* 分頁：底線式，可橫向捲動 */
@@ -58,7 +58,7 @@ header h1 small, header #lastRefresh { font-size: 12px; font-weight: 400; color:
 /* 面板：把列表、表格從淡灰底上托起來，一眼分得出內容區 */
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
 /* 列表／日曆這類切換：分段控制（後台、服事表共用） */
-.view-tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 19px; background: var(--fill); }
+.view-tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 9999px; background: var(--fill); }
 .view-tab { height: 32px; padding: 0 16px; border-radius: 16px; border: none; background: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2); }
 .view-tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
 /* 內容置中的頁面：標題列對齊同一條內容欄 */
@@ -67,7 +67,7 @@ body.narrow .tabbar, body.wide .navbar { margin-left: -8px; margin-right: 0; pad
 body.wide header { padding-left: max(16px, calc((100vw - 1280px) / 2 + 16px)); padding-right: max(16px, calc((100vw - 1280px) / 2 + 16px)); }
 
 /* Buttons */
-.btn { height: 40px; padding: 0 16px; border-radius: 20px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; transition: background-color .15s var(--ease); }
+.btn { height: 40px; padding: 0 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; transition: background-color .15s var(--ease); }
 .btn .icon { width: 18px; height: 18px; }
 .btn-primary { background: var(--green-btn); color: #fff; }
 .btn-primary:hover { background: var(--green-press); }
@@ -75,7 +75,7 @@ body.wide header { padding-left: max(16px, calc((100vw - 1280px) / 2 + 16px)); p
 .btn-cancel:hover, .btn-manage:hover, .btn-ghost:hover { background: var(--fill-hover); }
 .btn-danger { background: var(--red-tint); color: var(--red); margin-right: auto; }
 .btn-danger:hover { background: var(--red-hover); }
-.btn-tab { height: 34px; padding: 0 14px; border-radius: 17px; border: none; cursor: pointer; background: var(--fill); color: var(--ink); font-size: 14px; font-weight: 600; }
+.btn-tab { height: 34px; padding: 0 14px; border-radius: 9999px; border: none; cursor: pointer; background: var(--fill); color: var(--ink); font-size: 14px; font-weight: 600; }
 .btn-tab:hover { background: var(--fill-hover); }
 .btn-tab.active { background: var(--ink); color: var(--on-ink); }
 .btn-sm { height: 32px; padding: 0 12px; border-radius: 16px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; background: var(--fill); color: var(--ink); white-space: nowrap; }
@@ -85,7 +85,7 @@ body.wide header { padding-left: max(16px, calc((100vw - 1280px) / 2 + 16px)); p
 .btn-undone, .btn-archive, .btn-edit { background: var(--fill); color: var(--ink); }
 .btn-del { background: var(--red-tint); color: var(--red); }
 .btn-del:hover { background: var(--red-hover); }
-.btn:disabled { opacity: .5; cursor: default; }
+.btn:disabled, .btn-sm:disabled { opacity: .45; cursor: default; }
 
 /* Inputs */
 input[type="text"], input[type="password"], input[type="date"], input[type="datetime-local"], input[type="number"], input[type="search"], input:not([type]), select, textarea {
@@ -101,7 +101,7 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--green-bt
 
 /* Separator capsules（LINE 的日期膠囊） */
 .sep { display: flex; justify-content: center; padding: 10px 0 4px; }
-.sep span, .sep button { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--fill); border: none; border-radius: 11px; padding: 3px 10px; display: inline-flex; gap: 4px; align-items: center; cursor: default; }
+.sep span, .sep button { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--fill); border: none; border-radius: 9999px; padding: 3px 10px; display: inline-flex; gap: 4px; align-items: center; cursor: default; }
 .sep button { cursor: pointer; }
 .sep.overdue span { background: var(--red-tint); color: var(--red); }
 
@@ -130,10 +130,14 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--green-bt
 .login-box button { width: 100%; height: 48px; border: none; border-radius: 12px; background: var(--green-btn); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
 .login-box button:hover { background: var(--green-press); }
 
-/* FAB */
-.fab { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); width: 56px; height: 56px; border-radius: 50%; border: none; background: var(--green-btn); color: #fff; cursor: pointer; z-index: 50; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
-.fab:hover { background: var(--green-press); }
-.fab .icon { width: 26px; height: 26px; stroke-width: 2; }
+
+/* 提示條（可帶「復原」）：後台與服事表共用 */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 120; max-width: min(560px, calc(100% - 24px)); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 14px; background: var(--ink); color: var(--on-ink); font-size: 14px; line-height: 1.45; box-shadow: 0 8px 28px rgba(0,0,0,.2); }
+.toast[hidden] { display: none; }
+.toast.error { background: #c81e33; color: #fff; }
+.toast span { white-space: pre-line; }
+.toast button { flex: none; height: 32px; padding: 0 12px; border-radius: 16px; border: none; background: color-mix(in srgb, var(--on-ink) 18%, transparent); color: inherit; font-weight: 700; cursor: pointer; }
+body.no-composer .toast, body.selecting .toast { bottom: calc(20px + env(safe-area-inset-bottom)); }
 
 /* 教學（tour.js）配色 */
 .tour-btn { background: var(--fill) !important; color: var(--ink) !important; border: none !important; height: 32px; border-radius: 16px !important; padding: 0 12px !important; }

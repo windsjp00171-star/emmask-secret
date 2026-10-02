@@ -18,13 +18,11 @@
     .overview { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     .stats { display: flex; flex-wrap: wrap; gap: 6px; }
     @media (max-width: 600px) {
-      .stat-pill { height: 26px; padding: 0 10px; font-size: 12px; }
+      .stat-pill { height: 28px; padding: 0 10px; font-size: 12px; }
       .stat-pill b { font-size: 14px; }
-      .stat-pill.total { display: none; }
-      .filters select { flex: 1 1 28%; min-width: 0; padding: 0 6px 0 10px; font-size: 13px; }
-      .filters input[type=search] { flex: 1 1 100%; order: -1; }
+      .overview { flex-wrap: nowrap; }
     }
-    .stat-pill { display: inline-flex; align-items: baseline; gap: 6px; height: 30px; padding: 0 12px; border-radius: 15px; background: var(--fill); font-size: 13px; color: var(--ink-2); }
+    .stat-pill { display: inline-flex; align-items: baseline; gap: 6px; height: 30px; padding: 0 12px; border-radius: 9999px; background: var(--fill); font-size: 13px; color: var(--ink-2); }
     .stat-pill b { font-size: 15px; color: var(--ink); font-weight: 700; }
     .stat-pill.late { background: var(--red-tint); color: var(--red); }
     .stat-pill.late b { color: var(--red); }
@@ -37,12 +35,25 @@
     .project-tag { border: none; flex: none; height: 32px; padding: 0 14px; border-radius: 16px; background: var(--fill); font-size: 14px; color: var(--ink); white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; }
     .project-tag:hover { background: var(--fill-hover); }
     .project-tag.active { background: var(--ink); color: var(--on-ink); }
-    .filters { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
-    .filters select { height: 36px; min-height: 36px; padding: 0 10px; border-radius: 18px; font-size: 14px; }
-    .filters input[type=search] { flex: 1; min-width: 160px; height: 36px; min-height: 36px; border-radius: 18px; padding: 0 14px; font-size: 14px; }
-    .select-all { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); padding: 0 6px; cursor: pointer; white-space: nowrap; }
-    #bulkBar { position: sticky; top: 96px; z-index: 30; display: none; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 4px 16px rgba(0,0,0,.08); border-radius: 22px; padding: 6px 6px 6px 16px; }
-    #bulkCount { font-weight: 700; flex: 1; font-size: 14px; white-space: nowrap; }
+    .filters { margin-bottom: 10px; }
+    .filter-row { display: flex; gap: 6px; align-items: center; }
+    .filter-row input[type=search] { flex: 1; min-width: 0; height: 38px; min-height: 38px; border-radius: 9999px; padding: 0 14px; font-size: 14px; }
+    .chip-btn { flex: none; position: relative; height: 38px; padding: 0 12px; border-radius: 9999px; border: none; background: var(--fill); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .chip-btn:hover { background: var(--fill-hover); }
+    .chip-btn .icon { width: 16px; height: 16px; }
+    .chip-btn[aria-expanded="true"], .chip-btn[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+    .chip-btn .dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+    .filter-panel { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; margin-top: 8px; padding: 12px; }
+    .filter-panel[hidden] { display: none; }
+    .filter-panel label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--ink-2); flex: 1 1 140px; }
+    .filter-panel select { height: 38px; min-height: 38px; border-radius: 10px; font-size: 14px; }
+    .select-all { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    /* 選取模式：批次列浮在輸入列上方 */
+    #bulkBar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 45; width: min(868px, calc(100% - 24px)); display: none; align-items: center; gap: 6px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 6px 24px rgba(0,0,0,.14); border-radius: 9999px; padding: 6px 6px 6px 14px; }
+    body.selecting #bulkBar { display: flex; }
+    body.selecting .composer { display: none; }
+    body.selecting #bulkBar { bottom: calc(16px + env(safe-area-inset-bottom)); }
+    #bulkCount { font-weight: 700; flex: 1; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #bulkBar .btn-sm { background: var(--fill); color: var(--ink); }
     #bulkBar .btn-sm:hover { background: var(--fill-hover); }
     #bulkBar .btn-del { background: var(--red-tint); color: var(--red); }
@@ -54,7 +65,9 @@
     .note-list .row:last-child { border-radius: 0 0 16px 16px; }
     .row { display: flex; align-items: center; gap: 10px; padding: 6px 4px 6px 12px; transition: background-color .16s var(--ease); }
     .row:hover { background: var(--row-hover); }
-    .row .sel { flex: none; width: 24px; display: inline-flex; justify-content: center; }
+    .row .sel { flex: none; width: 24px; display: none; justify-content: center; }
+    body.selecting .row .sel { display: inline-flex; }
+    body.selecting .row .check { visibility: hidden; }
     .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; cursor: pointer; border-radius: 8px; }
     .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; }
     .avatar.task { background: var(--task-bg); color: var(--task-ink); }
@@ -154,6 +167,18 @@
     .album-empty { color: var(--ink-2); text-align: center; padding: 48px 16px; }
     .lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; padding: 20px; cursor: zoom-out; }
     .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+    /* 底部輸入列：跟 LINE 一樣打一句話就送出 */
+    .composer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; pointer-events: none; }
+    .composer-inner { pointer-events: auto; max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 6px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+    @media (min-width: 900px) { .composer-inner { border: 1px solid var(--line); border-bottom: none; border-radius: 16px 16px 0 0; background: var(--surface); } }
+    .composer-input { flex: 1; min-width: 0; height: 44px; min-height: 44px; border-radius: 9999px !important; padding: 0 16px !important; font-size: 15px; background: var(--fill); }
+    .icon-btn { width: 44px; height: 44px; flex: none; border: none; background: none; border-radius: 50%; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .icon-btn:hover { background: var(--fill); }
+    .send { width: 44px; height: 44px; flex: none; border: none; border-radius: 50%; background: var(--green-btn); color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .send:hover { background: var(--green-press); }
+    .send:disabled { background: var(--fill-hover); color: var(--ink-3); cursor: default; }
+    .send.busy { opacity: .6; }
+    body.no-composer .composer { display: none; }
   </style>
 </head>
 <body class="narrow">
@@ -167,6 +192,8 @@
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
   <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
   <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 </svg>
 
@@ -301,13 +328,13 @@
     <h1>小秘書 <span id="lastRefresh" class="num"></span></h1>
     <nav class="tabbar" id="tabbar" data-tour="tabbar">
       <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">待辦</button>
+      <a href="#" class="tab-btn" data-tour="worship-link" onclick="event.preventDefault(); goPage('worship.html')">服事表</a>
       <button class="tab-btn" id="tabBtn-songs" onclick="switchTab('songs')">詩歌庫</button>
       <button class="tab-btn" id="tabBtn-order" onclick="switchTab('order')">敬拜順序</button>
       <button class="tab-btn" id="tabBtn-meetings" onclick="switchTab('meetings')">會議記錄</button>
       <button class="tab-btn" id="tabBtn-links" onclick="switchTab('links')">收藏</button>
       <button class="tab-btn" id="tabBtn-album" onclick="switchTab('album')">相簿</button>
     </nav>
-    <a href="#" class="head-link" data-tour="worship-link" onclick="event.preventDefault(); goPage('worship.html')"><svg class="icon"><use href="#i-calendar"/></svg>服事表</a>
   </header>
 
   <div id="panel-dashboard" class="tab-panel container">
@@ -324,34 +351,41 @@
       <div class="project-tags" id="projectTags"></div>
     </div>
     <div class="filters" data-tour="filters">
-      <select id="filterType" onchange="applyFilters()">
-        <option value="">全部類型</option>
-        <option value="task">待辦</option>
-        <option value="reminder">提醒</option>
-        <option value="note">筆記</option>
-        <option value="project_update">專案更新</option>
-      </select>
-      <select id="filterDone" onchange="applyFilters()">
-        <option value="">全部狀態</option>
-        <option value="false">未完成</option>
-        <option value="true">已完成</option>
-      </select>
-      <input type="search" id="search" placeholder="搜尋內容或專案" oninput="applyFilters()" />
-      <select id="sortBy" onchange="applyFilters()">
-        <option value="due_asc" selected>到期時間（近→遠）</option>
-        <option value="created_desc">建立時間（新→舊）</option>
-        <option value="created_asc">建立時間（舊→新）</option>
-        <option value="due_desc">到期時間（遠→近）</option>
-        <option value="content_asc">內容（A→Z）</option>
-      </select>
-      <label class="select-all"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this.checked)" />全選</label>
+      <div class="filter-row">
+        <input type="search" id="search" placeholder="搜尋內容或專案" oninput="applyFilters()" aria-label="搜尋（快捷鍵 /）" />
+        <button class="chip-btn" id="filterBtn" aria-expanded="false" aria-controls="filterPanel" onclick="toggleFilterPanel()"><svg class="icon"><use href="#i-filter"/></svg>篩選<i class="dot" hidden></i></button>
+        <button class="chip-btn" id="selectBtn" aria-pressed="false" onclick="setSelectMode(!selectMode)"><svg class="icon"><use href="#i-check"/></svg>選取</button>
+      </div>
+      <div class="filter-panel" id="filterPanel" hidden>
+        <label>類型<select id="filterType" onchange="applyFilters()">
+          <option value="">全部類型</option>
+          <option value="task">待辦</option>
+          <option value="reminder">提醒</option>
+          <option value="note">筆記</option>
+          <option value="project_update">專案更新</option>
+        </select></label>
+        <label>狀態<select id="filterDone" onchange="applyFilters()">
+          <option value="">全部狀態</option>
+          <option value="false">未完成</option>
+          <option value="true">已完成</option>
+        </select></label>
+        <label>排序<select id="sortBy" onchange="applyFilters()">
+          <option value="due_asc" selected>到期時間（近→遠）</option>
+          <option value="created_desc">建立時間（新→舊）</option>
+          <option value="created_asc">建立時間（舊→新）</option>
+          <option value="due_desc">到期時間（遠→近）</option>
+          <option value="content_asc">內容（A→Z）</option>
+        </select></label>
+        <button class="btn-sm" onclick="resetFilters()">重設</button>
+      </div>
     </div>
-    <div id="bulkBar">
-      <span id="bulkCount" style="font-weight:600;color:var(--brand-ink);flex:1"></span>
-      <button class="btn-sm btn-done" onclick="bulkDone()">批次完成</button>
+    <div id="bulkBar" role="toolbar" aria-label="批次處理">
+      <label class="select-all"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this.checked)" />全選</label>
+      <span id="bulkCount"></span>
+      <button class="btn-sm btn-done" onclick="bulkDone()">完成</button>
       <button class="btn-sm btn-edit" onclick="bulkSetProject()">改專案</button>
-      <button class="btn-sm btn-del" onclick="bulkDelete()">批次刪除</button>
-      <button class="btn-sm btn-cancel" onclick="clearSelection()">取消選取</button>
+      <button class="btn-sm btn-del" onclick="bulkDelete()">刪除</button>
+      <button class="btn-sm btn-cancel" onclick="setSelectMode(false)">取消</button>
     </div>
     <div class="note-list panel" id="tableBody" data-tour="list-table" aria-live="polite"></div>
     </div><!-- /listView -->
@@ -417,8 +451,16 @@
     <img id="lightboxImg" alt="" />
   </div>
 
-  <button class="fab" data-tour="fab" onclick="onFabClick()" title="新增" aria-label="新增"><svg class="icon"><use href="#i-plus"/></svg></button>
+  <form class="composer" id="composer" data-tour="fab" onsubmit="event.preventDefault(); sendText()">
+    <div class="composer-inner">
+      <button type="button" class="icon-btn" onclick="openModal()" title="用表單新增（可設專案、提醒時間）" aria-label="用表單新增"><svg class="icon"><use href="#i-plus"/></svg></button>
+      <input id="composerInput" class="composer-input" placeholder="跟小秘書說一句話…" autocomplete="off" aria-label="跟小秘書說一句話（快捷鍵 n）" oninput="document.getElementById('sendBtn').disabled = !this.value.trim()" />
+      <button type="submit" class="send" id="sendBtn" disabled aria-label="送出"><svg class="icon"><use href="#i-send"/></svg></button>
+    </div>
+  </form>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button type="button" id="toastAction" hidden></button></div>
 
 <script>
 let token = '';
@@ -443,8 +485,9 @@ function switchTab(name) {
     document.getElementById('tabBtn-' + t).classList.toggle('active', t === name);
   });
   // 相簿只能從 LINE 傳圖進來，後台沒有「新增」這個動作，所以把 ＋ 收起來
-  const fab = document.querySelector('.fab');
-  if (fab) fab.style.display = name === 'album' ? 'none' : '';
+  // 輸入列只在待辦分頁出現；其他分頁用各自的新增按鈕
+  document.body.classList.toggle('no-composer', name !== 'dashboard');
+  if (name !== 'dashboard') setSelectMode(false);
 
   // 相簿的圖片網址是簽出來的、一小時後會失效，
   // 所以每次切過來都重新抓，不做快取
@@ -459,12 +502,36 @@ function switchTab(name) {
   }
 }
 
-function onFabClick() {
-  if (currentTab === 'dashboard') openModal();
-  else if (currentTab === 'songs') Songs.openAdd();
-  else if (currentTab === 'order') Order.openAdd();
-  else if (currentTab === 'meetings') Meetings.openAdd();
-  else if (currentTab === 'links') document.getElementById('linksNewInput').focus();
+// ---- 提示（可帶「復原」） ----
+let toastTimer = null;
+function toast(msg, opts = {}) {
+  const el = document.getElementById('toast');
+  const btn = document.getElementById('toastAction');
+  document.getElementById('toastText').textContent = msg;
+  el.classList.toggle('error', !!opts.error);
+  btn.hidden = !opts.action;
+  btn.textContent = opts.action ? opts.action.label : '';
+  btn.onclick = opts.action ? () => { hideToast(); opts.action.run(); } : null;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { hideToast(); if (opts.onExpire) opts.onExpire(); }, opts.ms || (opts.action ? 5000 : 3000));
+}
+function toastErr(msg) { toast(msg, { error: true }); }
+function hideToast() { clearTimeout(toastTimer); document.getElementById('toast').hidden = true; }
+
+// ---- 輸入列：跟 LINE 一樣打一句話就送出（同一套 AI 分類與指令） ----
+async function sendText() {
+  const input = document.getElementById('composerInput');
+  const btn = document.getElementById('sendBtn');
+  const text = input.value.trim();
+  if (!text || btn.classList.contains('busy')) return;
+  btn.classList.add('busy'); btn.disabled = true;
+  const data = await api('POST', { text });
+  btn.classList.remove('busy');
+  if (!data) { btn.disabled = false; return; }
+  input.value = '';
+  toast((data.reply || '收到了') + (data.needs_line ? '\n（這一步要到 LINE 按「確定」才會生效）' : ''), { ms: 6000 });
+  loadNotes();
 }
 
 function goPage(page) {
@@ -487,7 +554,7 @@ function minutesToUnit(min) {
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
-  if (!token) return alert('請輸入密碼');
+  if (!token) return toast('請輸入密碼');
   localStorage.setItem('dashboardToken', token);
   loadNotes();
 }
@@ -516,13 +583,25 @@ const NOTES_LIMIT = 2000;
 
 async function api(method, body) {
   const url = method === 'GET' ? `/api/dashboard/notes?limit=${NOTES_LIMIT}` : `/api/dashboard/notes`;
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (res.status === 401) { alert('密碼錯誤'); return null; }
-  return res.json();
+  let res;
+  try {
+    res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (e) {
+    toast('連不上伺服器，請確認網路後再試一次', { error: true });
+    return null;
+  }
+  if (res.status === 401) { toast('密碼錯誤', { error: true }); return null; }
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* 沒有內容 */ }
+  if (!res.ok || (data && data.error)) {
+    toast('沒有存成功，請再試一次' + (data && data.error ? `（${data.error}）` : ''), { error: true });
+    return null;
+  }
+  return data;
 }
 
 async function loadNotes() {
@@ -576,10 +655,8 @@ function renderStats() {
   const rate = total ? Math.round(done / allNotes.filter(n => n.type === 'task' || n.type === 'reminder').length * 100) || 0 : 0;
   const late = allNotes.filter(n => !n.is_done && n.due_date && (n.type === 'task' || n.type === 'reminder') && new Date(n.due_date) < new Date()).length;
   document.getElementById('stats').innerHTML = `
-    <span class="stat-pill num">未完成待辦 <b>${pending}</b></span>
+    <span class="stat-pill num">未完成 <b>${pending}</b></span>
     ${late ? `<span class="stat-pill late num">過期 <b>${late}</b></span>` : ''}
-    <span class="stat-pill num">已完成 <b>${done}</b>（${rate}%）</span>
-    <span class="stat-pill total num">共 <b>${total}</b> 筆</span>
   `;
 }
 
@@ -627,6 +704,8 @@ function applyFilters() {
   });
   filtered = sortNotes(filtered, document.getElementById('sortBy').value);
 
+  const nonDefault = document.getElementById('filterType').value || document.getElementById('filterDone').value || document.getElementById('sortBy').value !== 'due_asc';
+  document.querySelector('#filterBtn .dot').hidden = !nonDefault;
   const list = document.getElementById('tableBody');
   if (filtered.length === 0) {
     list.innerHTML = '<div class="empty">沒有符合的記錄</div>';
@@ -696,7 +775,8 @@ function noteRow(n) {
     if (n.remind_lead_minutes != null) due += `・提前${formatLeadMinutes(n.remind_lead_minutes)}`;
     if (!n.is_done && new Date(n.due_date) < new Date()) due = `<span class="late">逾期・${due}</span>`;
   }
-  const sub = [n.project ? esc(n.project) : '', due, TYPE_LABEL[n.type]].filter(Boolean).join('・');
+  // 類型看頭像就知道；最常見的「待辦」不再重複寫一次
+  const sub = [n.project ? esc(n.project) : '', due, n.type === 'task' ? '' : TYPE_LABEL[n.type]].filter(Boolean).join('・') || TYPE_LABEL[n.type];
   // AI 改寫過的記錄，把你原本打的話也留一個入口可以對照。
   // 不然 AI 改壞了在後台完全看不出來。
   const rewritten = n.raw_text && n.content && n.raw_text !== n.content;
@@ -708,7 +788,7 @@ function noteRow(n) {
     : '';
   return `<div class="row ${n.is_done ? 'done' : ''}" data-id="${esc(n.id)}">
     <label class="sel" onclick="event.stopPropagation()"><input type="checkbox" class="rowCheck" ${selectedIds.has(n.id) ? 'checked' : ''} onchange="toggleSelect('${esc(n.id)}', this.checked)" aria-label="選取" /></label>
-    <div class="row-main" role="button" tabindex="0" onclick="openEditModal('${esc(n.id)}')" onkeydown="if(event.key==='Enter')openEditModal('${esc(n.id)}')">
+    <div class="row-main" role="button" tabindex="0" onclick="rowClick('${esc(n.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();rowClick('${esc(n.id)}')}">
       <span class="avatar ${esc(n.type)}" title="${TYPE_LABEL[n.type] || ''}"><svg class="icon"><use href="#i-${esc(n.type)}"/></svg></span>
       <span class="row-text"><span class="row-title">${esc(n.content)}</span><span class="row-sub num">${sub}</span>${rawBlock}</span>
     </div>
@@ -717,26 +797,66 @@ function noteRow(n) {
   </div>`;
 }
 
-async function toggleDone(id, is_done) {
+function rowClick(id) {
+  if (!selectMode) return openEditModal(id);
+  toggleSelect(id, !selectedIds.has(id));
+  const box = document.querySelector(`.row[data-id="${CSS.escape(String(id))}"] .rowCheck`);
+  if (box) box.checked = selectedIds.has(id);
+}
+
+async function toggleDone(id, is_done, quiet) {
   const note = allNotes.find(n => n.id === id);
   // 先讓那一列變成已完成（像訊息變已讀），再沉到「已完成」群組
   const row = document.querySelector(`.row[data-id="${CSS.escape(String(id))}"]`);
   if (row) row.classList.toggle('done', is_done);
   const res = await api('PATCH', { id, is_done });
-  if (res && note) note.is_done = is_done;
+  if (!res) { if (row) row.classList.toggle('done', !is_done); return; } // 沒存成功就退回原狀（api 已提示）
+  if (note) note.is_done = is_done;
   renderStats();
   setTimeout(applyFilters, row && is_done && currentView === 'list' ? 420 : 0);
+  if (!quiet && note) toast(is_done ? `已完成：${note.content}` : `已改回未完成：${note.content}`,
+    { action: { label: '復原', run: () => toggleDone(id, !is_done, true) } });
 }
 
-async function deleteNote(id) {
-  if (!confirm('確定刪除？')) return;
-  await api('DELETE', { id });
-  allNotes = allNotes.filter(n => n.id !== id);
-  if (editingNoteId === id) closeEditModal();
-  renderStats();
-  renderProjectTags();
-  applyFilters();
+// 刪除先從畫面拿掉，5 秒內可以按「復原」；時間到才真的刪
+const pendingDeletes = new Map(); // id -> note
+function deleteNotes(ids) {
+  const removed = allNotes.filter(n => ids.includes(n.id));
+  if (!removed.length) return;
+  removed.forEach(n => pendingDeletes.set(n.id, n));
+  allNotes = allNotes.filter(n => !ids.includes(n.id));
+  ids.forEach(id => selectedIds.delete(id));
+  if (ids.includes(editingNoteId)) closeEditModal();
+  renderStats(); renderProjectTags(); applyFilters();
+  if (currentView === 'calendar') { renderCalendar(); if (selectedKey) showDay(selectedKey); }
+  const label = removed.length === 1 ? `已刪除：${removed[0].content}` : `已刪除 ${removed.length} 筆`;
+  toast(label, {
+    action: { label: '復原', run: () => {
+      removed.forEach(n => pendingDeletes.delete(n.id));
+      allNotes = allNotes.concat(removed);
+      renderStats(); renderProjectTags(); applyFilters();
+      if (currentView === 'calendar') { renderCalendar(); if (selectedKey) showDay(selectedKey); }
+    } },
+    onExpire: () => flushDeletes(),
+  });
 }
+async function flushDeletes() {
+  const ids = [...pendingDeletes.keys()];
+  pendingDeletes.clear();
+  for (const id of ids) {
+    const res = await api('DELETE', { id });
+    if (!res) loadNotes(); // 沒刪成功就重新載入，讓那一筆回到畫面上
+  }
+}
+// 關掉分頁時還沒送出的刪除也要送出去
+window.addEventListener('pagehide', () => {
+  for (const id of pendingDeletes.keys()) {
+    fetch('/api/dashboard/notes', { method: 'DELETE', keepalive: true, headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token }, body: JSON.stringify({ id }) });
+  }
+  pendingDeletes.clear();
+});
+
+function deleteNote(id) { deleteNotes([id]); }
 
 // ---- 批次選取操作 ----
 function toggleSelect(id, checked) {
@@ -767,16 +887,33 @@ function clearSelection() {
   applyFilters();
 }
 
+// 選取模式：平常只有完成的圓圈，按「選取」才出現方框
+let selectMode = false;
+function setSelectMode(on) {
+  selectMode = !!on;
+  document.body.classList.toggle('selecting', selectMode);
+  const btn = document.getElementById('selectBtn');
+  if (btn) btn.setAttribute('aria-pressed', String(selectMode));
+  if (!selectMode) selectedIds.clear();
+  applyFilters();
+}
+function toggleFilterPanel(force) {
+  const panel = document.getElementById('filterPanel');
+  const open = force !== undefined ? force : panel.hidden;
+  panel.hidden = !open;
+  document.getElementById('filterBtn').setAttribute('aria-expanded', String(open));
+}
+function resetFilters() {
+  document.getElementById('filterType').value = '';
+  document.getElementById('filterDone').value = '';
+  document.getElementById('sortBy').value = 'due_asc';
+  applyFilters();
+}
+
 function updateBulkBar() {
-  const bar = document.getElementById('bulkBar');
   const selectAllBox = document.getElementById('selectAllBox');
-  if (selectedIds.size === 0) {
-    bar.style.display = 'none';
-    if (selectAllBox) selectAllBox.checked = false;
-    return;
-  }
-  bar.style.display = 'flex';
-  document.getElementById('bulkCount').textContent = `已選 ${selectedIds.size} 筆`;
+  document.getElementById('bulkCount').textContent = selectedIds.size ? `已選 ${selectedIds.size} 筆` : '點選要處理的項目';
+  document.querySelectorAll('#bulkBar .btn-done, #bulkBar .btn-edit, #bulkBar .btn-del').forEach(b => { b.disabled = selectedIds.size === 0; });
   if (selectAllBox) {
     const shown = getShownIds();
     selectAllBox.checked = shown.length > 0 && shown.every(id => selectedIds.has(id));
@@ -786,24 +923,24 @@ function updateBulkBar() {
 async function bulkDone() {
   const ids = [...selectedIds];
   if (ids.length === 0) return;
-  if (!confirm(`確定將這 ${ids.length} 筆標記為完成？`)) return;
-  await Promise.all(ids.map(id => api('PATCH', { id, is_done: true })));
-  ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = true; });
-  clearSelection();
+  const results = await Promise.all(ids.map(id => api('PATCH', { id, is_done: true })));
+  const ok = ids.filter((id, i) => results[i]);
+  ok.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = true; });
+  setSelectMode(false);
   renderStats();
   applyFilters();
+  if (ok.length) toast(`已完成 ${ok.length} 筆`, { action: { label: '復原', run: async () => {
+    await Promise.all(ok.map(id => api('PATCH', { id, is_done: false })));
+    ok.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = false; });
+    renderStats(); applyFilters();
+  } } });
 }
 
 async function bulkDelete() {
   const ids = [...selectedIds];
   if (ids.length === 0) return;
-  if (!confirm(`確定刪除這 ${ids.length} 筆？無法復原。`)) return;
-  await Promise.all(ids.map(id => api('DELETE', { id })));
-  allNotes = allNotes.filter(n => !selectedIds.has(n.id));
-  clearSelection();
-  renderStats();
-  renderProjectTags();
-  applyFilters();
+  setSelectMode(false);
+  deleteNotes(ids);
 }
 
 async function bulkSetProject() {
@@ -813,7 +950,7 @@ async function bulkSetProject() {
   if (project === null) return;
   await Promise.all(ids.map(id => api('PATCH', { id, project })));
   ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.project = project || null; });
-  clearSelection();
+  setSelectMode(false);
   renderProjectTags();
   updateProjectList();
   applyFilters();
@@ -841,7 +978,7 @@ async function submitNote() {
   const dueDateLocal = document.getElementById('newDueDate').value;
   const leadRaw = document.getElementById('newLeadValue').value;
   const leadUnit = Number(document.getElementById('newLeadUnit').value);
-  if (!content) return alert('請填寫內容');
+  if (!content) return toast('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
   const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
   const res = await fetch(`/api/dashboard/notes`, {
@@ -849,9 +986,9 @@ async function submitNote() {
     headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: JSON.stringify({ type, project, content, due_date, remind_lead_minutes }),
   });
-  if (res.status === 401) { alert('密碼錯誤'); return; }
+  if (res.status === 401) { toastErr('密碼錯誤'); return; }
   const data = await res.json();
-  if (data.error) { alert('錯誤：' + data.error); return; }
+  if (data.error) { toastErr('錯誤：' + data.error); return; }
   allNotes.unshift(data);
   closeModal();
   renderStats();
@@ -900,7 +1037,7 @@ async function saveEdit() {
   const dueDateLocal = document.getElementById('editDueDate').value;
   const leadRaw = document.getElementById('editLeadValue').value;
   const leadUnit = Number(document.getElementById('editLeadUnit').value);
-  if (!content) return alert('請填寫內容');
+  if (!content) return toast('請填寫內容');
   const due_date = dueDateLocal ? new Date(dueDateLocal).toISOString() : null;
   const remind_lead_minutes = leadRaw === '' ? null : Number(leadRaw) * leadUnit;
   const updated = await api('PATCH', { id: editingNoteId, content, type, project, due_date, remind_lead_minutes });
@@ -1107,7 +1244,7 @@ const Songs = {
 
   async load() {
     const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('詩歌')}&limit=200`, { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { alert('密碼錯誤'); return; }
+    if (res.status === 401) { toastErr('密碼錯誤'); return; }
     this.items = await res.json();
     this.render();
   },
@@ -1190,7 +1327,7 @@ const Songs = {
 
   async save() {
     const title = document.getElementById('songsFTitle').value.trim();
-    if (!title) return alert('請填寫歌名');
+    if (!title) return toast('請填寫歌名');
     const key = document.getElementById('songsFKey').value.trim();
     const bpm = document.getElementById('songsFBpm').value.trim();
     const link = document.getElementById('songsFLink').value.trim();
@@ -1212,7 +1349,7 @@ const Songs = {
       if (idx !== -1) this.items[idx].content = content;
     } else {
       const data = await api('POST', { type: 'note', project: '詩歌', content });
-      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
       this.items.unshift(data);
     }
     this.closeModal();
@@ -1235,7 +1372,7 @@ const Order = {
 
   async load() {
     const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('敬拜順序')}&limit=200`, { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { alert('密碼錯誤'); return; }
+    if (res.status === 401) { toastErr('密碼錯誤'); return; }
     this.items = (await res.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
     this.render();
   },
@@ -1294,8 +1431,8 @@ const Order = {
   async save() {
     const dateStr = document.getElementById('orderFDate').value;
     const content = document.getElementById('orderFContent').value.trim();
-    if (!dateStr) return alert('請選擇日期');
-    if (!content) return alert('請填寫內容');
+    if (!dateStr) return toast('請選擇日期');
+    if (!content) return toast('請填寫內容');
     const due_date = new Date(`${dateStr}T09:00:00+08:00`).toISOString();
 
     if (this.editingId) {
@@ -1305,7 +1442,7 @@ const Order = {
       if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
     } else {
       const data = await api('POST', { type: 'note', project: '敬拜順序', content, due_date });
-      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
       this.items.unshift(data);
     }
     this.items.sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
@@ -1353,7 +1490,7 @@ const Meetings = {
       fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
       fetch(`/api/dashboard/notes?type=task&project=${encodeURIComponent('會議記錄')}&limit=200`, { headers: { 'x-dashboard-token': token } }),
     ]);
-    if (mRes.status === 401) { alert('密碼錯誤'); return; }
+    if (mRes.status === 401) { toastErr('密碼錯誤'); return; }
     this.items = (await mRes.json()).sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
     this.actionItems = await tRes.json();
     this.render();
@@ -1433,8 +1570,8 @@ const Meetings = {
     const body = document.getElementById('meetingsFContent').value.trim();
     // 標題存成第一行，跟從 LINE 記錄的格式一致
     const content = [title, body].filter(Boolean).join('\n');
-    if (!dateStr) return alert('請選擇日期');
-    if (!content) return alert('請填寫標題或內容');
+    if (!dateStr) return toast('請選擇日期');
+    if (!content) return toast('請填寫標題或內容');
     const due_date = new Date(`${dateStr}T09:00:00+08:00`).toISOString();
 
     if (this.editingId) {
@@ -1444,7 +1581,7 @@ const Meetings = {
       if (idx !== -1) Object.assign(this.items[idx], { content, due_date });
     } else {
       const data = await api('POST', { type: 'note', project: '會議記錄', content, due_date });
-      if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+      if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
       this.items.unshift(data);
 
       const actionTexts = extractActionItems(content);
@@ -1491,7 +1628,7 @@ const Album = {
 
   async load() {
     const res = await fetch('/api/dashboard/album?limit=120', { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { alert('密碼錯誤'); return; }
+    if (res.status === 401) { toastErr('密碼錯誤'); return; }
     const json = await res.json();
     this.items = (json && json.items) || [];
     this.render();
@@ -1539,7 +1676,7 @@ const Album = {
     const res = await fetch(`/api/dashboard/album?id=${encodeURIComponent(id)}`, {
       method: 'DELETE', headers: { 'x-dashboard-token': token },
     });
-    if (!res.ok) { alert('刪除失敗'); return; }
+    if (!res.ok) { toastErr('刪除失敗'); return; }
     this.items = this.items.filter(i => i.id !== id);
     this.render();
   },
@@ -1552,7 +1689,7 @@ const Links = {
 
   async load() {
     const res = await fetch(`/api/dashboard/notes?type=note&project=${encodeURIComponent('收藏')}&limit=200`, { headers: { 'x-dashboard-token': token } });
-    if (res.status === 401) { alert('密碼錯誤'); return; }
+    if (res.status === 401) { toastErr('密碼錯誤'); return; }
     this.items = await res.json();
     this.render();
   },
@@ -1612,7 +1749,7 @@ const Links = {
     const content = input.value.trim();
     if (!content) return;
     const data = await api('POST', { type: 'note', project: '收藏', content, is_done: false });
-    if (!data || data.error) { alert('新增失敗：' + (data && data.error)); return; }
+    if (!data || data.error) { toastErr('新增失敗：' + (data && data.error)); return; }
     this.items.unshift(data);
     input.value = '';
     this.render();
@@ -1635,7 +1772,18 @@ const Links = {
 </script>
   <script>
 // 面板：按 Esc 或點背景關閉
-document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open')); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+    if (selectMode) setSelectMode(false);
+    return;
+  }
+  // 快捷鍵：/ 搜尋、n 跟小秘書說一句話（正在打字時不觸發）
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) || document.activeElement.isContentEditable;
+  if (typing || e.metaKey || e.ctrlKey || e.altKey || currentTab !== 'dashboard') return;
+  if (e.key === '/') { e.preventDefault(); switchView('list'); document.getElementById('search').focus(); }
+  if (e.key === 'n') { e.preventDefault(); document.getElementById('composerInput').focus(); }
+});
 document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
 </script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
@@ -1645,12 +1793,12 @@ Tour.mount({
   anchor: 'header',
   steps: [
     { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上可以左右滑。' },
-    { target: 'worship-link', title: '服事表', text: '主日服事表在這裡，點進去可以看整季班表。' },
-    { target: 'stats', title: '總覽', text: '一眼看到還有幾件沒做完、有幾件已經過期（紅色），以及完成率。', before: () => switchTab('dashboard') },
+    { target: 'worship-link', title: '服事表', text: '主日服事表在第二個分頁，點進去可以看整季班表。' },
+    { target: 'stats', title: '總覽', text: '一眼看到還有幾件沒做完、有幾件已經過期（紅色）。', before: () => switchTab('dashboard') },
     { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },
-    { target: 'filters', title: '找東西', text: '用類型、完成狀態或關鍵字篩選，也可以換排序方式。\n照「到期時間」排序時，會分成過期、今天、明天、這七天…；按「全選」可以一次選取畫面上全部。', before: () => { switchTab('dashboard'); switchView('list'); } },
-    { target: 'list-table', title: '每一筆都能直接操作', text: '點右邊的圓圈就是完成，再點一次可以取消。\n點那一列可以編輯，刪除也在編輯面板裡。\n勾選左邊的小方框，可以一次處理好幾筆。' },
-    { target: 'fab', title: '新增', text: '按＋可以新增一筆。\n其實在 LINE 直接跟小秘書說「明天下午三點看牙醫」更快。' },
+    { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n「篩選」可以改類型、完成狀態和排序，有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
+    { target: 'list-table', title: '每一筆都能直接操作', text: '點右邊的圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一列可以編輯，刪除也在編輯面板裡。' },
+    { target: 'fab', title: '跟小秘書說一句話', text: '在最下面打一句話就好，例如「明天下午三點看牙醫」「午餐 120」「這週要幹嘛」，跟在 LINE 傳給小秘書一模一樣。\n要設定專案或提前提醒，按左邊的＋用表單新增。', before: () => switchTab('dashboard') },
   ],
 });
 </script>

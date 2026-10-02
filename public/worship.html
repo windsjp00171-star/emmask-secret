@@ -27,7 +27,7 @@
     /* 格狀表 */
     .grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); margin: 8px 0 4px; }
     table.grid tbody tr:last-child td { border-bottom: none; }
-    table.grid { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+    table.grid { border-collapse: separate; border-spacing: 0; width: max-content; }
     table.grid th, table.grid td { border-bottom: 1px solid var(--line); }
     table.grid th { position: sticky; top: 0; z-index: 2; background: var(--surface); padding: 10px 8px 8px; font-size: 16px; font-weight: 700; text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
     table.grid th small { display: inline-block; font-size: 12px; font-weight: 400; color: var(--ink-3); }
@@ -36,11 +36,11 @@
     table.grid td.role-label { position: sticky; left: 0; z-index: 1; background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: normal; min-width: 88px; width: 88px; border-right: 1px solid var(--line); }
     @media (min-width: 800px) { table.grid td.role-label, table.grid th.role-col { width: auto; white-space: nowrap; } }
     table.grid td.today-col, table.grid th.today-col { background: var(--today-col); }
-    table.grid th.today-col small { color: var(--on-ink); background: var(--ink); border-radius: 9px; padding: 0 7px; font-weight: 600; }
+    table.grid th.today-col small { color: var(--ink); background: var(--fill-hover); border-radius: 9999px; padding: 0 7px; font-weight: 600; }
     table.grid td.cell { cursor: text; }
     table.grid td.cell:hover { background: var(--fill); }
-    .person-chip { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; margin: 2px; border-radius: 15px; background: var(--fill); font-size: 14px; }
-    .cell-empty { color: var(--ink-3); opacity: .5; font-size: 18px; padding: 0 8px; }
+    .person-chip { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; margin: 2px; border-radius: 9999px; background: var(--fill); font-size: 14px; }
+    .cell-empty { color: var(--ink-3); opacity: .5; font-size: 17px; padding: 0 8px; }
     td.cell:hover .cell-empty { opacity: 1; }
     .cell-input { width: 100%; min-width: 140px; height: 36px; padding: 0 10px; border: 2px solid var(--green) !important; border-radius: 8px; font-size: 14px; background: var(--surface) !important; outline: none; }
     /* 批次貼上 */
@@ -61,7 +61,7 @@
     .person-view td.quarter-row { font-size: 13px; font-weight: 700; color: var(--ink-2); padding-top: 16px; }
     .date-badge { display: inline-block; min-width: 96px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .date-badge.soon { font-weight: 700; }
-    .date-badge.soon::after { content: "快到了"; margin-left: 6px; font-size: 11px; color: var(--on-ink); background: var(--ink); border-radius: 9px; padding: 1px 7px; vertical-align: 2px; }
+    .date-badge.soon::after { content: "快到了"; margin-left: 6px; font-size: 11px; color: var(--on-ink); background: var(--ink); border-radius: 9999px; padding: 1px 7px; vertical-align: 2px; }
     .role-badge { display: inline-block; background: var(--fill); padding: 2px 10px; border-radius: 12px; font-size: 13px; margin: 2px; }
     /* 管理 */
     .manage-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; }
@@ -76,6 +76,10 @@
     .manage-item .del-btn { width: 40px; height: 40px; border: none; background: none; border-radius: 50%; color: var(--ink-3); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
     .manage-item .del-btn:hover { background: var(--red-tint); color: var(--red); }
     .manage-tip { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+    @media (max-width: 600px) { .toolbar { flex-wrap: nowrap; } .toolbar .btn { width: 40px; padding: 0; flex: none; } .toolbar .btn .lbl { display: none; } .view-tab { padding: 0 12px; } }
+    .grid-wrap { width: fit-content; max-width: 100%; }
+    @media (min-width: 800px) { table.grid td.cell, table.grid thead th:not(.role-col) { min-width: 200px; } }
+    .toast { bottom: calc(20px + env(safe-area-inset-bottom)); }
   </style>
 </head>
 <body class="wide">
@@ -146,14 +150,15 @@
 
 <div id="main">
   <header>
-    <h1>服事表</h1>
+    <h1>小秘書</h1>
     <nav class="navbar" aria-label="切換頁面">
       <a href="#" onclick="event.preventDefault(); navTo('index.html')">待辦</a>
+      <a href="#" class="active" aria-current="page" onclick="event.preventDefault()">服事表</a>
       <a href="#" onclick="event.preventDefault(); navTo('index.html#songs')">詩歌庫</a>
       <a href="#" onclick="event.preventDefault(); navTo('index.html#order')">敬拜順序</a>
       <a href="#" onclick="event.preventDefault(); navTo('index.html#meetings')">會議記錄</a>
       <a href="#" onclick="event.preventDefault(); navTo('index.html#links')">收藏</a>
-      <a href="#" class="active" aria-current="page" onclick="event.preventDefault()">服事表</a>
+      <a href="#" onclick="event.preventDefault(); navTo('index.html#album')">相簿</a>
     </nav>
   </header>
   <div class="container">
@@ -163,8 +168,8 @@
         <button class="view-tab" id="tabPerson" onclick="switchView('person')">人員查詢</button>
         <button class="view-tab" id="tabManage" onclick="switchView('manage')">管理</button>
       </div>
-      <button class="btn btn-manage" id="pasteBtn" data-tour="paste-btn" onclick="openPasteModal()" style="margin-left:auto"><svg class="icon"><use href="#i-paste"/></svg>批次貼上</button>
-      <button class="btn btn-primary" id="addEntryBtn" data-tour="add-entry" onclick="openAddModal()"><svg class="icon"><use href="#i-plus"/></svg>新增服事</button>
+      <button class="btn btn-manage" id="pasteBtn" aria-label="批次貼上" data-tour="paste-btn" onclick="openPasteModal()" style="margin-left:auto"><svg class="icon"><use href="#i-paste"/></svg><span class="lbl">批次貼上</span></button>
+      <button class="btn btn-primary" id="addEntryBtn" aria-label="新增服事" data-tour="add-entry" onclick="openAddModal()"><svg class="icon"><use href="#i-plus"/></svg><span class="lbl">新增服事</span></button>
     </div>
 
     <div id="gridView">
@@ -208,7 +213,19 @@
   </div>
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button type="button" id="toastAction" hidden></button></div>
+
 <script>
+let toastTimer = null;
+function toast(msg, opts = {}) {
+  const el = document.getElementById('toast');
+  document.getElementById('toastText').textContent = msg;
+  el.classList.toggle('error', !!opts.error);
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, opts.ms || 3000);
+}
+function toastErr(msg) { toast(msg, { error: true, ms: 5000 }); }
 let token = '';
 function navTo(page) { window.location.href = '/' + page; }
 let allData = [];   // worship_schedule rows
@@ -237,7 +254,7 @@ function toggleQuarter(el) {
 
 function doLogin() {
   token = document.getElementById('tokenInput').value.trim();
-  if (!token) return alert('請輸入密碼');
+  if (!token) return toast('請輸入密碼');
   localStorage.setItem('dashboardToken', token);
   loadAll();
 }
@@ -264,7 +281,7 @@ async function apiFetch(path, method = 'GET', body) {
     headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (res.status === 401) { alert('密碼錯誤'); return null; }
+  if (res.status === 401) { toastErr('密碼錯誤'); return null; }
   return res.json();
 }
 
@@ -373,7 +390,7 @@ function buildGridTable(roles, idxs, todayIdx) {
     html += `<td class="role-label">${esc(role)}</td>`;
     idxs.forEach(di => {
       const cls = (di === todayIdx) ? 'cell today-col' : 'cell';
-      html += `<td id="c-${ri}-${di}" class="${cls}" onclick="startEdit(${ri},${di})">${cellInner(ri, di)}</td>`;
+      html += `<td id="c-${ri}-${di}" class="${cls}" tabindex="0" aria-label="${esc(role)} ${esc(gridDates[di])}" onclick="startEdit(${ri},${di})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startEdit(${ri},${di})}">${cellInner(ri, di)}</td>`;
     });
     html += '</tr>';
   });
@@ -391,7 +408,7 @@ function cellPersons(ri, di) {
 // 一格的顯示內容（chips 或空白提示）
 function cellInner(ri, di) {
   const persons = cellPersons(ri, di);
-  if (persons.length === 0) return '<span class="cell-empty" aria-label="新增"><svg class="icon" style="width:16px;height:16px;vertical-align:-3px"><use href="#i-plus"/></svg></span>';
+  if (persons.length === 0) return '<span class="cell-empty" aria-hidden="true"><svg class="icon" style="width:16px;height:16px;vertical-align:-3px"><use href="#i-plus"/></svg></span>';
   return persons.map(n => `<span class="person-chip">${esc(n)}</span>`).join('');
 }
 
@@ -410,7 +427,7 @@ function startEdit(ri, di) {
   if (!td) return;
   const val = cellPersons(ri, di).join('、');
   currentEdit = { ri, di };
-  td.innerHTML = `<input class="cell-input" id="ci-${ri}-${di}" value="${esc(val)}" />`;
+  td.innerHTML = `<input class="cell-input" id="ci-${ri}-${di}" value="${esc(val)}" list="personList" aria-label="人員，多人用、分隔" />`;
   const inp = document.getElementById(`ci-${ri}-${di}`);
   inp.focus();
   inp.select();
@@ -437,7 +454,7 @@ async function commitEdit(ri, di, value, move) {
       (res.rows || []).forEach(r => allData.push(r));
       buildPersonList();
     } else {
-      alert((res && res.error) || '儲存失敗');
+      toastErr((res && res.error) || '儲存失敗');
     }
   }
   renderCell(ri, di);
@@ -539,7 +556,7 @@ function closeModal() {
 
 async function saveEdit() {
   const person_name = document.getElementById('editPerson').value.trim();
-  if (!person_name) return alert('請填寫人員名稱');
+  if (!person_name) return toast('請填寫人員名稱');
   const res = await scheduleApi('PATCH', { id: editingId, person_name });
   if (!res) return;
   const item = allData.find(d => d.id === editingId);
@@ -574,9 +591,9 @@ async function submitAdd() {
   const service_date = document.getElementById('addDate').value;
   const role = document.getElementById('addRole').value;
   const person_name = document.getElementById('addPerson').value.trim();
-  if (!person_name) return alert('請填寫人員名稱');
+  if (!person_name) return toast('請填寫人員名稱');
   const data = await scheduleApi('POST', { service_date, role, person_name });
-  if (!data || data.error) return alert(data?.error || '新增失敗');
+  if (!data || data.error) return toastErr(data?.error || '新增失敗');
   allData.push(data);
   document.getElementById('addModal').classList.remove('open');
   buildPersonList();
@@ -587,9 +604,9 @@ async function submitAdd() {
 
 async function addDate() {
   const val = document.getElementById('newDateInput').value;
-  if (!val) return alert('請選擇日期');
+  if (!val) return toast('請選擇日期');
   const data = await configApi('dates', 'POST', { service_date: val });
-  if (!data || data.error) return alert(data?.error || '新增失敗');
+  if (!data || data.error) return toastErr(data?.error || '新增失敗');
   allDates.push(data);
   allDates.sort((a, b) => a.service_date.localeCompare(b.service_date));
   document.getElementById('newDateInput').value = '';
@@ -610,9 +627,9 @@ async function deleteDate(id, dateStr) {
 
 async function addRole() {
   const val = document.getElementById('newRoleInput').value.trim();
-  if (!val) return alert('請填寫職位名稱');
+  if (!val) return toast('請填寫職位名稱');
   const data = await configApi('roles', 'POST', { role_name: val });
-  if (!data || data.error) return alert(data?.error || '新增失敗');
+  if (!data || data.error) return toastErr(data?.error || '新增失敗');
   allRoles.push(data);
   document.getElementById('newRoleInput').value = '';
   populateRoleSelect();
@@ -694,7 +711,7 @@ function renderPastePreview() {
 
 async function importPaste() {
   const parsed = parsePaste(document.getElementById('pasteArea').value);
-  if (!parsed) return alert('沒有可匯入的內容');
+  if (!parsed) return toast('沒有可匯入的內容');
   const bulkSet = [];
   parsed.rows.forEach(r => {
     parsed.columns.forEach((c, j) => {
@@ -702,19 +719,19 @@ async function importPaste() {
       bulkSet.push({ service_date: c.date, role: r.role, names: r.cellsByCol[j] });
     });
   });
-  if (bulkSet.length === 0) return alert('沒有對應到任何日期欄，請確認標題列的日期格式（如 6/22），或先到「管理」新增日期。');
+  if (bulkSet.length === 0) return toast('沒有對應到任何日期欄，請確認標題列的日期格式（如 6/22），或先到「管理」新增日期。');
 
   const btn = document.getElementById('pasteImportBtn');
   btn.disabled = true; btn.textContent = '匯入中…';
   const res = await scheduleApi('POST', { bulkSet });
   btn.disabled = false; btn.textContent = '匯入';
-  if (!res || res.error) return alert((res && res.error) || '匯入失敗');
+  if (!res || res.error) return toastErr((res && res.error) || '匯入失敗');
 
   allData = res.all || allData;
   document.getElementById('pasteModal').classList.remove('open');
   buildPersonList();
   renderGridView();
-  alert(`✅ 匯入完成（${bulkSet.length} 格）`);
+  toast(`匯入完成（${bulkSet.length} 格）`);
 }
 
 function esc(s) {

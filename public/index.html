@@ -31,6 +31,8 @@
     /* 專案膠囊 */
     .list-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .project-tags { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+    @media (min-width: 641px) { .project-tags { flex-wrap: wrap; overflow: visible; } }
+    @media (max-width: 640px) { .project-tags { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); padding-right: 24px; } }
     .project-tags::-webkit-scrollbar { display: none; }
     .project-tag { border: none; flex: none; height: 32px; padding: 0 14px; border-radius: 16px; background: var(--fill); font-size: 14px; color: var(--ink); white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; }
     .project-tag:hover { background: var(--fill-hover); }
@@ -397,8 +399,8 @@
           <option value="true">已完成</option>
         </select></label>
         <label>排序<select id="sortBy" onchange="applyFilters()">
-          <option value="due_asc" selected>到期時間（近→遠）</option>
-          <option value="created_desc">建立時間（新→舊）</option>
+          <option value="created_desc" selected>建立時間（新→舊）</option>
+          <option value="due_asc">到期時間（近→遠）</option>
           <option value="created_asc">建立時間（舊→新）</option>
           <option value="due_desc">到期時間（遠→近）</option>
           <option value="content_asc">內容（A→Z）</option>
@@ -790,7 +792,7 @@ function applyFilters() {
   });
   filtered = sortNotes(filtered, document.getElementById('sortBy').value);
 
-  const nonDefault = document.getElementById('filterType').value || document.getElementById('filterDone').value || document.getElementById('sortBy').value !== 'due_asc';
+  const nonDefault = document.getElementById('filterType').value || document.getElementById('filterDone').value || document.getElementById('sortBy').value !== 'created_desc';
   document.querySelector('#filterBtn .dot').hidden = !nonDefault;
   const list = document.getElementById('tableBody');
   if (filtered.length === 0) {
@@ -827,20 +829,21 @@ function addDaysKey(key, n) { const d = new Date(key + 'T12:00:00+08:00'); d.set
 let showDoneGroup = false;
 function groupByDue(items) {
   const now = Date.now(), today = todayKey(), tomorrow = addDaysKey(today, 1), weekEnd = addDaysKey(today, 7);
-  const g = { overdue: [], today: [], tomorrow: [], week: [], later: [], none: [], done: [] };
+  const g = { overdue: [], today: [], tomorrow: [], week: [], later: [], past: [], none: [], done: [] };
   items.forEach(n => {
     if (n.is_done) return g.done.push(n);
     if (!n.due_date) return g.none.push(n);
     const k = taipeiKey(n.due_date);
-    if (new Date(n.due_date).getTime() < now) g.overdue.push(n);
+    if (new Date(n.due_date).getTime() < now) (isActionable(n) ? g.overdue : g.past).push(n);
     else if (k === today) g.today.push(n);
     else if (k === tomorrow) g.tomorrow.push(n);
     else if (k <= weekEnd) g.week.push(n);
     else g.later.push(n);
   });
   return [['overdue', `過期 ${g.overdue.length}`, g.overdue], ['today', '今天', g.today], ['tomorrow', '明天', g.tomorrow],
-    ['week', '這七天', g.week], ['later', '之後', g.later], ['none', '未排時間', g.none], ['done', '已完成', g.done]];
+    ['week', '這七天', g.week], ['later', '之後', g.later], ['past', '已過日期', g.past], ['none', '未排時間', g.none], ['done', '已完成', g.done]];
 }
+function isActionable(n) { return n.type === 'task' || n.type === 'reminder'; }
 function groupByCreated(items) {
   const today = todayKey(), yesterday = addDaysKey(today, -1), map = new Map();
   items.forEach(n => {
@@ -859,7 +862,7 @@ function noteRow(n) {
     const day = k === today ? '今天' : k === addDaysKey(today, 1) ? '明天' : mdw(n.due_date);
     due = `${day} ${hm(n.due_date)}`;
     if (n.remind_lead_minutes != null) due += `・提前${formatLeadMinutes(n.remind_lead_minutes)}`;
-    if (!n.is_done && new Date(n.due_date) < new Date()) due = `<span class="late">${due}</span>`;
+    if (!n.is_done && isActionable(n) && new Date(n.due_date) < new Date()) due = `<span class="late">${due}</span>`;
   }
   // 類型看頭像就知道；最常見的「待辦」不再重複寫一次
   const sub = [n.project ? esc(n.project) : '', due, n.type === 'task' ? '' : TYPE_LABEL[n.type]].filter(Boolean).join('・') || TYPE_LABEL[n.type];
@@ -1014,7 +1017,7 @@ function toggleFilterPanel(force) {
 function resetFilters() {
   document.getElementById('filterType').value = '';
   document.getElementById('filterDone').value = '';
-  document.getElementById('sortBy').value = 'due_asc';
+  document.getElementById('sortBy').value = 'created_desc';
   applyFilters();
 }
 

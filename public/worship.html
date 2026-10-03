@@ -510,7 +510,8 @@ async function commitEdit(ri, di, value, move) {
         buildPersonList(); renderGridView();
       } } });
     } else {
-      toastErr((res && res.error) || '儲存失敗');
+      if (res && res.error) console.error(res.error);
+      toastErr('這一格沒有存成功，請再改一次');
     }
   }
   renderCell(ri, di);
@@ -664,7 +665,7 @@ async function submitAdd() {
   const person_name = document.getElementById('addPerson').value.trim();
   if (!person_name) return toast('請填寫人員名稱');
   const data = await scheduleApi('POST', { service_date, role, person_name });
-  if (!data || data.error) return toastErr(data?.error || '新增失敗');
+  if (!data || data.error) { if (data && data.error) console.error(data.error); return toastErr('沒有新增成功，請檢查內容後再試一次'); }
   allData.push(data);
   document.getElementById('addModal').classList.remove('open');
   buildPersonList();
@@ -677,7 +678,7 @@ async function addDate() {
   const val = document.getElementById('newDateInput').value;
   if (!val) return toast('請選擇日期');
   const data = await configApi('dates', 'POST', { service_date: val });
-  if (!data || data.error) return toastErr(data?.error || '新增失敗');
+  if (!data || data.error) { if (data && data.error) console.error(data.error); return toastErr('沒有新增成功，請檢查內容後再試一次'); }
   allDates.push(data);
   allDates.sort((a, b) => a.service_date.localeCompare(b.service_date));
   document.getElementById('newDateInput').value = '';
@@ -700,7 +701,7 @@ async function addRole() {
   const val = document.getElementById('newRoleInput').value.trim();
   if (!val) return toast('請填寫職位名稱');
   const data = await configApi('roles', 'POST', { role_name: val });
-  if (!data || data.error) return toastErr(data?.error || '新增失敗');
+  if (!data || data.error) { if (data && data.error) console.error(data.error); return toastErr('沒有新增成功，請檢查內容後再試一次'); }
   allRoles.push(data);
   document.getElementById('newRoleInput').value = '';
   populateRoleSelect();
@@ -797,7 +798,7 @@ async function importPaste() {
   btn.disabled = true; btn.textContent = '匯入中…';
   const res = await scheduleApi('POST', { bulkSet });
   btn.disabled = false; btn.textContent = '匯入';
-  if (!res || res.error) return toastErr((res && res.error) || '匯入失敗');
+  if (!res || res.error) { if (res && res.error) console.error(res.error); return toastErr('匯入沒有成功，請確認貼上的表格格式後再試一次'); }
 
   allData = res.all || allData;
   document.getElementById('pasteModal').classList.remove('open');
@@ -813,8 +814,21 @@ function esc(s) {
 </script>
   <script>
 // 面板：按 Esc 或點背景關閉
-document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open')); });
-document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+// 面板打開時記下表單內容；按 Esc 或點背景時如果改過，先提醒、不直接關掉，免得改到一半不見
+function formSnap(m) { return [...m.querySelectorAll('input, textarea, select')].map(el => el.type === 'checkbox' ? el.checked : el.value).join('\u0001'); }
+document.querySelectorAll('.modal-bg').forEach(m => new MutationObserver(() => {
+  if (m.classList.contains('open') && !m.dataset.opened) { m.dataset.opened = '1'; setTimeout(() => { m.dataset.snap = formSnap(m); }, 0); }
+  else if (!m.classList.contains('open')) { delete m.dataset.opened; delete m.dataset.snap; }
+}).observe(m, { attributes: true, attributeFilter: ['class'] }));
+function softClose(m) {
+  if (m.dataset.snap !== undefined && formSnap(m) !== m.dataset.snap) {
+    toast('還沒儲存，要放棄這些修改嗎？', { ms: 6000, action: { label: '放棄修改', run: () => m.classList.remove('open') } });
+    return;
+  }
+  m.classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(softClose); });
+document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) softClose(m); }));
 </script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 <script src="/tour.js"></script>

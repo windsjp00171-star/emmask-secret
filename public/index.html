@@ -83,6 +83,7 @@
     .duty-text b { font-weight: 600; }
     .duty-text span { color: var(--ink-2); margin-left: 6px; }
     .duty[hidden] { display: none; }
+    .due-ic { width: 12px; height: 12px; vertical-align: -1px; margin-right: 3px; }
     .due-preview { font-size: 13px; color: var(--ink-2); margin-top: 4px; min-height: 0; }
     .due-preview:empty { display: none; }
     .duty-av { width: 28px; height: 28px; background: var(--fill); color: var(--ink); }
@@ -205,6 +206,7 @@
   <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20a.5.5 0 01-.5.5h-11A.5.5 0 016 20z"/><path d="M14 3.5V8h4M9 12.5h6M9 16h4"/></symbol>
   <symbol id="i-project_update" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 15l4-4 3 3 5-6"/><path d="M15 8h3v3"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
   <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
@@ -581,6 +583,7 @@ async function sendText() {
   // 這句話新建了記錄（AI 分錯類也一樣）就給「復原」；查詢類的話不會有新記錄
   const added = allNotes.filter(n => !before.has(n.id)).map(n => n.id);
   if (added.length) toast(msg, { ms: 6000, action: { label: '復原', run: () => deleteNotes(added) } });
+  else toast(msg, { ms: 120000, action: { label: '關閉', run: () => {} } });
 }
 
 // 待辦上方一列「下一次服事」，點了到服事表；沒排到或沒設定名字就不顯示
@@ -876,7 +879,8 @@ function noteRow(n) {
   if (n.due_date) {
     const k = taipeiKey(n.due_date), today = todayKey();
     const day = k === today ? '今天' : k === addDaysKey(today, 1) ? '明天' : mdw(n.due_date);
-    due = `${day} ${hm(n.due_date)}`;
+    // 小時鐘：標明這是到期時間（照建立時間分組時才不會跟「今天建立」搞混）
+    due = `<svg class="icon due-ic" aria-label="到期"><use href="#i-clock"/></svg>${day} ${hm(n.due_date)}`;
     if (n.remind_lead_minutes != null) due += `・提前${formatLeadMinutes(n.remind_lead_minutes)}`;
     if (!n.is_done && isActionable(n) && new Date(n.due_date) < new Date()) due = `<span class="late">${due}</span>`;
   }
@@ -1912,10 +1916,23 @@ const Links = {
 };
 </script>
   <script>
+// 面板打開時記下表單內容；按 Esc 或點背景時如果改過，先提醒、不直接關掉，免得改到一半不見
+function formSnap(m) { return [...m.querySelectorAll('input, textarea, select')].map(el => el.type === 'checkbox' ? el.checked : el.value).join('\u0001'); }
+document.querySelectorAll('.modal-bg').forEach(m => new MutationObserver(() => {
+  if (m.classList.contains('open') && !m.dataset.opened) { m.dataset.opened = '1'; setTimeout(() => { m.dataset.snap = formSnap(m); }, 0); }
+  else if (!m.classList.contains('open')) { delete m.dataset.opened; delete m.dataset.snap; }
+}).observe(m, { attributes: true, attributeFilter: ['class'] }));
+function softClose(m) {
+  if (m.dataset.snap !== undefined && formSnap(m) !== m.dataset.snap) {
+    toast('還沒儲存，要放棄這些修改嗎？', { ms: 6000, action: { label: '放棄修改', run: () => m.classList.remove('open') } });
+    return;
+  }
+  m.classList.remove('open');
+}
 // 面板：按 Esc 或點背景關閉
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.modal-bg.open').forEach(softClose);
     if (selectMode) setSelectMode(false);
     return;
   }
@@ -1925,7 +1942,7 @@ document.addEventListener('keydown', e => {
   if (e.key === '/') { e.preventDefault(); switchView('list'); document.getElementById('search').focus(); }
   if (e.key === 'n') { e.preventDefault(); document.getElementById('composerInput').focus(); }
 });
-document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) softClose(m); }));
 // 有實體鍵盤的電腦上，把快捷鍵寫在輸入框裡
 if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
   document.getElementById('composerInput').placeholder = '跟小秘書說一句話…（按 n）';

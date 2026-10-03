@@ -138,7 +138,7 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--green-bt
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 120; max-width: min(560px, calc(100% - 24px)); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 14px; background: var(--ink); color: var(--on-ink); font-size: 14px; line-height: 1.45; box-shadow: 0 8px 28px rgba(0,0,0,.2); }
 .toast[hidden] { display: none; }
 .toast.error { background: #c81e33; color: #fff; }
-.toast span { white-space: pre-line; }
+.toast span { white-space: pre-line; max-height: 50vh; overflow-y: auto; }
 .toast button { flex: none; height: 32px; padding: 0 12px; border-radius: 16px; border: none; background: color-mix(in srgb, var(--on-ink) 18%, transparent); color: inherit; font-weight: 700; cursor: pointer; }
 body.no-composer .toast, body.selecting .toast { bottom: calc(20px + env(safe-area-inset-bottom)); }
 

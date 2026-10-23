@@ -44,7 +44,7 @@ test('提醒卡：內容那段文字本身也能點', () => {
 
 test('提醒卡：沒有網址就沒有任何連結動作，原本的按鈕不變', () => {
   const acts = actions(reminder('買牛奶'));
-  assert.equal(acts.filter((a) => a.type === 'uri' || a.type === 'clipboard').length, 0);
+  assert.equal(acts.filter((a) => (a.type === 'uri' || a.type === 'clipboard') && !a.label.includes('分享')).length, 0);
   assert.ok(acts.some((a) => a.type === 'postback' && a.label.includes('完成')));
 });
 
@@ -74,5 +74,5 @@ test('待辦清單：有網址的那一筆，文字可以點；沒網址的不�
 test('超過 LINE 長度上限的網址不產生連結動作（否則整張卡會被 LINE 退回）', () => {
   const long = 'https://a.com/' + 'x'.repeat(1100);
   assert.deepEqual(extractUrls(long), []);
-  assert.equal(actions(reminder(long)).filter((a) => a.type === 'uri').length, 0);
+  assert.equal(actions(reminder(long)).filter((a) => a.type === 'uri' && !a.label.includes('分享')).length, 0);
 });

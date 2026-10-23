@@ -4,6 +4,7 @@ const { getWeeklyActivity } = require('../../lib/github');
 const { cronAuth } = require('../../lib/cron-auth');
 const { loadModules, isOn } = require('../../lib/modules');
 const { writeSummary } = require('../../lib/summarize');
+const cards = require('../../lib/cards');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -132,7 +133,19 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    await pushMessage(lines.join('\n'));
+    const doneN = done ? done.length : 0;
+    const pendN = pending ? pending.length : 0;
+    const cover = cards.bubble({
+      body: [
+        cards.poster({ kicker: `📊 本週週報 ${weekStr}`, big: doneN, bigSuffix: '件完成', sub: `待辦積壓 ${pendN} 件${stalledProjects.length ? `　⚠️ 停滯：${stalledProjects.join('、')}` : ''}` }),
+        ...(summary ? [{ type: 'text', text: summary, size: 'sm', wrap: true, color: '#3a3a3c', margin: 'md' }] : []),
+        cards.brandLine('週報'),
+      ],
+      footer: [cards.shareButton(lines.join('\n'), '📤 分享週報')],
+    });
+    const detail = lines.slice(lines.findIndex(l => l.startsWith('【') || l.startsWith('📦')) >= 0 ? lines.findIndex(l => l.startsWith('【') || l.startsWith('📦')) : lines.length);
+    const detailPage = detail.length ? cards.bubble({ body: [cards.tagChip('專案與動態', 'note'), { type: 'text', text: detail.join('\n').trim().slice(0, 1800), size: 'sm', wrap: true, margin: 'md' }] }) : null;
+    await pushMessage(cards.flex(`📊 本週週報（${weekStr}）：完成 ${doneN} 件`, [cover, detailPage]));
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('Weekly cron error:', err);

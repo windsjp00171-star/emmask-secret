@@ -66,7 +66,7 @@ module.exports = async function handler(req, res) {
 
     for (const note of dueNotes) {
       const voice = await buildVoiceFor(note).catch(() => null);
-      await pushMessage(voice ? [buildReminderFlex(note), voice] : buildReminderFlex(note));
+      await pushMessage(voice ? [buildReminderFlex(note, { voiceUrl: voice.originalContentUrl }), voice] : buildReminderFlex(note));
       if (note.recur) {
         // 重複提醒：排下一次、保持未提醒狀態
         const next = nextRecurDue(note.recur, note.due_date);

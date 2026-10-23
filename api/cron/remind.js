@@ -19,6 +19,13 @@ module.exports = async function handler(req, res) {
     console.error('Worship eve reminder error:', err);
   }
 
+  // 清掉超過保存期限的語音檔（每天一次）；出錯不影響一般提醒
+  try {
+    await require('../../lib/tts').cleanupOldVoice();
+  } catch (err) {
+    console.error('Voice cleanup error:', err);
+  }
+
   // 晚上收工回顧；出錯不影響一般提醒
   try {
     await sendEveningReview();

@@ -27,3 +27,15 @@ test('ics: 定時事件有提前鬧鈴，整天事件早上 9 點響', () => {
   const allDay = buildCalendar([{ id: 'b', type: 'task', content: '繳費', due_date: '2026-10-23T16:00:00Z' }]);
   assert.match(allDay, /TRIGGER:PT9H/);
 });
+
+test('pickExpiredVoice: 只挑超過保存天數的語音檔，路徑帶 voice/ 前綴', () => {
+  const now = Date.parse('2026-10-23T00:00:00Z');
+  const day = 24 * 3600 * 1000;
+  const files = [
+    { name: 'old.m4a', created_at: new Date(now - 9 * day).toISOString() },
+    { name: 'new.m4a', created_at: new Date(now - 2 * day).toISOString() },
+    { name: 'edge.m4a', created_at: new Date(now - 8 * day + 1000).toISOString() },
+    { name: '.emptyFolderPlaceholder' },
+  ];
+  assert.deepEqual(_test.pickExpiredVoice(files, now, 8), ['voice/old.m4a']);
+});

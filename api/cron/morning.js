@@ -1,6 +1,7 @@
 const { pushMessage } = require('../../lib/line');
 const { handleMorning } = require('../../lib/commands');
 const { cronAuth } = require('../../lib/cron-auth');
+const { loadModules, isOn } = require('../../lib/modules');
 const { getStaleHeartbeats } = require('../../lib/heartbeat');
 
 // 提醒輪詢（api/cron/remind）是靠外部排程服務戳的，不在 vercel.json 裡，
@@ -25,6 +26,8 @@ module.exports = async function handler(req, res) {
       );
     }
 
+    await loadModules();
+    if (!isOn('briefing')) return res.status(200).json({ ok: true, skipped: '早安簡報沒有開啟' });
     const digest = await handleMorning();
     await pushMessage(digest);
     return res.status(200).json({ ok: true });

@@ -7,6 +7,7 @@
 // 後台密碼不受影響。
 const supabase = require('../lib/supabase');
 const { buildCalendar } = require('../lib/ics');
+const { loadModules, isOn } = require('../lib/modules');
 
 // 往前保留一段時間，這樣剛過去的行程在日曆上還看得到
 const PAST_DAYS = Number(process.env.CALENDAR_PAST_DAYS || 90);
@@ -20,6 +21,10 @@ module.exports = async function handler(req, res) {
   const expected = process.env.CALENDAR_TOKEN;
   // 沒設定就整個關掉。預設開放等於把所有行程公開在網路上。
   if (!expected) return res.status(404).send('Not found');
+
+  // 「萬年曆與行事曆訂閱」模組關掉就整個關閉這個網址
+  await loadModules();
+  if (!isOn('calendar')) return res.status(404).send('Not found');
 
   const token = req.query.token;
   if (token !== expected) return res.status(404).send('Not found');

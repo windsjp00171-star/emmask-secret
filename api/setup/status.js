@@ -159,6 +159,31 @@ module.exports = async function handler(req, res) {
     });
   }
 
+  // 功能模組：讀目前的開關與說明（GET）、儲存選擇（POST，帶 enabled 陣列或 preset 名稱）。
+  // 放在這支檔案裡是因為 Vercel 免費方案最多只能有 12 個 Serverless Functions，已經用滿了。
+  if (req.query.action === 'modules') {
+    const mods = require('../../lib/modules');
+    try {
+      if (req.method === 'POST') {
+        const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+        const ids = body.preset && mods.PRESETS[body.preset] ? mods.PRESETS[body.preset].ids : body.enabled;
+        if (!Array.isArray(ids)) return res.status(400).json({ error: '請帶 enabled（功能代號陣列）或 preset' });
+        await mods.saveModules(ids);
+      } else if (req.method !== 'GET') {
+        return res.status(405).json({ error: 'Method not allowed' });
+      }
+      await mods.loadModules(true);
+      return res.status(200).json({
+        ...mods.state(),
+        modules: mods.MODULES,
+        groups: mods.GROUPS,
+        presets: Object.entries(mods.PRESETS).map(([id, p]) => ({ id, name: p.name, desc: p.desc, ids: p.ids })),
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (req.method === 'GET' && req.query.action === 'schema') {
     const sql = fs.readFileSync(path.join(__dirname, '../../supabase/schema.sql'), 'utf8');
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');

@@ -6,6 +6,7 @@ const { extractEventFromImage } = require('../lib/vision');
 const { transcribeAudio, withHeard, MAX_SECONDS } = require('../lib/voice');
 const { uploadImage } = require('../lib/storage');
 const { isStoreImageMode, setState } = require('../lib/botstate');
+const { loadModules, isOn, disabledReply } = require('../lib/modules');
 
 // 還沒設定 LINE_USER_ID（剛部署好）時，直接告訴對方自己的 userId，
 // 並記下來讓設定精靈頁面可以一鍵複製，不用再去翻 LINE Developers。
@@ -102,8 +103,15 @@ const handler = async function (req, res) {
           return;
         }
 
+        await loadModules();
+
         // 圖片訊息：一律先存檔留底，再決定要不要跑 AI 辨識
         if (event.message.type === 'image') {
+          // 「傳圖辨識與相簿」沒開：不存檔、不辨識，直接說明
+          if (!isOn('album')) {
+            await replyMessage(replyToken, disabledReply('album'));
+            return;
+          }
           const { base64, contentType } = await getImageBase64(event.message.id);
           const imagePath = await uploadImage(base64, contentType);
 
@@ -122,6 +130,10 @@ const handler = async function (req, res) {
 
         // 服事表 PDF（會覆蓋那幾個主日）。讀表要十幾秒，先回覆再推播結果。
         if (event.message.type === 'file' && /\.pdf$/i.test(event.message.fileName || '')) {
+          if (!isOn('worship')) {
+            await replyMessage(replyToken, disabledReply('worship'));
+            return;
+          }
           await replyMessage(replyToken, '📄 收到服事表，解析中…');
           try {
             const { base64 } = await getImageBase64(event.message.id);

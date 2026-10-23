@@ -2,6 +2,7 @@ const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
 const { getWeeklyActivity } = require('../../lib/github');
 const { cronAuth } = require('../../lib/cron-auth');
+const { loadModules, isOn } = require('../../lib/modules');
 const { writeSummary } = require('../../lib/summarize');
 
 module.exports = async function handler(req, res) {
@@ -9,6 +10,9 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+
+  await loadModules();
+  if (!isOn('weekly')) return res.status(200).json({ ok: true, skipped: '週報沒有開啟' });
 
   try {
     const now = new Date();
@@ -47,20 +51,23 @@ module.exports = async function handler(req, res) {
     lines.push(`✅ 完成了 ${done ? done.length : 0} 件事`);
     lines.push(`📌 待辦積壓：${pending ? pending.length : 0} 件`);
 
+    // 專案進度（停滯專案、各專案本週更新、GitHub 動態）只有「專案進度」模組開著才放進週報
+    const projectsOn = isOn('projects');
+
     // Stalled projects (no update in 7 days)
-    const { data: recentUpdates } = await supabase
+    const { data: recentUpdates } = projectsOn ? await supabase
       .from('notes')
       .select('project')
       .eq('type', 'project_update')
       .not('project', 'is', null)
-      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) : { data: [] };
 
     const activeProjects = new Set((recentUpdates || []).map(r => r.project));
-    const { data: allProjects } = await supabase
+    const { data: allProjects } = projectsOn ? await supabase
       .from('notes')
       .select('project')
       .eq('type', 'project_update')
-      .not('project', 'is', null);
+      .not('project', 'is', null) : { data: [] };
 
     const knownProjects = [...new Set((allProjects || []).map(r => r.project))];
     const stalledProjects = knownProjects.filter(p => !activeProjects.has(p));
@@ -70,7 +77,7 @@ module.exports = async function handler(req, res) {
     }
 
     // Per-project summary this week
-    if (allUpdates && allUpdates.length > 0) {
+    if (projectsOn && allUpdates && allUpdates.length > 0) {
       const byProject = {};
       allUpdates.forEach(item => {
         if (!byProject[item.project]) byProject[item.project] = [];
@@ -85,7 +92,7 @@ module.exports = async function handler(req, res) {
     }
 
     // GitHub weekly activity
-    const ghActivity = await getWeeklyActivity(7);
+    const ghActivity = projectsOn ? await getWeeklyActivity(7) : [];
     if (ghActivity && ghActivity.length > 0) {
       lines.push('\n📦 GitHub 本週動態');
       ghActivity.forEach(repo => {

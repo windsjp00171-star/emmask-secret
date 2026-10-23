@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@line/bot-sdk": "^9.4.0",
-    "@supabase/supabase-js": "^2.49.4"
+    "@supabase/supabase-js": "^2.49.4",
+    "ffmpeg-static": "^5.2.0"
   }
 }

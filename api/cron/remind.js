@@ -1,6 +1,6 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
-const { buildReminderFlex, nextRecurDue } = require('../../lib/commands');
+const { buildReminderFlex, nextRecurDue, sendEveningReview, buildVoiceFor } = require('../../lib/commands');
 const { cronAuth } = require('../../lib/cron-auth');
 const { recordHeartbeat } = require('../../lib/heartbeat');
 const { sendWorshipEveReminder } = require('../../lib/worship');
@@ -17,6 +17,13 @@ module.exports = async function handler(req, res) {
     await sendWorshipEveReminder();
   } catch (err) {
     console.error('Worship eve reminder error:', err);
+  }
+
+  // 晚上收工回顧；出錯不影響一般提醒
+  try {
+    await sendEveningReview();
+  } catch (err) {
+    console.error('Evening review error:', err);
   }
 
   try {
@@ -49,7 +56,8 @@ module.exports = async function handler(req, res) {
     }
 
     for (const note of dueNotes) {
-      await pushMessage(buildReminderFlex(note));
+      const voice = await buildVoiceFor(note).catch(() => null);
+      await pushMessage(voice ? [buildReminderFlex(note), voice] : buildReminderFlex(note));
       if (note.recur) {
         // 重複提醒：排下一次、保持未提醒狀態
         const next = nextRecurDue(note.recur, note.due_date);

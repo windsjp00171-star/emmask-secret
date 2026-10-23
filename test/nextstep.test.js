@@ -65,3 +65,8 @@ test('pickStaleTasks: 只挑沒日期、超過 3 天的，最舊的先、最多 
   const out = pickStaleTasks([mk('a', 10), mk('b', 5), mk('c', 1), mk('d', 20, { due_date: 'x' }), mk('e', 30, { recur: 'daily' }), mk('f', 4), mk('g', 6)], now);
   assert.deepEqual(out.map(n => n.id), ['a', 'g', 'b']);
 });
+
+test('buildNextStepRows: 有時間的卡片多一顆語音提醒；已開啟就不再給', () => {
+  assert.match(JSON.stringify(buildNextStepRows({ id: 'n1', type: 'reminder', due_date: 'x' })), /act=voice&id=n1/);
+  assert.doesNotMatch(JSON.stringify(buildNextStepRows({ id: 'n1', type: 'reminder', due_date: 'x', meta: { voice: true } })), /act=voice/);
+});

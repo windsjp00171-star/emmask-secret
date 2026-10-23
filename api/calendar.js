@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
 
   const { data, error } = await supabase
     .from('notes')
-    .select('id, type, project, content, raw_text, due_date')
+    .select('id, type, project, content, raw_text, due_date, remind_lead_minutes')
     .in('type', ['task', 'reminder'])
     .eq('is_done', false)
     .not('due_date', 'is', null)

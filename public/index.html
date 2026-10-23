@@ -35,6 +35,13 @@
     /* 專案膠囊 */
     .list-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .project-tags { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+    /* 手機：分頁只放 待辦／服事表／詩歌庫，其餘收進「更多」，不再被切掉 */
+    .tab-more { display: none; }
+    @media (max-width: 640px) {
+      .tab-more { display: block; }
+      .tabbar:not(.show-extra) .tab-extra { display: none; }
+      .tabbar.show-extra { flex-wrap: wrap; overflow-x: visible; -webkit-mask-image: none; mask-image: none; }
+    }
     @media (min-width: 641px) { .project-tags { flex-wrap: wrap; overflow: visible; } }
     @media (max-width: 640px) { .project-tags { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); padding-right: 24px; } }
     .project-tags::-webkit-scrollbar { display: none; }
@@ -364,10 +371,11 @@
       <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">待辦</button>
       <a href="#" class="tab-btn" data-tour="worship-link" onclick="event.preventDefault(); goPage('worship.html')">服事表</a>
       <button class="tab-btn" id="tabBtn-songs" onclick="switchTab('songs')">詩歌庫</button>
-      <button class="tab-btn" id="tabBtn-order" onclick="switchTab('order')">敬拜順序</button>
-      <button class="tab-btn" id="tabBtn-meetings" onclick="switchTab('meetings')">會議記錄</button>
-      <button class="tab-btn" id="tabBtn-links" onclick="switchTab('links')">收藏</button>
-      <button class="tab-btn" id="tabBtn-album" onclick="switchTab('album')">相簿</button>
+      <button class="tab-btn tab-more" id="tabMore" aria-expanded="false" onclick="toggleMoreTabs()">更多</button>
+      <button class="tab-btn tab-extra" id="tabBtn-order" onclick="switchTab('order')">敬拜順序</button>
+      <button class="tab-btn tab-extra" id="tabBtn-meetings" onclick="switchTab('meetings')">會議記錄</button>
+      <button class="tab-btn tab-extra" id="tabBtn-links" onclick="switchTab('links')">收藏</button>
+      <button class="tab-btn tab-extra" id="tabBtn-album" onclick="switchTab('album')">相簿</button>
     </nav>
   </header>
 
@@ -517,9 +525,19 @@ let currentTab = 'dashboard';
 const loadedTabs = new Set(['dashboard']);
 let hashTabApplied = false;
 
+const EXTRA_TABS = ['order', 'meetings', 'links', 'album'];
+function setMoreTabs(open) {
+  document.getElementById('tabbar').classList.toggle('show-extra', open);
+  const b = document.getElementById('tabMore');
+  b.setAttribute('aria-expanded', String(open));
+  b.textContent = open ? '收起' : '更多';
+}
+function toggleMoreTabs() { setMoreTabs(!document.getElementById('tabbar').classList.contains('show-extra')); }
+
 function switchTab(name) {
   if (!TABS.includes(name)) name = 'dashboard';
   currentTab = name;
+  setMoreTabs(EXTRA_TABS.includes(name)); // 目前分頁在「更多」裡就保持展開，才看得到底線在哪
   TABS.forEach(t => {
     document.getElementById('panel-' + t).style.display = t === name ? 'block' : 'none';
     document.getElementById('tabBtn-' + t).classList.toggle('active', t === name);
@@ -893,7 +911,9 @@ function noteRow(n) {
     const k = taipeiKey(n.due_date), today = todayKey();
     const day = k === today ? '今天' : k === addDaysKey(today, 1) ? '明天' : mdw(n.due_date);
     // 小時鐘：標明這是到期時間（照建立時間分組時才不會跟「今天建立」搞混）
-    due = `<svg class="icon due-ic" aria-label="到期"><use href="#i-clock"/></svg>${day} ${hm(n.due_date)}`;
+    // 整天的項目（會議議程、只給日期的提醒）存成 00:00，顯示「00:00」會誤以為是半夜的事，所以不顯示時間
+    const t = hm(n.due_date);
+    due = `<svg class="icon due-ic" aria-label="到期"><use href="#i-clock"/></svg>${day}${t === '00:00' || t === '24:00' ? '' : ' ' + t}`;
     if (n.remind_lead_minutes != null) due += `・提前${formatLeadMinutes(n.remind_lead_minutes)}`;
     if (!n.is_done && isActionable(n) && new Date(n.due_date) < new Date()) due = `<span class="late">${due}</span>`;
   }
@@ -1968,7 +1988,7 @@ if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
 Tour.mount({
   anchor: 'header',
   steps: [
-    { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、服事表、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上可以左右滑。' },
+    { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、服事表、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上先顯示常用的三個，其他在「更多」裡。' },
     { target: 'worship-link', title: '服事表', text: '主日服事表在第二個分頁，點進去可以看整季班表。' },
     { target: 'stats', title: '總覽', text: '一眼看到還有幾件沒做完、有幾件已經過期（紅色）。\n點紅色的「過期」只看過期的事，再點一次回到全部。', before: () => switchTab('dashboard') },
     { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },

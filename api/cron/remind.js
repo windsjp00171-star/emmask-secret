@@ -1,6 +1,6 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
-const { buildReminderFlex, nextRecurDue } = require('../../lib/commands');
+const { buildReminderFlex, nextRecurDue, sendEveningReview } = require('../../lib/commands');
 const { cronAuth } = require('../../lib/cron-auth');
 const { recordHeartbeat } = require('../../lib/heartbeat');
 const { sendWorshipEveReminder } = require('../../lib/worship');
@@ -17,6 +17,13 @@ module.exports = async function handler(req, res) {
     await sendWorshipEveReminder();
   } catch (err) {
     console.error('Worship eve reminder error:', err);
+  }
+
+  // 晚上收工回顧；出錯不影響一般提醒
+  try {
+    await sendEveningReview();
+  } catch (err) {
+    console.error('Evening review error:', err);
   }
 
   try {

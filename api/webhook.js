@@ -73,7 +73,7 @@ const handler = async function (req, res) {
 
         // Flex 按鈕（完成／延後／改明天）
         if (event.type === 'postback') {
-          const reply = await handlePostback(event.postback.data);
+          const reply = await handlePostback(event.postback.data, event.postback.params);
           if (reply) await replyMessage(replyToken, reply);
           return;
         }

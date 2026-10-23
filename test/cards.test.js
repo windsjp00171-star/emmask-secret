@@ -101,3 +101,16 @@ test('分享：沒設 LIFF_ID 傳純文字；設了就走 LIFF 網址，內容�
     assert.ok(cards.shareButton(many).action.uri.length <= 1000);
   } finally { delete process.env.LIFF_ID; }
 });
+
+test('海報：有吉祥物網址就把圖放在右邊，沒有就維持原樣', () => {
+  delete process.env.MASCOT_URL; delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  assert.equal(cards.poster({ big: 3 }).layout, 'vertical');
+  process.env.VERCEL_PROJECT_PRODUCTION_URL = 'example.vercel.app';
+  try {
+    const p = cards.poster({ kicker: 'k', big: 3, sub: 's' });
+    assert.equal(p.layout, 'horizontal');
+    assert.equal(p.contents[1].url, 'https://example.vercel.app/img/mascot.png');
+    process.env.MASCOT_URL = 'https://cdn.example.com/m.png';
+    assert.equal(cards.poster({ big: 3 }).contents[1].url, 'https://cdn.example.com/m.png');
+  } finally { delete process.env.MASCOT_URL; delete process.env.VERCEL_PROJECT_PRODUCTION_URL; }
+});

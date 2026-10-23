@@ -4,7 +4,7 @@ const path = require('path');
 const { loadModules } = require('../../lib/modules');
 
 // 三個分頁，圖在 assets/richmenu/（由 tools/make_richmenu.py 產生）。
-// 每個分頁 2×4 格，上面一條是分頁列；格子的順序要和圖上一致。
+// 每個分頁 2×4 格（2500×1686，格子大、字大），上面一條是分頁列；格子的順序要和圖上一致。
 // 關掉的功能格子仍會顯示，點了小秘書會回「這個功能目前沒有開啟」。
 const key = (t) => ({ type: 'postback', data: 'act=noop', inputOption: 'openKeyboard', fillInText: t });
 const say = (t) => ({ type: 'message', text: t });
@@ -24,17 +24,17 @@ function tabsFor(host, token) {
 
 function menuDef(i, cells, name) {
   const TAB_W = [833, 834, 833];
-  const BAR = 130;
+  const BAR = 200;
   const areas = TAB_W.map((w, t) => ({
     bounds: { x: TAB_W.slice(0, t).reduce((a, b) => a + b, 0), y: 0, width: w, height: BAR },
     action: t === i ? { type: 'postback', data: 'act=noop' }
       : { type: 'richmenuswitch', richMenuAliasId: aliasOf(t), data: `tab=${TAB_IDS[t]}` },
   }));
-  const cw = 625, ch = Math.floor((843 - BAR) / 2);
+  const cw = 625, ch = Math.floor((1686 - BAR) / 2);
   cells.forEach((action, k) => {
     areas.push({ bounds: { x: (k % 4) * cw, y: BAR + Math.floor(k / 4) * ch, width: cw, height: ch }, action });
   });
-  return { size: { width: 2500, height: 843 }, selected: i === 0, name, chatBarText: '交給小秘書 ▾', areas };
+  return { size: { width: 2500, height: 1686 }, selected: i === 0, name, chatBarText: '交給小秘書 ▾', areas };
 }
 
 function lineRequest(method, path, body, isBuffer) {

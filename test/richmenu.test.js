@@ -14,10 +14,10 @@ test('三個分頁各 8 格，每個分頁共 11 個區域（3 個分頁鈕＋8 
   });
 });
 
-test('所有區域都在 2500×843 之內，彼此不重疊', () => {
+test('所有區域都在 2500×1686 之內，彼此不重疊', () => {
   tabs.forEach((cells, i) => {
     const areas = menuDef(i, cells, 'n').areas.map(a => a.bounds);
-    areas.forEach(b => { assert.ok(b.x >= 0 && b.y >= 0 && b.x + b.width <= 2500 && b.y + b.height <= 843); });
+    areas.forEach(b => { assert.ok(b.x >= 0 && b.y >= 0 && b.x + b.width <= 2500 && b.y + b.height <= 1686); });
     for (let a = 0; a < areas.length; a++) for (let b = a + 1; b < areas.length; b++) {
       const p = areas[a], q = areas[b];
       assert.ok(p.x + p.width <= q.x || q.x + q.width <= p.x || p.y + p.height <= q.y || q.y + q.height <= p.y);

@@ -4,9 +4,9 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-W, H, BAR = 2500, 843, 130
+W, H, BAR = 2500, 1686, 200
 COLS, ROWS = 4, 2
-GAP = 14
+GAP = 22
 DEEP, GREEN, TINT, BG, INK, SOFT = '#16513d', '#2e9d63', '#e2f6e9', '#f1f6f3', '#1b2420', '#6b7a72'
 TABS = ['交辦', '查看', '更多']
 # 每格：(emoji, 文字, 是不是會再跳出下一步的「›」, 是否為主要格子)
@@ -22,7 +22,7 @@ cjk = lambda s: ImageFont.truetype('/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc
 emoji = ImageFont.truetype('/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf', 109)
 
 
-def draw_emoji(img, ch, cx, cy, size=104):
+def draw_emoji(img, ch, cx, cy, size=220):
     tmp = Image.new('RGBA', (136, 128), (0, 0, 0, 0))
     ImageDraw.Draw(tmp).text((0, 0), ch, font=emoji, embedded_color=True)
     tmp = tmp.crop(tmp.getbbox() or (0, 0, 1, 1)).resize((size, int(size * tmp.height / max(tmp.width, 1))))
@@ -36,26 +36,26 @@ def build(tab):
     for i, name in enumerate(TABS):
         on = i == tab
         d.rectangle([i * tw, 0, (i + 1) * tw - 1, BAR], fill=DEEP if on else '#dfeae4')
-        f = cjk(58)
+        f = cjk(88)
         w = d.textlength(name, font=f)
-        d.text((i * tw + (tw - w) / 2, (BAR - 58) / 2 - 6), name, font=f, fill='#ffffff' if on else DEEP)
+        d.text((i * tw + (tw - w) / 2, (BAR - 88) / 2 - 8), name, font=f, fill='#ffffff' if on else DEEP)
     cw = (W - GAP * (COLS + 1)) // COLS
     ch = (H - BAR - GAP * (ROWS + 1)) // ROWS
     for k, (em, label, arrow, primary) in enumerate(CELLS[tab]):
         r, c = divmod(k, COLS)
         x = GAP + c * (cw + GAP)
         y = BAR + GAP + r * (ch + GAP)
-        d.rounded_rectangle([x, y, x + cw, y + ch], 36, fill=GREEN if primary else '#ffffff')
-        draw_emoji(img, em, x + cw // 2, y + ch // 2 - 48)
-        f = cjk(60)
+        d.rounded_rectangle([x, y, x + cw, y + ch], 56, fill=GREEN if primary else '#ffffff')
+        draw_emoji(img, em, x + cw // 2, y + ch // 2 - 90)
+        f = cjk(104)
         w = d.textlength(label, font=f)
-        total = w + (46 if arrow else 0)
+        total = w + (80 if arrow else 0)
         tx = x + (cw - total) / 2
         col = '#ffffff' if primary else INK
-        d.text((tx, y + ch - 112), label, font=f, fill=col)
+        d.text((tx, y + ch - 200), label, font=f, fill=col)
         if arrow:  # 字型沒有「›」，用線條畫
-            ax, ay = tx + w + 14, y + ch - 82
-            d.line([(ax, ay - 16), (ax + 14, ay), (ax, ay + 16)], fill=GREEN if not primary else col, width=7, joint='curve')
+            ax, ay = tx + w + 22, y + ch - 142
+            d.line([(ax, ay - 28), (ax + 24, ay), (ax, ay + 28)], fill=GREEN if not primary else col, width=12, joint='curve')
     return img
 
 

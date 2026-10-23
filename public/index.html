@@ -616,7 +616,33 @@ async function sendText() {
 }
 
 // 待辦上方一列「下一次服事」，點了到服事表；沒排到或沒設定名字就不顯示
+// ── 功能模組：設定精靈裡沒勾的功能，後台對應的分頁和區塊就不顯示 ──
+// 還沒讀到設定（或讀不到）就當作全開，不會因為網路問題把分頁藏起來。
+let modulesOn = null;
+function moduleOn(id) { return !modulesOn || modulesOn.has(id); }
+async function applyModules() {
+  if (modulesOn) return;
+  try {
+    const res = await fetch('/api/setup/status?action=modules', { headers: { 'x-dashboard-token': token } });
+    if (!res.ok) return;
+    modulesOn = new Set((await res.json()).enabled);
+  } catch (e) { return; }
+  const show = (el, on) => { if (el) el.style.display = on ? '' : 'none'; };
+  show(document.querySelector('[data-tour="worship-link"]'), moduleOn('worship'));
+  show(document.getElementById('tabBtn-songs'), moduleOn('songs'));
+  show(document.getElementById('tabBtn-order'), moduleOn('songs'));
+  show(document.getElementById('tabBtn-meetings'), moduleOn('meetings'));
+  show(document.getElementById('tabBtn-links'), moduleOn('links'));
+  show(document.getElementById('tabBtn-album'), moduleOn('album'));
+  show(document.querySelector('[data-tour="view-tabs"]'), moduleOn('calendar'));
+  // 「更多」收著的四個分頁都被關掉時，「更多」按鈕也不用留
+  const anyExtra = moduleOn('songs') || moduleOn('meetings') || moduleOn('links') || moduleOn('album');
+  const more = document.getElementById('tabMore');
+  if (more && !anyExtra) more.style.setProperty('display', 'none', 'important');
+}
+
 async function loadNextDuty() {
+  if (!moduleOn('worship')) { document.getElementById('nextDuty').hidden = true; return; }
   const el = document.getElementById('nextDuty');
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -728,6 +754,7 @@ async function getJSON(url) {
 
 async function loadNotes() {
   if (!token) return; // 還沒登入時，不要讓自動刷新的 60 秒計時器一直跳密碼錯誤
+  await applyModules();
   loadNextDuty();
   const data = await api('GET');
   if (!data) return;

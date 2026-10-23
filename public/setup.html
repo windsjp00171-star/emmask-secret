@@ -51,6 +51,11 @@
     .card .body { margin-top: 10px; font-size: 14px; }
     .card .body p + p, .card .body p + ul, .card .body ul + p { margin-top: 8px; }
     .card ul { padding-left: 20px; }
+    .mod-list { margin-top: 12px; }
+    .mod-group { margin-top: 10px; }
+    .mod-group h3 { font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+    .mod-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 4px; border-top: 1px solid var(--line); cursor: pointer; }
+    .mod-item input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
     .card li { margin: 2px 0; }
     .muted { color: var(--muted); font-size: 13px; }
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
@@ -92,7 +97,7 @@
   </div></header>
   <main>
     <div class="progress">
-      <div id="progressText">正在檢查 8 個項目…</div>
+      <div id="progressText">正在檢查 9 個項目…</div>
       <div class="progress-bar"><div id="progressBar" style="width:0"></div></div>
       <div class="row"><button class="btn btn-ghost" onclick="load()">重新檢查</button>
         <a class="btn btn-ghost" href="/index.html">前往後台 →</a></div>
@@ -104,6 +109,8 @@
 <script>
 let token = '';
 let status = null;
+let mod = null;          // 功能模組的說明與目前開關（從 /api/setup/status?action=modules 來）
+let modSel = new Set();  // 畫面上目前勾的功能代號
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -115,8 +122,12 @@ function doLogin() {
   load();
 }
 
-async function api(path, method = 'GET') {
-  const res = await fetch(path, { method, headers: { 'x-dashboard-token': token } });
+async function api(path, method = 'GET', body = null) {
+  const res = await fetch(path, {
+    method,
+    headers: { 'x-dashboard-token': token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
   if (res.status === 401) throw new Error('密碼不對，請確認和 Vercel 上的 DASHBOARD_TOKEN 一樣');
   const ct = res.headers.get('content-type') || '';
   const data = ct.includes('json') ? await res.json() : await res.text();
@@ -133,6 +144,7 @@ async function load() {
     document.getElementById('loginMsg').textContent = err.message;
     return;
   }
+  try { mod = await api('/api/setup/status?action=modules'); modSel = new Set(mod.enabled); } catch (e) { mod = null; }
   try { localStorage.setItem('dashboardToken', token); } catch (e) { /* 私密模式 */ }
   document.getElementById('login').style.display = 'none';
   document.getElementById('main').style.display = 'block';
@@ -234,11 +246,69 @@ function render() {
     `<div class="row"><span class="mono">${esc(rm.url)}</span>${copyBtn(rm.url || '')}</div>` +
     (s.env.optional.find(e => e.key === 'CRON_SECRET').ok ? '' : '<p class="muted">建議另外設定 CRON_SECRET，別人才不能亂打這個網址。</p>')]);
 
+  // 9. 功能模組
+  if (mod) {
+    steps.push(['功能模組（你要用哪些功能）', mod.configured ? 'ok' : 'todo', modulesBody()]);
+  }
+
   const done = steps.filter(x => x[1] === 'ok').length;
   document.getElementById('progressText').innerHTML = `已完成 <b>${done}</b> / ${steps.length} 項` +
     (done === steps.length ? '　🎉 全部完成，去 LINE 跟小秘書說說話吧！' : '');
   document.getElementById('progressBar').style.width = `${Math.round(done / steps.length * 100)}%`;
   document.getElementById('cards').innerHTML = steps.map((x, i) => card(i + 1, x[0], x[1], x[2])).join('');
+}
+
+function modulesBody() {
+  const presets = mod.presets.map(p =>
+    `<button class="btn btn-ghost" onclick="pickPreset('${p.id}')" title="${esc(p.desc)}">${esc(p.name)}</button>`).join('');
+  const groups = mod.groups.map(g => {
+    const items = mod.modules.filter(m => m.group === g).map(m =>
+      `<label class="mod-item"><input type="checkbox" data-mod="${m.id}" ${modSel.has(m.id) ? 'checked' : ''} onchange="toggleMod('${m.id}', this.checked)">
+        <span><b>${esc(m.name)}</b><br><span class="muted">${esc(m.desc)}</span></span></label>`).join('');
+    return items ? `<div class="mod-group"><h3>${esc(g)}</h3>${items}</div>` : '';
+  }).join('');
+  return `<p>小秘書功能很多，但不用全開。<b>沒勾的功能，對應的指令、按鈕和自動訊息都不會出現</b>，之後想用再回來勾就好。待辦、提醒、筆記、今天／本週、搜尋、語音輸入這些基本功能一直都在。</p>
+    <p class="muted">不確定怎麼選？先按一個套餐，再微調：</p>
+    <div class="row">${presets}</div>
+    <div class="mod-list">${groups}</div>
+    <div class="row"><button class="btn btn-primary" onclick="saveModules(this)">儲存選擇</button></div>
+    <p class="msg" id="modMsg"></p>`;
+}
+
+function toggleMod(id, on) {
+  if (on) modSel.add(id); else modSel.delete(id);
+}
+
+function pickPreset(id) {
+  const p = mod.presets.find(x => x.id === id);
+  if (!p) return;
+  modSel = new Set(p.ids);
+  document.querySelectorAll('input[data-mod]').forEach(box => { box.checked = modSel.has(box.dataset.mod); });
+  const msg = document.getElementById('modMsg');
+  msg.className = 'msg muted';
+  msg.textContent = `已選「${p.name}」：${p.desc}。按「儲存選擇」才會生效。`;
+}
+
+async function saveModules(btn) {
+  btn.disabled = true;
+  const msg = document.getElementById('modMsg');
+  try {
+    await api('/api/setup/status?action=modules', 'POST', { enabled: [...modSel] });
+    msg.className = 'msg ok-text';
+    msg.textContent = '✓ 已儲存。';
+    // 圖文選單的按鈕會跟著功能變，順手重建一次
+    if (status && status.line && status.line.ok) {
+      try {
+        const res = await fetch(`/api/setup/richmenu?token=${encodeURIComponent(token)}`);
+        const r = await res.json();
+        msg.textContent = r.ok ? '✓ 已儲存，圖文選單也更新好了（LINE 重新整理後看得到）。' : `✓ 已儲存，但圖文選單沒更新成功：${r.error}`;
+      } catch (e) { /* 圖文選單之後還能手動重建 */ }
+    }
+    setTimeout(load, 1200);
+  } catch (err) {
+    msg.className = 'msg bad-text'; msg.textContent = err.message;
+  }
+  btn.disabled = false;
 }
 
 async function setWebhook(btn) {

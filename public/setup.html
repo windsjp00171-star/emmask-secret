@@ -251,6 +251,17 @@ function render() {
     steps.push(['功能模組（你要用哪些功能）', mod.configured ? 'ok' : 'todo', modulesBody()]);
   }
 
+  // 10. 備份與交接（任何時候都能下載，不算進完成進度的必要項）
+  const dl = (fmt) => `/api/dashboard/notes?export=${fmt}&token=${encodeURIComponent(token)}`;
+  steps.push(['備份與交接（把資料帶走）', 'ok',
+    `<p>小秘書的資料都在你自己的資料庫裡，隨時可以整份下載。換人接手、換系統、或只是想留一份，都從這裡拿。</p>
+     <div class="row">
+       <a class="btn btn-primary" href="${dl('html')}" download>下載離線閱讀檔（雙擊就能看）</a>
+       <a class="btn btn-ghost" href="${dl('csv')}" download>下載 Excel 表格（CSV）</a>
+       <a class="btn btn-ghost" href="${dl('json')}" download>下載完整資料（JSON）</a>
+     </div>
+     <p class="muted">離線閱讀檔不需要網路、不需要帳號，存在電腦或隨身碟，雙擊用瀏覽器開就能搜尋、翻看全部待辦、提醒與筆記。交接給不會寫程式的人，請一起給他專案裡的「docs/HANDOVER.md」。圖片檔案不在這份備份裡，要另外到 Supabase 的 note-images 下載。</p>`]);
+
   const done = steps.filter(x => x[1] === 'ok').length;
   document.getElementById('progressText').innerHTML = `已完成 <b>${done}</b> / ${steps.length} 項` +
     (done === steps.length ? '　🎉 全部完成，去 LINE 跟小秘書說說話吧！' : '');

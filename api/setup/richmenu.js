@@ -1,11 +1,12 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const { loadModules } = require('../../lib/modules');
+const { loadModules, isOn } = require('../../lib/modules');
+const { composeTab } = require('../../lib/richmenu-compose');
 
 // 三個分頁，圖在 assets/richmenu/（由 tools/make_richmenu.py 產生）。
 // 每個分頁 2×4 格（2500×1686，格子大、字大），上面一條是分頁列；格子的順序要和圖上一致。
-// 關掉的功能格子仍會顯示，點了小秘書會回「這個功能目前沒有開啟」。
+// 關掉的功能，那一格會從圖上拿掉、後面的格子往前補（lib/richmenu-compose.js）。
 const key = (t) => ({ type: 'postback', data: 'act=noop', inputOption: 'openKeyboard', fillInText: t });
 const say = (t) => ({ type: 'message', text: t });
 const TAB_IDS = ['a', 'b', 'c'];
@@ -20,6 +21,18 @@ function tabsFor(host, token) {
     [say('詩歌庫'), say('敬拜順序'), say('主題清單'), say('專案'),
       say('指令'), say('本月花費'), say('語音測試'), { type: 'uri', label: '設定', uri: `https://${host}/setup.html` }],
   ];
+}
+
+// 每一格屬於哪個功能模組（null＝核心功能，永遠有）；順序同 tabsFor
+const TAB_MODS = [
+  [null, null, null, null, 'expenses', 'album', 'links', 'meetings'],
+  [null, null, null, 'calendar', null, 'worship', 'weekly', null],
+  ['songs', 'songs', 'themes', 'projects', null, 'expenses', 'voice', null],
+];
+
+// 目前開著的格子編號
+function keepFor(tab) {
+  return TAB_MODS[tab].map((m, k) => (m === null || isOn(m) ? k : -1)).filter(k => k >= 0);
 }
 
 function menuDef(i, cells, name) {
@@ -77,7 +90,10 @@ module.exports = async function handler(req, res) {
 
   try {
     const tabs = tabsFor(host, process.env.DASHBOARD_TOKEN);
-    const images = [1, 2, 3].map(n => fs.readFileSync(path.join(__dirname, `../../assets/richmenu/tab${n}.png`)));
+    // 全部開著就直接用原圖；有關掉的功能才重新排格子
+    const keeps = [0, 1, 2].map(keepFor);
+    const originals = [1, 2, 3].map(n => fs.readFileSync(path.join(__dirname, `../../assets/richmenu/tab${n}.png`)));
+    const images = originals.map((png, i) => (keeps[i].length === 8 ? png : composeTab(png, keeps[i])));
 
     // 舊的選單與別名先清掉（別名綁著舊選單，不先刪新的別名會建不起來）
     const created = [];
@@ -86,7 +102,7 @@ module.exports = async function handler(req, res) {
     for (let i = 0; i < 3; i++) await lineRequest('DELETE', `/v2/bot/richmenu/alias/${aliasOf(i)}`);
 
     for (let i = 0; i < 3; i++) {
-      const createRes = await lineRequest('POST', '/v2/bot/richmenu', Buffer.from(JSON.stringify(menuDef(i, tabs[i], `EmmArk 分頁選單 ${TAB_IDS[i].toUpperCase()}`))));
+      const createRes = await lineRequest('POST', '/v2/bot/richmenu', Buffer.from(JSON.stringify(menuDef(i, keeps[i].map(k => tabs[i][k]), `EmmArk 分頁選單 ${TAB_IDS[i].toUpperCase()}`))));
       if (createRes.status !== 200) throw new Error(`Create failed: ${JSON.stringify(createRes.body)}`);
       const id = createRes.body.richMenuId;
       created.push(id);
@@ -109,4 +125,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports._test = { tabsFor, menuDef, aliasOf };
+module.exports._test = { tabsFor, menuDef, aliasOf, keepFor, TAB_MODS };

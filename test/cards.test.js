@@ -46,3 +46,21 @@ test('存檔確認卡：標籤＋大字主角＋細節，撤銷鈕還在', () =>
   assert.equal(body[2].text, '明天 09:00');
   assert.ok(JSON.stringify(card.footer).includes('act=delnote&id=n1'));
 });
+
+test('提醒卡：只有日期時，把文字裡的時段補在日期後面；有幾點就不重複', () => {
+  const { buildReminderFlex } = require('../lib/commands');
+  const timeLine = (n) => JSON.stringify(buildReminderFlex(n).contents.body.contents);
+  const dateOnly = new Date('2026-10-23T16:00:00Z').toISOString(); // 台北 10/24 00:00
+  assert.ok(timeLine({ id: 'n', content: '感恩禮拜（時間 13:00-16:30）', due_date: dateOnly }).includes('10/24 13:00–16:30'));
+  assert.ok(!timeLine({ id: 'n', content: '買牛奶', due_date: dateOnly }).includes('–'));
+  assert.ok(!timeLine({ id: 'n', content: '開會 13:00-14:00', due_date: '2026-10-24T05:00:00Z' }).includes('13:00–14:00'));
+});
+
+test('extractTimeRange：各種寫法，抓不到回 null', () => {
+  const { extractTimeRange } = require('../lib/time');
+  assert.equal(extractTimeRange('13:00-16:30'), '13:00–16:30');
+  assert.equal(extractTimeRange('9:00～10:30 開會'), '09:00–10:30');
+  assert.equal(extractTimeRange('時間：13：00 到 16：30'), '13:00–16:30');
+  assert.equal(extractTimeRange('買牛奶 2-3 瓶'), null);
+  assert.equal(extractTimeRange('25:00-26:00'), null);
+});

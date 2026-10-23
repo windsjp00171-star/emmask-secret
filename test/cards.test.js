@@ -114,3 +114,33 @@ test('海報：有吉祥物網址就把圖放在右邊，沒有就維持原樣',
     assert.equal(cards.poster({ big: 3 }).contents[1].url, 'https://cdn.example.com/m.png');
   } finally { delete process.env.MASCOT_URL; delete process.env.VERCEL_PROJECT_PRODUCTION_URL; }
 });
+
+test('吉祥物姿勢：各有各的檔案，沒有網域就不放圖；標籤列旁邊放小貓', () => {
+  delete process.env.MASCOT_URL; delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const fs = require('fs');
+  ['mascot', 'mascot-clock', 'mascot-thumbs', 'mascot-stretch', 'mascot-sleep'].forEach(n => assert.ok(fs.existsSync(`public/img/${n}.png`), n));
+  assert.equal(cards.mascotUrl('clock'), null);
+  const chip = cards.tagChip('⏰ 提醒', 'reminder');
+  assert.equal(cards.chipRow(chip, 'clock'), chip); // 沒網址：原樣
+  process.env.VERCEL_PROJECT_PRODUCTION_URL = 'example.vercel.app';
+  try {
+    assert.equal(cards.mascotUrl('sleep'), 'https://example.vercel.app/img/mascot-sleep.png');
+    assert.equal(cards.mascotUrl('unknown'), null);
+    process.env.MASCOT_URL = 'https://cdn.example.com/m.png';
+    assert.equal(cards.mascotUrl(), 'https://cdn.example.com/m.png');
+    assert.equal(cards.mascotUrl('thumbs'), 'https://example.vercel.app/img/mascot-thumbs.png'); // MASCOT_URL 只換預設那張
+    const row = cards.chipRow(chip, 'thumbs');
+    assert.equal(row.contents[1].type, 'image');
+    assert.equal(row.contents[1].url, 'https://example.vercel.app/img/mascot-thumbs.png');
+  } finally { delete process.env.MASCOT_URL; delete process.env.VERCEL_PROJECT_PRODUCTION_URL; }
+});
+
+test('週日曆格：七格，今天深綠，有事的有件數與點擊動作，沒事的沒有動作', () => {
+  const cells = ['日', '一', '二', '三', '四', '五', '六'].map((wd, i) => ({ wd, day: 19 + i, key: `2026-10-${19 + i}`, count: i === 2 ? 3 : 0, today: i === 1 }));
+  const strip = cards.weekStrip(cells);
+  assert.equal(strip.contents.length, 7);
+  assert.equal(strip.contents[1].backgroundColor, cards.C.deep);
+  assert.ok(strip.contents[2].action.data.includes('date=2026-10-21'));
+  assert.equal(strip.contents[0].action, undefined);
+  assert.ok(JSON.stringify(strip.contents[2]).includes('3件'));
+});

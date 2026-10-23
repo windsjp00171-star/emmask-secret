@@ -137,7 +137,7 @@ module.exports = async function handler(req, res) {
     const pendN = pending ? pending.length : 0;
     const cover = cards.bubble({
       body: [
-        cards.poster({ kicker: `📊 本週週報 ${weekStr}`, big: doneN, bigSuffix: '件完成', sub: `待辦積壓 ${pendN} 件${stalledProjects.length ? `　⚠️ 停滯：${stalledProjects.join('、')}` : ''}` }),
+        cards.poster({ kicker: `📊 本週週報 ${weekStr}`, big: doneN, bigSuffix: '件完成', sub: `待辦積壓 ${pendN} 件${stalledProjects.length ? `　⚠️ 停滯：${stalledProjects.join('、')}` : ''}`, pose: 'thumbs' }),
         ...(summary ? [{ type: 'text', text: summary, size: 'sm', wrap: true, color: '#3a3a3c', margin: 'md' }] : []),
         cards.brandLine('週報'),
       ],

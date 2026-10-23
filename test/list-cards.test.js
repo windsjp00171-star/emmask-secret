@@ -47,3 +47,14 @@ test('搜尋：每頁 5 筆，12 筆分 3 頁；找不到仍回純文字', async
   queue = [[]];
   assert.match(await dispatch('搜尋 不存在的'), /找不到/);
 });
+
+test('本週：七天日曆格，今天深綠、有事的那天可以點進去看', async () => {
+  const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+  queue = [[{ id: 'r1', type: 'reminder', content: '今天的事', due_date: new Date().toISOString() }], []];
+  const r = await dispatch('本週');
+  const cover = r.contents.type === 'carousel' ? r.contents.contents[0] : r.contents;
+  const json = JSON.stringify(cover);
+  assert.ok(json.includes(`act=todosbydate&date=${todayKey}`));
+  assert.equal((json.match(/"flex":1,"alignItems":"center"/g) || []).length, 7);
+  assert.ok(json.includes('#16513d')); // 今天那格是深綠
+});

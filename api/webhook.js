@@ -74,7 +74,7 @@ const handler = async function (req, res) {
         // Flex 按鈕（完成／延後／改明天）
         if (event.type === 'postback') {
           const reply = await handlePostback(event.postback.data, event.postback.params);
-          if (reply) await replyMessage(replyToken, reply);
+          if (reply) await replyMessage(replyToken, withQuickReply(reply));
           return;
         }
         if (event.type !== 'message') return;
@@ -110,13 +110,13 @@ const handler = async function (req, res) {
           // 「存圖」模式：只留檔，不燒 AI 額度
           if (await isStoreImageMode()) {
             const reply = await handleStoredImage(imagePath);
-            await replyMessage(replyToken, reply);
+            await replyMessage(replyToken, withQuickReply(reply));
             return;
           }
 
           const extracted = await extractEventFromImage(base64, contentType);
           const reply = await handleImageEvents(extracted, imagePath);
-          await replyMessage(replyToken, reply);
+          await replyMessage(replyToken, withQuickReply(reply));
           return;
         }
 

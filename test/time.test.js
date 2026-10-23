@@ -35,3 +35,9 @@ test('normalizeTaipeiISO: 空值與非字串回傳 null', () => {
   assert.equal(normalizeTaipeiISO(''), null);
   assert.equal(normalizeTaipeiISO(12345), null);
 });
+
+test('formatTaipeiDate: 整天的項目（00:00）只顯示日期，不顯示 00:00', () => {
+  const { formatTaipeiDate } = require('../lib/time.js');
+  assert.doesNotMatch(formatTaipeiDate('2026-10-30T16:00:00Z'), /00:00/); // 台北 10/31 00:00
+  assert.match(formatTaipeiDate('2026-10-31T06:30:00Z'), /14:30/);
+});

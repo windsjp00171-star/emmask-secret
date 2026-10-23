@@ -34,7 +34,7 @@ function menuDef(i, cells, name) {
   cells.forEach((action, k) => {
     areas.push({ bounds: { x: (k % 4) * cw, y: BAR + Math.floor(k / 4) * ch, width: cw, height: ch }, action });
   });
-  return { size: { width: 2500, height: 1686 }, selected: i === 0, name, chatBarText: '交給小秘書 ▾', areas };
+  return { size: { width: 2500, height: 1686 }, selected: i === 0, name, chatBarText: '交給小秘書', areas };
 }
 
 function lineRequest(method, path, body, isBuffer) {

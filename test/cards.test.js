@@ -79,3 +79,25 @@ test('選單：左右滑動的輪播，每頁都有按鈕，模組全開時有�
   assert.ok(flex.contents.contents.length >= 3);
   assert.ok(JSON.stringify(flex).includes('run=今天'));
 });
+
+test('分享：沒設 LIFF_ID 傳純文字；設了就走 LIFF 網址，內容可以還原，網址不超過上限', () => {
+  const zlib = require('zlib');
+  const text = '⏰ 排好了：買牛奶\n明天 09:00';
+  delete process.env.LIFF_ID;
+  assert.ok(cards.shareButton(text).action.uri.startsWith('https://line.me/R/msg/text/?'));
+
+  process.env.LIFF_ID = '1234567890-AbcdEfgh';
+  try {
+    const uri = cards.shareButton(text).action.uri;
+    assert.ok(uri.startsWith('https://liff.line.me/1234567890-AbcdEfgh?i=1234567890-AbcdEfgh&c='));
+    const c = new URL(uri).searchParams.get('c');
+    const bytes = Buffer.from(c.slice(1).replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+    const json = JSON.parse((c[0] === 'z' ? zlib.inflateRawSync(bytes) : bytes).toString('utf8'));
+    assert.equal(json.t, '買牛奶');
+    assert.equal(json.k, '⏰ 排好了');
+    assert.deepEqual(json.l, ['明天 09:00']);
+
+    const many = '📅 本週\n' + Array.from({ length: 80 }, (_, i) => `・項目 ${i} ${'內容'.repeat(i % 7 + 3)} ${Math.random()}`).join('\n');
+    assert.ok(cards.shareButton(many).action.uri.length <= 1000);
+  } finally { delete process.env.LIFF_ID; }
+});

@@ -251,6 +251,25 @@ function render() {
     steps.push(['功能模組（你要用哪些功能）', mod.configured ? 'ok' : 'todo', modulesBody()]);
   }
 
+  // 分享整張卡片（選用）：LIFF_ID 有填就算完成，沒填也不影響其他功能
+  const liffOn = (s.env.optional.find(e => e.key === 'LIFF_ID') || {}).ok;
+  steps.push(['分享整張卡片（選用）', liffOn ? 'ok' : 'todo',
+    `<p>${liffOn ? '<span class="ok-text">已經設定好了。</span>' : '不設定也能用，「📤 分享」會傳純文字。想讓朋友收到跟你一樣的整張卡片，照下面做一次：'}</p>
+     <ol>
+       <li>打開 <b>LINE Developers</b> → 你的 Provider → <b>Create a new channel</b> → 選 <b>LINE Login</b>（名稱隨便取，例如「小秘書分享」，Region 選 Taiwan），建立。</li>
+       <li>進到這個 LINE Login channel → 上面的 <b>LIFF</b> 分頁 → <b>Add</b>：<br>
+         ・LIFF app name：分享卡片（名稱不能含 LINE 字樣）<br>
+         ・Size：<b>Tall</b><br>
+         ・Endpoint URL：<code>${esc(location.origin)}/share.html</code> ${copyBtn(location.origin + '/share.html')}<br>
+         ・Scopes：不用勾（這個功能用不到）<br>
+         ・Add friend option：<b>Off</b><br>
+         按 <b>Add</b>，複製那串 <b>LIFF ID</b>（長得像 1234567890-AbcdEfgh）。</li>
+       <li>還是在 <b>LIFF</b> 分頁，找到 <b>shareTargetPicker</b>（選朋友傳送）的設定，<b>打開它／同意條款</b>。沒打開的話，分享頁會顯示「這裡不能選朋友傳送」。</li>
+       <li>到 <b>Vercel → Settings → Environment Variables</b> 新增 <b>LIFF_ID</b>，值貼上剛剛那串，存檔後到 Deployments 按 <b>Redeploy</b>。</li>
+       <li>回 LINE 按任何一個「📤 分享」試試：會開一個頁面，按「選朋友傳送」就好。LINE 要 10.3.0 以上的版本。</li>
+     </ol>
+     <p class="muted">LINE Login channel 還在 Developing 狀態時，只有你自己（channel 管理者）能用，這樣剛好夠用，不用按 Publish。</p>`]);
+
   // 10. 備份與交接（任何時候都能下載，不算進完成進度的必要項）
   const dl = (fmt) => `/api/dashboard/notes?export=${fmt}&token=${encodeURIComponent(token)}`;
   steps.push(['備份與交接（把資料帶走）', 'ok',

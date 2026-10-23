@@ -33,6 +33,19 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!authCheck(req, res)) return;
 
+  // 備份匯出：?export=json|csv|html（一鍵下載全部資料，html 是雙擊就能看的離線閱讀檔）
+  if (req.method === 'GET' && req.query.export) {
+    try {
+      const { buildExport } = require('../../lib/backup');
+      const f = await buildExport(String(req.query.export));
+      res.setHeader('Content-Type', f.contentType);
+      res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(f.filename)}`);
+      return res.status(200).send(f.body);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (req.method === 'GET') {
     const { type, project, is_done, limit = 100 } = req.query;
     let query = supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(Number(limit));

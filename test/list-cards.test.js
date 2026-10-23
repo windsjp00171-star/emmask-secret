@@ -1,0 +1,49 @@
+require('./helpers/env');
+const test = require('node:test');
+const assert = require('node:assert/strict');
+
+// 依呼叫順序回傳事先排好的結果，不管查詢條件
+let queue = [];
+const supabasePath = require.resolve('../lib/supabase');
+require.cache[supabasePath] = {
+  id: supabasePath, filename: supabasePath, loaded: true,
+  exports: {
+    from(table) {
+      const data = table === 'notes' ? (queue.shift() || []) : [];
+      const c = new Proxy(function () {}, { get: (_, k) => (k === 'then' ? (res) => res({ data, error: null }) : () => c) });
+      return { select: () => c };
+    },
+  },
+};
+const { dispatch } = require('../lib/commands');
+
+test('本週：海報＋有日期頁＋沒期限頁；altText 是文字版清單', async () => {
+  queue = [
+    [{ id: 'r1', type: 'reminder', content: '感恩禮拜', due_date: '2026-10-24T05:00:00Z' }],
+    [{ id: 't1', type: 'task', content: '買牛奶' }],
+  ];
+  const r = await dispatch('本週');
+  assert.equal(r.type, 'flex');
+  assert.equal(r.contents.contents.length, 3);
+  assert.ok(JSON.stringify(r.contents.contents[1]).includes('act=done&id=r1'));
+  assert.match(r.altText, /感恩禮拜/);
+  assert.match(r.altText, /買牛奶/);
+  assert.ok(JSON.stringify(r.contents.contents[0]).includes('2'));
+});
+
+test('本週：什麼都沒有時只有一張海報', async () => {
+  queue = [[], []];
+  const r = await dispatch('本週');
+  assert.equal(r.contents.type, 'bubble');
+  assert.match(r.altText, /沒有待辦事項/);
+});
+
+test('搜尋：每頁 5 筆，12 筆分 3 頁；找不到仍回純文字', async () => {
+  queue = [Array.from({ length: 12 }, (_, i) => ({ id: `n${i}`, type: 'note', content: `牛奶筆記${i}`, created_at: '2026-10-01T00:00:00Z' }))];
+  const r = await dispatch('搜尋 牛奶');
+  assert.equal(r.type, 'flex');
+  assert.equal(r.contents.contents.length, 3);
+  assert.match(r.altText, /找到 12 筆/);
+  queue = [[]];
+  assert.match(await dispatch('搜尋 不存在的'), /找不到/);
+});

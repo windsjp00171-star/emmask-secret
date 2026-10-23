@@ -1,3 +1,4 @@
+require('./helpers/env');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const cards = require('../lib/cards');
@@ -33,4 +34,15 @@ test('bigDate：回傳月/日與週幾', () => {
   const d = cards.bigDate(new Date('2026-10-23T04:00:00Z'));
   assert.equal(d.md, '10/23');
   assert.equal(d.weekday, '週五');
+});
+
+test('存檔確認卡：標籤＋大字主角＋細節，撤銷鈕還在', () => {
+  const { buildUndoableReply } = require('../lib/commands')._test;
+  const card = buildUndoableReply('⏰ 排好了：買牛奶\n明天 09:00', 'n1').contents;
+  const body = card.body.contents;
+  assert.equal(body[0].type, 'box'); // 標籤
+  assert.equal(body[1].text, '買牛奶');
+  assert.equal(body[1].size, 'lg');
+  assert.equal(body[2].text, '明天 09:00');
+  assert.ok(JSON.stringify(card.footer).includes('act=delnote&id=n1'));
 });

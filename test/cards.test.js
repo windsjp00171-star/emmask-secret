@@ -64,3 +64,10 @@ test('extractTimeRange：各種寫法，抓不到回 null', () => {
   assert.equal(extractTimeRange('買牛奶 2-3 瓶'), null);
   assert.equal(extractTimeRange('25:00-26:00'), null);
 });
+
+test('復原卡（完成／刪除）：標籤＋大字主角，復原鈕還在', () => {
+  const { buildRestoreReply } = require('../lib/commands')._test;
+  const card = buildRestoreReply('✅ 已標記完成：買牛奶', 'undone', 'n1').contents;
+  assert.equal(card.body.contents[1].text, '買牛奶');
+  assert.ok(JSON.stringify(card.footer).includes('act=undone&id=n1'));
+});

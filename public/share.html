@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>分享卡片</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f1f6f3;color:#1b2420;display:flex;min-height:100vh;align-items:center;justify-content:center}
+  main{width:100%;max-width:420px;padding:20px}
+  .card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+  .head{background:#16513d;color:#fff;padding:18px}
+  .kicker{font-size:14px;opacity:.85;margin-bottom:6px}
+  .title{font-size:22px;font-weight:700;line-height:1.4;word-break:break-word}
+  .lines{padding:14px 18px}
+  .lines p{margin:6px 0;font-size:15px;line-height:1.5;word-break:break-word}
+  .brand{font-size:12px;color:#8e8e93;text-align:center;padding:0 18px 14px}
+  button{display:block;width:100%;margin-top:16px;padding:16px;font-size:18px;font-weight:700;color:#fff;background:#2e9d63;border:0;border-radius:12px}
+  button:disabled{opacity:.5}
+  #msg{margin-top:12px;font-size:15px;text-align:center;color:#6b7a72;min-height:1.5em}
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <div class="head"><div class="kicker" id="kicker"></div><div class="title" id="title">載入中…</div></div>
+    <div class="lines" id="lines"></div>
+    <div class="brand" id="brand"></div>
+  </div>
+  <button id="go" disabled>選朋友傳送</button>
+  <div id="msg"></div>
+</main>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const say = (t) => { $('msg').textContent = t; };
+const clip = (s, n) => String(s == null ? '' : s).slice(0, n);
+
+// 網址裡的內容：j＝純文字 JSON、z＝壓縮過的（deflate-raw）。內容都當文字處理，不當 HTML。
+async function decode(c) {
+  const kind = c[0];
+  const bin = atob(c.slice(1).replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = Uint8Array.from(bin, (ch) => ch.charCodeAt(0));
+  if (kind === 'j') return JSON.parse(new TextDecoder().decode(bytes));
+  if (kind === 'z') {
+    if (typeof DecompressionStream === 'undefined') throw new Error('這支手機的瀏覽器太舊，請更新 LINE 後再試');
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return JSON.parse(await new Response(stream).text());
+  }
+  throw new Error('看不懂這個分享連結');
+}
+
+function cardOf(p) {
+  const lines = (Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => clip(x, 120));
+  const head = [
+    ...(p.k ? [{ type: 'text', text: clip(p.k, 30), size: 'sm', color: '#cfe9dc' }] : []),
+    { type: 'text', text: clip(p.t, 160) || '分享', size: 'xl', weight: 'bold', color: '#ffffff', wrap: true, margin: 'xs' },
+  ];
+  return {
+    type: 'bubble', size: 'mega',
+    header: { type: 'box', layout: 'vertical', backgroundColor: '#16513d', paddingAll: '18px', contents: head },
+    body: lines.length ? { type: 'box', layout: 'vertical', spacing: 'sm', paddingAll: '16px',
+      contents: lines.map((x) => ({ type: 'text', text: x, size: 'sm', wrap: true, color: '#3a3a3c' })) } : undefined,
+    footer: { type: 'box', layout: 'vertical', paddingAll: '10px',
+      contents: [{ type: 'text', text: clip(p.b, 40), size: 'xxs', color: '#8e8e93', align: 'center' }] },
+  };
+}
+
+(async () => {
+  try {
+    const q = new URLSearchParams(location.search);
+    const id = q.get('i'), c = q.get('c');
+    if (!id || !c) throw new Error('這個連結不完整，請回小秘書重新按一次「分享」');
+    const p = await decode(c);
+    $('kicker').textContent = clip(p.k, 30);
+    $('title').textContent = clip(p.t, 160) || '分享';
+    $('lines').replaceChildren(...(Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => { const e = document.createElement('p'); e.textContent = clip(x, 120); return e; }));
+    $('brand').textContent = clip(p.b, 40);
+    const card = cardOf(p);
+    const alt = clip([p.t, ...(p.l || [])].join(' '), 380) || '分享';
+
+    await liff.init({ liffId: id });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+    const send = async () => {
+      $('go').disabled = true;
+      try {
+        if (!liff.isApiAvailable('shareTargetPicker')) throw new Error('這裡不能選朋友傳送，請在 LINE 裡打開');
+        const r = await liff.shareTargetPicker([{ type: 'flex', altText: alt, contents: card }]);
+        say(r ? '已傳送 ✅' : '沒有傳送');
+        if (r && liff.isInClient()) setTimeout(() => liff.closeWindow(), 700);
+      } catch (e) { say(e.message || '傳送失敗，請再試一次'); }
+      $('go').disabled = false;
+    };
+    $('go').onclick = send;
+    $('go').disabled = false;
+  } catch (e) {
+    say(e.message || '載入失敗');
+  }
+})();
+</script>
+</body>
+</html>

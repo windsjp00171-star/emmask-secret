@@ -71,3 +71,11 @@ test('復原卡（完成／刪除）：標籤＋大字主角，復原鈕還在',
   assert.equal(card.body.contents[1].text, '買牛奶');
   assert.ok(JSON.stringify(card.footer).includes('act=undone&id=n1'));
 });
+
+test('選單：左右滑動的輪播，每頁都有按鈕，模組全開時有教會頁', async () => {
+  const { dispatch } = require('../lib/commands');
+  const flex = await dispatch('選單');
+  assert.equal(flex.contents.type, 'carousel');
+  assert.ok(flex.contents.contents.length >= 3);
+  assert.ok(JSON.stringify(flex).includes('run=今天'));
+});

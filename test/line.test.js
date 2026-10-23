@@ -29,7 +29,7 @@ test('withQuickReply: 快捷按鈕只掛在最後一則', () => {
   const out = withQuickReply(['第一則', { type: 'flex', contents: { type: 'bubble' } }]);
   assert.equal(out[0].quickReply, undefined);
   assert.ok(out[1].quickReply.items.length > 0);
-  assert.equal(withQuickReply('hi').quickReply.items.length, 11);
+  assert.equal(withQuickReply('hi').quickReply.items.length, 12);
 });
 
 test('withQuickReply: 已經有自己的快捷按鈕就不蓋掉', () => {

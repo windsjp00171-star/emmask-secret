@@ -392,6 +392,7 @@
       </div>
       <div class="filter-panel" id="filterPanel" hidden>
         <label>類型<select id="filterType" onchange="applyFilters()">
+          <option value="todo" selected>該做的事（待辦＋提醒）</option>
           <option value="">全部類型</option>
           <option value="task">待辦</option>
           <option value="reminder">提醒</option>
@@ -404,8 +405,8 @@
           <option value="true">已完成</option>
         </select></label>
         <label>排序<select id="sortBy" onchange="applyFilters()">
-          <option value="created_desc" selected>建立時間（新→舊）</option>
-          <option value="due_asc">到期時間（近→遠）</option>
+          <option value="due_asc" selected>到期時間（近→遠）</option>
+          <option value="created_desc">建立時間（新→舊）</option>
           <option value="created_asc">建立時間（舊→新）</option>
           <option value="due_desc">到期時間（遠→近）</option>
           <option value="content_asc">內容（A→Z）</option>
@@ -766,7 +767,11 @@ function renderStats() {
 }
 
 function renderProjectTags() {
-  const projects = [...new Set(allNotes.map(n => n.project).filter(Boolean))];
+  const type = document.getElementById('filterType').value;
+  const count = {};
+  allNotes.forEach(n => { if (n.project && !n.is_done && matchesType(n, type)) count[n.project] = (count[n.project] || 0) + 1; });
+  if (activeProject && !(activeProject in count)) count[activeProject] = 0; // 正在看的專案不能憑空消失
+  const projects = Object.keys(count).sort((a, b) => count[b] - count[a]);
   const container = document.getElementById('projectTags');
   container.innerHTML = [''].concat(projects).map(p =>
     `<button class="project-tag ${activeProject === p ? 'active' : ''}" data-project="${esc(p)}">${p ? esc(p) : '全部'}</button>`).join('');
@@ -796,12 +801,13 @@ function sortNotes(items, sortBy) {
 }
 
 function applyFilters() {
+  renderProjectTags();
   const type = document.getElementById('filterType').value;
   const done = document.getElementById('filterDone').value;
   const search = document.getElementById('search').value.toLowerCase();
 
   let filtered = allNotes.filter(n => {
-    if (type && n.type !== type) return false;
+    if (!matchesType(n, type)) return false;
     if (done !== '' && String(n.is_done) !== done) return false;
     if (activeProject && n.project !== activeProject) return false;
     if (overdueOnly && !isOverdue(n)) return false;
@@ -810,7 +816,7 @@ function applyFilters() {
   });
   filtered = sortNotes(filtered, document.getElementById('sortBy').value);
 
-  const nonDefault = document.getElementById('filterType').value || document.getElementById('filterDone').value || document.getElementById('sortBy').value !== 'created_desc';
+  const nonDefault = document.getElementById('filterType').value !== DEFAULT_TYPE || document.getElementById('filterDone').value || document.getElementById('sortBy').value !== DEFAULT_SORT;
   document.querySelector('#filterBtn .dot').hidden = !nonDefault;
   const list = document.getElementById('tableBody');
   if (filtered.length === 0) {
@@ -863,6 +869,13 @@ function groupByDue(items) {
     ['week', '這七天', g.week], ['later', '之後', g.later], ['past', '已過日期', g.past], ['none', '未排時間', g.none], ['done', '已完成', g.done]];
 }
 function isActionable(n) { return n.type === 'task' || n.type === 'reminder'; }
+// 預設只看「該做的事」：像祕書的行程本，依時間排；筆記、專案更新、週報等要看再切到「全部類型」
+const DEFAULT_TYPE = 'todo';
+const DEFAULT_SORT = 'due_asc';
+function matchesType(n, type) {
+  if (!type) return true;
+  return type === 'todo' ? isActionable(n) : n.type === type;
+}
 function groupByCreated(items) {
   const today = todayKey(), yesterday = addDaysKey(today, -1), map = new Map();
   items.forEach(n => {
@@ -891,7 +904,7 @@ function noteRow(n) {
   const rewritten = n.raw_text && n.content && n.raw_text !== n.content;
   const rawBlock = rewritten
     ? `<div class="raw-toggle" onclick="event.stopPropagation(); this.classList.toggle('open')">
-         <span class="raw-label">AI 改寫過，看原話</span>
+         <span class="raw-label">看原話</span>
          <div class="raw-text">${esc(n.raw_text)}</div>
        </div>`
     : '';
@@ -1013,7 +1026,7 @@ function getShownIds() {
   const done = document.getElementById('filterDone').value;
   const search = document.getElementById('search').value.toLowerCase();
   return allNotes.filter(n => {
-    if (type && n.type !== type) return false;
+    if (!matchesType(n, type)) return false;
     if (done !== '' && String(n.is_done) !== done) return false;
     if (activeProject && n.project !== activeProject) return false;
     if (overdueOnly && !isOverdue(n)) return false;
@@ -1044,9 +1057,9 @@ function toggleFilterPanel(force) {
   document.getElementById('filterBtn').setAttribute('aria-expanded', String(open));
 }
 function resetFilters() {
-  document.getElementById('filterType').value = '';
+  document.getElementById('filterType').value = DEFAULT_TYPE;
   document.getElementById('filterDone').value = '';
-  document.getElementById('sortBy').value = 'created_desc';
+  document.getElementById('sortBy').value = DEFAULT_SORT;
   applyFilters();
 }
 
@@ -1959,7 +1972,7 @@ Tour.mount({
     { target: 'worship-link', title: '服事表', text: '主日服事表在第二個分頁，點進去可以看整季班表。' },
     { target: 'stats', title: '總覽', text: '一眼看到還有幾件沒做完、有幾件已經過期（紅色）。\n點紅色的「過期」只看過期的事，再點一次回到全部。', before: () => switchTab('dashboard') },
     { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },
-    { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n「篩選」可以改類型、完成狀態和排序，有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
+    { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n預設只列「該做的事」（待辦和提醒），照到期時間分成過期、今天、明天、這七天、之後。要看筆記、專案更新或週報，到「篩選」把類型改成「全部類型」。有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
     { target: 'list-table', title: '每一筆都能直接操作', text: '點右邊的圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一列可以編輯，刪除也在編輯面板裡。\n有排到你服事時，列表上方會多一列「下一次服事」，點了直接到服事表。' },
     { target: 'fab', title: '跟小秘書說一句話', text: '在最下面打一句話就好，例如「明天下午三點看牙醫」「午餐 120」「這週要幹嘛」，跟在 LINE 傳給小秘書一模一樣。\n要設定專案或提前提醒，按左邊的＋用表單新增。', before: () => switchTab('dashboard') },
   ],

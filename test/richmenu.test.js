@@ -37,3 +37,32 @@ test('圖文選單的設定符合 LINE 限制，圖片檔存在且小於 1MB', (
   assert.ok(def.chatBarText.length <= 14);
   [1, 2, 3].forEach(n => assert.ok(fs.statSync(`assets/richmenu/tab${n}.png`).size < 1024 * 1024));
 });
+
+const { PNG } = require('pngjs');
+const { composeTab, cellRect, BG } = require('../lib/richmenu-compose');
+const px = (img, x, y) => [...img.data.slice((y * img.width + x) * 4, (y * img.width + x) * 4 + 4)];
+const mid = (k) => { const r = cellRect(k); return [r.x + (r.w >> 1), r.y + 30]; }; // 方塊上緣內側，避開文字
+
+test('composeTab：留下的格子往前補，空出來的位置是背景色，原圖不動', () => {
+  const src = fs.readFileSync('assets/richmenu/tab1.png');
+  const orig = PNG.sync.read(src);
+  const out = PNG.sync.read(composeTab(src, [0, 1, 2, 3, 4, 6])); // 拿掉第 5、7 格（傳照片、會議）
+  assert.deepEqual(px(out, ...mid(0)), px(orig, ...mid(0)));
+  assert.deepEqual(px(out, ...mid(5)), px(orig, ...mid(6))); // 收藏補到第 5 格
+  assert.deepEqual(px(out, ...mid(6)), BG);
+  assert.deepEqual(px(out, ...mid(7)), BG);
+  assert.deepEqual(px(out, 10, 10), px(orig, 10, 10)); // 分頁列沒被動到
+});
+
+test('keepFor：模組全開 8 格，關掉的功能拿掉那一格', () => {
+  const mods = require('../lib/modules');
+  const { keepFor } = require('../api/setup/richmenu')._test;
+  mods._test.setCurrent(mods.ALL_IDS);
+  assert.equal(keepFor(0).length, 8);
+  mods._test.setCurrent(mods.ALL_IDS.filter(id => id !== 'expenses' && id !== 'meetings'));
+  assert.deepEqual(keepFor(0), [0, 1, 2, 3, 5, 6]);
+  assert.equal(keepFor(2).length, 7); // 本月花費沒了
+  mods._test.setCurrent([]);
+  assert.deepEqual(keepFor(2), [4, 7]); // 只剩說明、設定
+  mods._test.reset();
+});

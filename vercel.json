@@ -9,6 +9,7 @@
       "includeFiles": "node_modules/ffmpeg-static/ffmpeg"
     },
     "api/setup/richmenu.js": {
+      "maxDuration": 60,
       "includeFiles": "assets/richmenu/*.png"
     },
     "api/setup/status.js": {

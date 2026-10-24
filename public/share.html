@@ -54,12 +54,30 @@ async function decode(c) {
 const sceneOf = (p) => (typeof p.s === 'string' && /^[a-z]+$/.test(p.s) ? p.s : '');
 const sceneInk = (s) => (s === 'night' ? { ink: '#ffffff', soft: '#cfe9dc' } : s === 'rain' ? { ink: '#16513d', soft: '#3d5a66' } : { ink: '#16513d', soft: '#4f6b5f' });
 
+// 一行「職位：人名」拆成左右兩欄；其他行當一般文字
+function rowOf(x) {
+  const t = clip(x, 120);
+  const c = t.indexOf('：');
+  if (c > 0 && c <= 12) {
+    return {
+      type: 'box', layout: 'horizontal', spacing: 'md', margin: 'sm',
+      contents: [
+        { type: 'text', text: t.slice(0, c), size: 'sm', color: '#8e8e93', flex: 4, wrap: true },
+        { type: 'text', text: t.slice(c + 1), size: 'sm', weight: 'bold', color: '#1b2420', flex: 6, wrap: true },
+      ],
+    };
+  }
+  return { type: 'text', text: t, size: 'sm', wrap: true, color: '#3a3a3c', margin: 'sm' };
+}
+
 function cardOf(p) {
   const sc = sceneOf(p);
   if (sc) {
+    // 跟小秘書裡看到的一樣：第一張是橘貓海報，往右滑是整齊的清單頁
     const { ink, soft } = sceneInk(sc);
-    const body = (Array.isArray(p.l) ? p.l : []).slice(0, 40).map((x) => ({ type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c' }));
-    return {
+    const all = (Array.isArray(p.l) ? p.l : []).slice(0, 40);
+    const brand = { type: 'text', text: clip(p.b, 40), size: 'xxs', color: '#8e8e93', align: 'center', margin: 'md' };
+    const cover = {
       type: 'bubble', size: 'mega',
       body: {
         type: 'box', layout: 'vertical', spacing: 'sm', paddingAll: '14px',
@@ -77,11 +95,28 @@ function cardOf(p) {
               },
             ],
           },
-          ...body,
-          { type: 'text', text: clip(p.b, 40), size: 'xxs', color: '#8e8e93', align: 'center', margin: 'md' },
+          ...(all.length ? [{ type: 'text', text: `共 ${all.length} 項，往右滑看全部 👉`, size: 'xs', color: '#8e8e93', align: 'center', margin: 'md' }] : []),
+          brand,
         ],
       },
     };
+    const pages = [];
+    for (let i = 0; i < all.length; i += 12) pages.push(all.slice(i, i + 12));
+    const detail = pages.map((rows, n) => ({
+      type: 'bubble', size: 'mega',
+      body: {
+        type: 'box', layout: 'vertical', spacing: 'xs', paddingAll: '16px',
+        contents: [
+          {
+            type: 'box', layout: 'vertical', backgroundColor: '#e2f6e9', cornerRadius: '12px', paddingAll: '8px', margin: 'none',
+            contents: [{ type: 'text', text: `${clip(p.t, 40) || '內容'}${pages.length > 1 ? `（${n + 1}/${pages.length}）` : ''}`, size: 'sm', weight: 'bold', color: '#16513d', wrap: true }],
+          },
+          ...rows.map(rowOf),
+          brand,
+        ],
+      },
+    }));
+    return detail.length ? { type: 'carousel', contents: [cover, ...detail.slice(0, 11)] } : cover;
   }
   const lines = (Array.isArray(p.l) ? p.l : []).slice(0, 40).map((x) => clip(x, 120));
   const head = [

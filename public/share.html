@@ -6,8 +6,8 @@
 <title>分享卡片</title>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f1f6f3;color:#1b2420;display:flex;min-height:100vh;align-items:center;justify-content:center}
-  main{width:100%;max-width:420px;padding:20px}
+  body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f1f6f3;color:#1b2420;min-height:100vh}
+  main{width:100%;max-width:420px;padding:20px;margin:0 auto}
   .card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
   .head{background:#16513d;color:#fff;padding:18px}
   .kicker{font-size:14px;opacity:.85;margin-bottom:6px}
@@ -144,7 +144,10 @@ function cardOf(p) {
     const p = await decode(c);
     $('kicker').textContent = clip(p.k, 30);
     $('title').textContent = clip(p.t, 160) || '分享';
-    $('lines').replaceChildren(...(Array.isArray(p.l) ? p.l : []).slice(0, 40).map((x) => { const e = document.createElement('p'); e.textContent = clip(x, 120); return e; }));
+    const all = (Array.isArray(p.l) ? p.l : []).slice(0, 40);
+    const showHint = !!sceneOf(p) && all.length > 0;
+    // 有橘貓場景時，卡片內容在對方收到的輪播裡，預覽只放封面和一行說明，不把整份清單攤開
+    $('lines').replaceChildren(...(showHint ? [`共 ${all.length} 項，對方收到的卡片可以往右滑看全部`] : all).map((x) => { const e = document.createElement('p'); e.textContent = clip(x, 120); if (showHint) e.style.cssText = 'color:#6b7a72;font-size:14px;text-align:center'; return e; }));
     $('brand').textContent = clip(p.b, 40);
     const sc = sceneOf(p);
     if (sc) {

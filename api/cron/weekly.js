@@ -141,7 +141,7 @@ module.exports = async function handler(req, res) {
         ...(summary ? [{ type: 'text', text: summary, size: 'sm', wrap: true, color: '#3a3a3c', margin: 'md' }] : []),
         cards.brandLine('週報'),
       ],
-      footer: [cards.shareButton(lines.join('\n'), '📤 分享週報')],
+      footer: [cards.shareButton(lines.join('\n'), '📤 分享週報', 'done')],
     });
     const detail = lines.slice(lines.findIndex(l => l.startsWith('【') || l.startsWith('📦')) >= 0 ? lines.findIndex(l => l.startsWith('【') || l.startsWith('📦')) : lines.length);
     const detailPage = detail.length ? cards.bubble({ body: [cards.tagChip('專案與動態', 'note'), { type: 'text', text: detail.join('\n').trim().slice(0, 1800), size: 'sm', wrap: true, margin: 'md' }] }) : null;

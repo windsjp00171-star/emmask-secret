@@ -170,3 +170,16 @@ test('poster scene：random 只會挑清單裡的底稿', () => {
     }
   } finally { delete process.env.VERCEL_PROJECT_PRODUCTION_URL; }
 });
+
+test('分享連結帶著場景名，分享出去的卡片才會用同一張橘貓底圖', () => {
+  process.env.LIFF_ID = '123-abc';
+  try {
+    const uri = cards.liffShareUri('📅 10/24（週六）\n・買牛奶', 'morning');
+    const c = new URL(uri).searchParams.get('c');
+    const raw = c[0] === 'z' ? require('zlib').inflateRawSync(Buffer.from(c.slice(1), 'base64url')) : Buffer.from(c.slice(1), 'base64url');
+    assert.equal(JSON.parse(raw.toString()).s, 'morning');
+    const none = new URL(cards.liffShareUri('📅 x\n・y')).searchParams.get('c');
+    const raw2 = none[0] === 'z' ? require('zlib').inflateRawSync(Buffer.from(none.slice(1), 'base64url')) : Buffer.from(none.slice(1), 'base64url');
+    assert.equal(JSON.parse(raw2.toString()).s, undefined);
+  } finally { delete process.env.LIFF_ID; }
+});

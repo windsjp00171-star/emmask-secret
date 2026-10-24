@@ -52,7 +52,7 @@ async function decode(c) {
 
 // 場景（s）＝橘貓底圖，跟小秘書裡看到的海報一樣；夜晚是深色底，字用白色
 const sceneOf = (p) => (typeof p.s === 'string' && /^[a-z]+$/.test(p.s) ? p.s : '');
-const sceneInk = (s) => (s === 'night' ? { ink: '#ffffff', soft: '#cfe9dc' } : { ink: '#16513d', soft: '#4f6b5f' });
+const sceneInk = (s) => (s === 'night' ? { ink: '#ffffff', soft: '#cfe9dc' } : s === 'rain' ? { ink: '#16513d', soft: '#3d5a66' } : { ink: '#16513d', soft: '#4f6b5f' });
 
 function cardOf(p) {
   const sc = sceneOf(p);

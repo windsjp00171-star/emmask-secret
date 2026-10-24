@@ -68,7 +68,10 @@ function cardOf(p) {
 
 (async () => {
   try {
-    const q = new URLSearchParams(location.search);
+    // LIFF 會先把參數包進 liff.state，init 之後才還原成一般網址參數，所以兩種都要讀
+    let q = new URLSearchParams(location.search);
+    const st = q.get('liff.state');
+    if (st) q = new URLSearchParams(st.replace(/^\//, '').replace(/^\?/, ''));
     const id = q.get('i'), c = q.get('c');
     if (!id || !c) throw new Error('這個連結不完整，請回小秘書重新按一次「分享」');
     const p = await decode(c);

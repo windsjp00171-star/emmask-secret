@@ -91,3 +91,14 @@ test('明天預告頁：有網址的項目文字可以點，下面有「開啟�
   assert.equal(copy[0].clipboardText, url);
   assert.equal(commands._test.buildTomorrowPage([], ''), null);
 });
+
+test('明天預告頁的分享，分享出去也帶橘貓場景', () => {
+  process.env.LIFF_ID = '123-abc';
+  try {
+    const page = commands._test.buildTomorrowPage([{ due_date: '2026-10-25T04:15:00Z', content: '開會' }], '・10/25 開會');
+    const uri = actions(page.footer).find(a => a.type === 'uri').uri;
+    const c = new URL(uri).searchParams.get('c');
+    const raw = c[0] === 'z' ? require('zlib').inflateRawSync(Buffer.from(c.slice(1), 'base64url')) : Buffer.from(c.slice(1), 'base64url');
+    assert.ok(require('../lib/cards').RANDOM_SCENES.includes(JSON.parse(raw.toString()).s));
+  } finally { delete process.env.LIFF_ID; }
+});

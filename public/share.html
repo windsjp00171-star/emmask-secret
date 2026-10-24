@@ -58,7 +58,7 @@ function cardOf(p) {
   const sc = sceneOf(p);
   if (sc) {
     const { ink, soft } = sceneInk(sc);
-    const body = (Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => ({ type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c' }));
+    const body = (Array.isArray(p.l) ? p.l : []).slice(0, 40).map((x) => ({ type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c' }));
     return {
       type: 'bubble', size: 'mega',
       body: {
@@ -83,7 +83,7 @@ function cardOf(p) {
       },
     };
   }
-  const lines = (Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => clip(x, 120));
+  const lines = (Array.isArray(p.l) ? p.l : []).slice(0, 40).map((x) => clip(x, 120));
   const head = [
     ...(p.k ? [{ type: 'text', text: clip(p.k, 30), size: 'sm', color: '#cfe9dc' }] : []),
     { type: 'text', text: clip(p.t, 160) || '分享', size: 'xl', weight: 'bold', color: '#ffffff', wrap: true, margin: 'xs' },
@@ -109,7 +109,7 @@ function cardOf(p) {
     const p = await decode(c);
     $('kicker').textContent = clip(p.k, 30);
     $('title').textContent = clip(p.t, 160) || '分享';
-    $('lines').replaceChildren(...(Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => { const e = document.createElement('p'); e.textContent = clip(x, 120); return e; }));
+    $('lines').replaceChildren(...(Array.isArray(p.l) ? p.l : []).slice(0, 40).map((x) => { const e = document.createElement('p'); e.textContent = clip(x, 120); return e; }));
     $('brand').textContent = clip(p.b, 40);
     const sc = sceneOf(p);
     if (sc) {

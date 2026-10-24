@@ -144,3 +144,19 @@ test('週日曆格：七格，今天深綠，有事的有件數與點擊動作�
   assert.equal(strip.contents[0].action, undefined);
   assert.ok(JSON.stringify(strip.contents[2]).includes('3件'));
 });
+
+test('poster scene：有網域就整張插畫當底圖、文字疊上去；沒網域退回一般海報', () => {
+  delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const plain = cards.poster({ kicker: 'k', big: 3, sub: 's', scene: 'morning' });
+  assert.equal(plain.cornerRadius, '14px');
+  assert.ok(!JSON.stringify(plain).includes('scene-morning'));
+  process.env.VERCEL_PROJECT_PRODUCTION_URL = 'example.vercel.app';
+  try {
+    const p = cards.poster({ kicker: 'k', big: 3, bigSuffix: '件', sub: 's', scene: 'night' });
+    const [img, overlay] = p.contents;
+    assert.equal(img.url, 'https://example.vercel.app/img/scene-night.png');
+    assert.equal(overlay.position, 'absolute');
+    assert.ok(JSON.stringify(overlay).includes('"text":"3"'));
+    assert.equal(cards.sceneUrl('nope'), null);
+  } finally { delete process.env.VERCEL_PROJECT_PRODUCTION_URL; }
+});

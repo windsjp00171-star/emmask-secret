@@ -8,10 +8,10 @@ const path = require('path');
 function loadCardOf() {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'share.html'), 'utf8');
   const js = html.match(/<script>\n([\s\S]*?)<\/script>/)[1].split('(async () => {')[0];
-  return new Function('location', 'document', `${js}\nreturn { cardOf, urlOf };`)(
+  return new Function('location', 'document', `${js}\nreturn { cardOf, urlOf, linksOf };`)(
     { origin: 'https://x.app', search: '' }, { getElementById: () => ({}) });
 }
-const { cardOf, urlOf } = loadCardOf();
+const { cardOf, urlOf, linksOf } = loadCardOf();
 
 const URL = 'https://church-data-hub.onrender.com/p/vZFZ_DK1opVNGEUc?openExternalBrowser=1';
 const uriActions = (node, out = []) => {
@@ -42,4 +42,12 @@ test('urlOf：去掉結尾標點、太長的不收', () => {
   assert.equal(urlOf('看 https://a.com/x。'), 'https://a.com/x');
   assert.equal(urlOf('沒有網址'), null);
   assert.equal(urlOf('https://a.com/' + 'x'.repeat(1100)), null);
+});
+
+test('分享卡：一行有多條連結，每條一顆有名稱的按鈕', () => {
+  const card = cardOf({ k: '📅', t: '明天', l: ['地點：萬華車站 https://m.example/a 振華公園 https://m.example/b'], b: 'b' });
+  const btns = uriActions(card).filter((a) => a.label.startsWith('🔗'));
+  assert.deepEqual(btns.map((a) => a.label), ['🔗 萬華車站', '🔗 振華公園']);
+  assert.deepEqual(btns.map((a) => a.uri), ['https://m.example/a', 'https://m.example/b']);
+  assert.deepEqual(linksOf('https://a.com/x').map((l) => l.label), ['']);
 });

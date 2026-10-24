@@ -30,7 +30,7 @@ test('extractUrls: 重複的只算一次、最多兩個', () => {
 
 test('提醒卡：內容有網址就有「開啟」和「複製」，兩個都指向同一個網址', () => {
   const acts = actions(reminder(`每月1號 ${PA} 點延展`));
-  const open = acts.find((a) => a.type === 'uri' && a.label.includes('開啟'));
+  const open = acts.find((a) => a.type === 'uri' && a.label.startsWith('🔗'));
   const copy = acts.find((a) => a.type === 'clipboard');
   assert.equal(open.uri, PA);
   assert.equal(copy.clipboardText, PA);
@@ -101,4 +101,24 @@ test('明天預告頁的分享，分享出去也帶橘貓場景', () => {
     const raw = c[0] === 'z' ? require('zlib').inflateRawSync(Buffer.from(c.slice(1), 'base64url')) : Buffer.from(c.slice(1), 'base64url');
     assert.ok(require('../lib/cards').RANDOM_SCENES.includes(JSON.parse(raw.toString()).s));
   } finally { delete process.env.LIFF_ID; }
+});
+
+test('多條連結：每條一顆自己名稱的按鈕（名稱取網址前後的文字），各自可開、可複製', () => {
+  const { linkButtons, extractLinks } = commands._test;
+  const text = '地點：萬華車站 https://maps.example/a 振華公園 https://maps.example/b';
+  assert.deepEqual(extractLinks(text).map(l => l.label), ['萬華車站', '振華公園']);
+  const rows = linkButtons(text);
+  assert.equal(rows.length, 2);
+  const labels = rows.map(r => r.contents[0].action.label);
+  assert.deepEqual(labels, ['🔗 萬華車站', '🔗 振華公園']);
+  assert.deepEqual(rows.map(r => r.contents[0].action.uri), ['https://maps.example/a', 'https://maps.example/b']);
+  assert.deepEqual(rows.map(r => r.contents[1].action.clipboardText), ['https://maps.example/a', 'https://maps.example/b']);
+});
+
+test('連結按鈕名稱：去掉開頭的日期時間；沒有文字就叫「開啟」；超過 20 字會截短', () => {
+  const { linkButtons, extractLinks } = commands._test;
+  assert.equal(extractLinks('10/25 12:15 後製上傳用的資料 https://a.com/x')[0].label, '後製上傳用的資料');
+  assert.equal(linkButtons('https://a.com/x')[0].contents[0].action.label, '🔗 開啟');
+  const long = linkButtons('這是一段非常非常非常非常長的連結名稱文字內容 https://a.com/x')[0].contents[0].action.label;
+  assert.ok(long.length <= 20);
 });

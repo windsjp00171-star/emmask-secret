@@ -66,10 +66,35 @@ function urlOf(x) {
   return u.length <= 1000 ? u : null;
 }
 const linkProps = (x) => { const u = urlOf(x); return u ? { action: { type: 'uri', label: '開啟連結', uri: u } } : {}; };
-const linkBtns = (x) => {
-  const u = urlOf(x);
-  return u ? [{ type: 'button', style: 'primary', color: '#2e9d63', height: 'sm', margin: 'sm', action: { type: 'uri', label: '🔗 開啟', uri: u } }] : [];
-};
+// 每條網址一顆「🔗 名稱」按鈕（名稱取網址前後的文字，跟小秘書裡的卡片一樣）
+function linkLabel(before, after) {
+  const parts = (t) => String(t).replace(/^\s*(\d{1,2}[/-]\d{1,2})?\s*(\d{1,2}:\d{2})?/, '')
+    .split(/[：:，,、；;\n]/).map((p) => p.replace(/[\s「」『』（）()[\]]+/g, ' ').trim()).filter(Boolean);
+  const bf = parts(before);
+  if (bf.length) return bf[bf.length - 1].slice(0, 14);
+  const af = parts(after);
+  return af.length ? af[0].slice(0, 14) : '';
+}
+function linksOf(x, limit = 6) {
+  const str = String(x == null ? '' : x);
+  const re = new RegExp(URL_RE.source, 'g');
+  const found = [];
+  let m;
+  while ((m = re.exec(str))) found.push({ raw: m[0], index: m.index });
+  const out = [];
+  found.forEach((f, i) => {
+    const url = f.raw.replace(/[.,;:!?]+$/, '');
+    if (url.length > 1000 || out.some((o) => o.url === url)) return;
+    const before = str.slice(i ? found[i - 1].index + found[i - 1].raw.length : 0, f.index);
+    const after = str.slice(f.index + f.raw.length, i + 1 < found.length ? found[i + 1].index : str.length);
+    out.push({ url, label: linkLabel(before, after) });
+  });
+  return out.slice(0, limit);
+}
+const linkBtns = (x) => linksOf(x).map(({ url, label }) => ({
+  type: 'button', style: 'primary', color: '#2e9d63', height: 'sm', margin: 'sm',
+  action: { type: 'uri', label: `🔗 ${label || '開啟'}`.slice(0, 20), uri: url },
+}));
 
 function textRow(x) {
   return { type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c', margin: 'sm', ...linkProps(x) };

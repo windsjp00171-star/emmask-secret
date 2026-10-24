@@ -58,3 +58,17 @@ test('本週：七天日曆格，今天深綠、有事的那天可以點進去�
   assert.equal((json.match(/"flex":1,"alignItems":"center"/g) || []).length, 7);
   assert.ok(json.includes('#16513d')); // 今天那格是深綠
 });
+
+test('收工：今天和明天都沒事就回一句話；有事就是收工回顧卡', async () => {
+  queue = [[], []];
+  const none = await dispatch('收工');
+  assert.equal(typeof none, 'string');
+  assert.match(none, /沒有/);
+  queue = [
+    [{ id: 't1', type: 'task', content: '買牛奶', due_date: null }],
+    [{ id: 'r1', type: 'reminder', content: '感恩禮拜 https://example.com/x', due_date: '2099-01-01T05:00:00Z' }],
+  ];
+  const r = await dispatch('收工回顧');
+  assert.equal(r.type, 'flex');
+  assert.match(r.altText, /收工回顧/);
+});

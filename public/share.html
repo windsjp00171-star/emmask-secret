@@ -56,8 +56,23 @@ const sceneInk = (s) => (s === 'night' ? { ink: '#ffffff', soft: '#cfe9dc' } : s
 
 // 整份清單每一行都是「職位：內容」才排成左右兩欄（例如服事名單）；否則一律當一般條列，避免句子裡剛好有冒號被誤拆
 const PAIR = /^[^：・]{1,12}：./;
+// 對方收到的卡片裡，文字不能選取、網址也不會自動變連結（LINE 的限制），
+// 所以有網址的行：點文字就開、下面多一顆「🔗 開啟」。（分享的卡片只能用開網址的動作，沒有「複製」。）
+const URL_RE = /https?:\/\/[^\s<>"'「」『』（）()，。、]+/;
+function urlOf(x) {
+  const m = String(x == null ? '' : x).match(URL_RE);
+  if (!m) return null;
+  const u = m[0].replace(/[.,;:!?]+$/, '');
+  return u.length <= 1000 ? u : null;
+}
+const linkProps = (x) => { const u = urlOf(x); return u ? { action: { type: 'uri', label: '開啟連結', uri: u } } : {}; };
+const linkBtns = (x) => {
+  const u = urlOf(x);
+  return u ? [{ type: 'button', style: 'primary', color: '#2e9d63', height: 'sm', margin: 'sm', action: { type: 'uri', label: '🔗 開啟', uri: u } }] : [];
+};
+
 function textRow(x) {
-  return { type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c', margin: 'sm' };
+  return { type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c', margin: 'sm', ...linkProps(x) };
 }
 function pairRow(x) {
   const t = clip(x, 120);
@@ -113,7 +128,7 @@ function cardOf(p) {
             type: 'box', layout: 'vertical', backgroundColor: '#e2f6e9', cornerRadius: '12px', paddingAll: '8px', margin: 'none',
             contents: [{ type: 'text', text: `${clip(p.t, 40) || '內容'}${pages.length > 1 ? `（${n + 1}/${pages.length}）` : ''}`, size: 'sm', weight: 'bold', color: '#16513d', wrap: true }],
           },
-          ...rows.map(asPairs ? pairRow : textRow),
+          ...rows.flatMap((x) => (asPairs ? [pairRow(x)] : [textRow(x), ...linkBtns(x)])),
           brand,
         ],
       },
@@ -129,7 +144,7 @@ function cardOf(p) {
     type: 'bubble', size: 'mega',
     header: { type: 'box', layout: 'vertical', backgroundColor: '#16513d', paddingAll: '18px', contents: head },
     body: lines.length ? { type: 'box', layout: 'vertical', spacing: 'sm', paddingAll: '16px',
-      contents: lines.map((x) => ({ type: 'text', text: x, size: 'sm', wrap: true, color: '#3a3a3c' })) } : undefined,
+      contents: lines.flatMap((x) => [{ type: 'text', text: x, size: 'sm', wrap: true, color: '#3a3a3c', ...linkProps(x) }, ...linkBtns(x)]) } : undefined,
     footer: { type: 'box', layout: 'vertical', paddingAll: '10px',
       contents: [{ type: 'text', text: clip(p.b, 40), size: 'xxs', color: '#8e8e93', align: 'center' }] },
   };

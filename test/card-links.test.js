@@ -118,6 +118,7 @@ test('多條連結：每條一顆自己名稱的按鈕（名稱取網址前後�
 test('連結按鈕名稱：去掉開頭的日期時間；沒有文字就叫「開啟」；超過 20 字會截短', () => {
   const { linkButtons, extractLinks } = commands._test;
   assert.equal(extractLinks('10/25 12:15 後製上傳用的資料 https://a.com/x')[0].label, '後製上傳用的資料');
+  assert.equal(extractLinks('・10/25 12:15 後製上傳用的資料 https://a.com/x')[0].label, '後製上傳用的資料');
   assert.equal(linkButtons('https://a.com/x')[0].contents[0].action.label, '🔗 開啟');
   const long = linkButtons('這是一段非常非常非常非常長的連結名稱文字內容 https://a.com/x')[0].contents[0].action.label;
   assert.ok(long.length <= 20);

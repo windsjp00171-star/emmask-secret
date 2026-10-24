@@ -50,7 +50,39 @@ async function decode(c) {
   throw new Error('看不懂這個分享連結');
 }
 
+// 場景（s）＝橘貓底圖，跟小秘書裡看到的海報一樣；夜晚是深色底，字用白色
+const sceneOf = (p) => (typeof p.s === 'string' && /^[a-z]+$/.test(p.s) ? p.s : '');
+const sceneInk = (s) => (s === 'night' ? { ink: '#ffffff', soft: '#cfe9dc' } : { ink: '#16513d', soft: '#4f6b5f' });
+
 function cardOf(p) {
+  const sc = sceneOf(p);
+  if (sc) {
+    const { ink, soft } = sceneInk(sc);
+    const body = (Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => ({ type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c' }));
+    return {
+      type: 'bubble', size: 'mega',
+      body: {
+        type: 'box', layout: 'vertical', spacing: 'sm', paddingAll: '14px',
+        contents: [
+          {
+            type: 'box', layout: 'vertical', cornerRadius: '14px',
+            contents: [
+              { type: 'image', url: `${location.origin}/img/scene-${sc}.png`, size: 'full', aspectRatio: '4:5', aspectMode: 'cover' },
+              {
+                type: 'box', layout: 'vertical', spacing: 'xs', position: 'absolute', offsetTop: '16px', offsetStart: '16px', offsetEnd: '16px',
+                contents: [
+                  ...(p.k ? [{ type: 'text', text: clip(p.k, 30), size: 'sm', color: soft, wrap: true }] : []),
+                  { type: 'text', text: clip(p.t, 160) || '分享', size: '3xl', weight: 'bold', color: ink, wrap: true },
+                ],
+              },
+            ],
+          },
+          ...body,
+          { type: 'text', text: clip(p.b, 40), size: 'xxs', color: '#8e8e93', align: 'center', margin: 'md' },
+        ],
+      },
+    };
+  }
   const lines = (Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => clip(x, 120));
   const head = [
     ...(p.k ? [{ type: 'text', text: clip(p.k, 30), size: 'sm', color: '#cfe9dc' }] : []),
@@ -79,6 +111,13 @@ function cardOf(p) {
     $('title').textContent = clip(p.t, 160) || '分享';
     $('lines').replaceChildren(...(Array.isArray(p.l) ? p.l : []).slice(0, 14).map((x) => { const e = document.createElement('p'); e.textContent = clip(x, 120); return e; }));
     $('brand').textContent = clip(p.b, 40);
+    const sc = sceneOf(p);
+    if (sc) {
+      const { ink, soft } = sceneInk(sc);
+      const head = document.querySelector('.head');
+      head.style.cssText = `background:url(/img/scene-${sc}.png) center/cover;min-height:300px;color:${ink}`;
+      $('kicker').style.color = soft;
+    }
     const card = cardOf(p);
     const alt = clip([p.t, ...(p.l || [])].join(' '), 380) || '分享';
 

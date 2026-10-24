@@ -76,3 +76,18 @@ test('超過 LINE 長度上限的網址不產生連結動作（否則整張卡�
   assert.deepEqual(extractUrls(long), []);
   assert.equal(actions(reminder(long)).filter((a) => a.type === 'uri' && !a.label.includes('分享')).length, 0);
 });
+
+test('明天預告頁：有網址的項目文字可以點，下面有「開啟／複製」按鈕；沒網址的不加', () => {
+  const url = 'https://church-data-hub.onrender.com/p/vZFZ_DK1opVNGEUc?openExternalBrowser=1';
+  const page = commands._test.buildTomorrowPage([
+    { due_date: '2026-10-25T04:15:00Z', content: `後製上傳用的資料 ${url}` },
+    { due_date: '2026-10-25T02:00:00Z', content: '聖誕節創意小組開會' },
+  ], 'x');
+  const acts = actions(page.body);
+  const open = acts.filter(a => a.type === 'uri' && a.uri === url);
+  assert.ok(open.length >= 2, '文字本身和「開啟」按鈕都開得了網址');
+  const copy = acts.filter(a => a.type === 'clipboard');
+  assert.equal(copy.length, 1);
+  assert.equal(copy[0].clipboardText, url);
+  assert.equal(commands._test.buildTomorrowPage([], ''), null);
+});

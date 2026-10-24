@@ -160,3 +160,13 @@ test('poster scene：有網域就整張插畫當底圖、文字疊上去；沒�
     assert.equal(cards.sceneUrl('nope'), null);
   } finally { delete process.env.VERCEL_PROJECT_PRODUCTION_URL; }
 });
+
+test('poster scene：random 只會挑清單裡的底稿', () => {
+  process.env.VERCEL_PROJECT_PRODUCTION_URL = 'example.vercel.app';
+  try {
+    for (let i = 0; i < 20; i++) {
+      const [img] = cards.poster({ big: 1, scene: 'random' }).contents;
+      assert.ok(cards.RANDOM_SCENES.some(n => img.url === `https://example.vercel.app/img/scene-${n}.png`));
+    }
+  } finally { delete process.env.VERCEL_PROJECT_PRODUCTION_URL; }
+});

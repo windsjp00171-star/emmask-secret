@@ -123,3 +123,14 @@ test('連結按鈕名稱：去掉開頭的日期時間；沒有文字就叫「�
   const long = linkButtons('這是一段非常非常非常非常長的連結名稱文字內容 https://a.com/x')[0].contents[0].action.label;
   assert.ok(long.length <= 20);
 });
+
+test('收藏清單卡：封面顯示總數、每 5 筆一頁，有網址的筆有名稱按鈕', () => {
+  const data = Array.from({ length: 7 }, (_, i) => ({ content: i === 0 ? '開會資料 https://a.com/x' : `筆記${i}` }));
+  const card = commands._test.buildLinkCards(data);
+  const list = card.contents.contents;
+  assert.equal(list.length, 3); // 封面 + 2 頁
+  const acts = actions(list[1]);
+  assert.ok(acts.some(a => a.type === 'uri' && a.label === '🔗 開會資料' && a.uri === 'https://a.com/x'));
+  assert.ok(acts.some(a => a.type === 'clipboard'));
+  assert.equal(actions(list[2]).filter(a => a.type === 'uri').length, 0);
+});

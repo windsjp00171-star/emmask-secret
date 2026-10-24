@@ -35,3 +35,39 @@ test('我的服事：沒有服事、沒設名字時維持純文字', async () =>
   assert.match(await getMySchedule('小明'), /沒有找到/);
   assert.match(await getMySchedule(''), /WORSHIP_MY_NAME/);
 });
+
+const { asCard } = require('../lib/worship');
+
+test('asCard：指定日名單 → 封面（日期）＋職位清單；altText 是文字版', () => {
+  const text = '⛪ 10/25（週日）服事名單\n信息：師母\n助唱：雅竹、蕙芯';
+  const r = asCard(text);
+  assert.equal(r.type, 'flex');
+  assert.equal(r.contents.contents.length, 2);
+  const cover = JSON.stringify(r.contents.contents[0]);
+  assert.ok(cover.includes('10/25') && cover.includes('2 個職位'));
+  assert.ok(JSON.stringify(r.contents.contents[1]).includes('雅竹、蕙芯'));
+  assert.match(r.altText, /師母/);
+});
+
+test('asCard：打錯日期附帶的提醒文字會保留在封面', () => {
+  const r = asCard('10/3 是週五啦 😏 10/4（週日）才是，服事表在這：\n\n⛪ 10/4（週日）服事名單\n信息：師母');
+  assert.ok(JSON.stringify(r.contents.contents[0]).includes('才是'));
+});
+
+test('asCard：整月日期有按鈕可以點開當天名單', () => {
+  const r = asCard('⛪ 10 月服事日期\n• 10/4（週日）\n• 10/11（週日）\n\n輸入「服事表 10/4」看當天完整名單');
+  const btns = r.contents.contents[1].footer.contents;
+  assert.equal(btns.length, 2);
+  assert.equal(btns[0].action.text, '服事表 10/4');
+});
+
+test('asCard：我的整月服事', () => {
+  const r = asCard('⛪ 小明　10 月服事\n• 10/4（週日）：鍵盤、助唱');
+  assert.ok(JSON.stringify(r.contents.contents[0]).includes('次服事'));
+  assert.ok(JSON.stringify(r.contents.contents[1]).includes('鍵盤、助唱'));
+});
+
+test('asCard：找不到、格式錯誤等文字原樣回傳', () => {
+  assert.equal(asCard('找不到 10/3 的服事表，可能尚未排定。'), '找不到 10/3 的服事表，可能尚未排定。');
+  assert.deepEqual(asCard({ type: 'flex' }), { type: 'flex' });
+});

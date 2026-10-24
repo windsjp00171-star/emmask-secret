@@ -134,3 +134,15 @@ test('收藏清單卡：封面顯示總數、每 5 筆一頁，有網址的筆�
   assert.ok(acts.some(a => a.type === 'clipboard'));
   assert.equal(actions(list[2]).filter(a => a.type === 'uri').length, 0);
 });
+
+test('專案回報卡：封面＋進度頁＋GitHub 頁；內容的網址有按鈕', () => {
+  const card = commands._test.buildProjectCards(
+    [{ project: '網站', content: '上線 https://a.com/x', date: '2026/10/24' }, { project: 'App', content: '測試中', date: '2026/10/23' }],
+    [{ name: 'emmask-secret', count: 5, latest: 'feat: 卡片' }]);
+  const list = card.contents.contents;
+  assert.equal(list.length, 3);
+  assert.ok(actions(list[1]).some(a => a.type === 'uri' && a.uri === 'https://a.com/x'));
+  assert.ok(JSON.stringify(list[2]).includes('emmask-secret'));
+  assert.ok(card.altText.includes('【網站】'));
+  assert.equal(commands._test.buildProjectCards([], [{ name: 'r', count: 1, latest: 'x' }]).contents.type !== undefined, true);
+});

@@ -46,6 +46,12 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // 內容欄位打了「明天下午三點」就自動填到期時間：跟 LINE 共用同一套解析
+  if (req.method === 'GET' && req.query.parse !== undefined) {
+    const { parseDueDate } = require('../../lib/time');
+    return res.status(200).json({ due: parseDueDate(String(req.query.parse).slice(0, 300)) });
+  }
+
   if (req.method === 'GET') {
     const { type, project, is_done, limit = 100 } = req.query;
     let query = supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(Number(limit));

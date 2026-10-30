@@ -33,5 +33,14 @@ FORM: LINE 對話原生（IMPECCABLE’S PICK，我的排序第 1 名），seed 
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
+## Revisions
+- 2026-10-30（使用者回饋）：待辦頁「像迷宮、條列式找不到東西、資訊過多」。這跟上面「不可讓資訊密度變低」有衝突，依較新的決定處理：**資訊一樣都在，但預設不全部攤開**（漸進揭露），第一眼只看「現在要處理的」。
+  - 上方數字膠囊（過期／今天／明天／這七天）當捷徑：點了只看那一區，再點回到全部。
+  - 「這七天、之後、未排時間」預設只露 3 列，「重複提醒」預設收起來，「還有 N 筆」才展開；過期、今天、明天永遠全部顯示。
+  - 重複提醒（每週／每月）下次不在今明兩天時，不跟一次性的事混在一起。
+  - 「全選」只選畫面上看得到的列，收起來的不算。
+  - 窄螢幕：數字膠囊一行橫向捲動，隱藏「未完成」總數。
+  - 其餘（LINE 聊天列表語法、綠色只給行動與完成、勾選圓圈在右）不變。
+
 ## Unresolved
 - 無。

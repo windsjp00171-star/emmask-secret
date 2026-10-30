@@ -33,5 +33,13 @@ FORM: LINE 對話原生（IMPECCABLE’S PICK，我的排序第 1 名），seed 
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
+## Revisions
+- 2026-10-30（使用者回饋）：待辦頁「像迷宮、條列式認知負載過大、資訊過多」，使用者原本想要的是**卡片式**。這跟上面「LINE 聊天列表語法」「不可讓資訊密度變低」有衝突，依較新的決定處理：待辦預設改成**卡片總覽**（跟 LINE 小秘書的海報卡同一個語法），資訊一樣都在，但預設不全部攤開（漸進揭露）。
+  - 一個時段一張卡：過期（紅框）、今天、明天、這七天；每張最多 3 筆，點「看全部／還有 N 筆」展開那一區的完整列表，「回總覽」回來。
+  - 之後、重複提醒、未排時間收成一排小按鈕；重複提醒（下次不在今明兩天）不跟一次性的事混在一起。
+  - 列表檢視保留（搜尋列旁的切換，記在裝置上）；搜尋、專案篩選、改篩選、批次選取時自動用列表。
+  - 「全選」只選畫面上看得到的列。
+  - 不變：綠色只給行動與完成、勾選圓圈、reduced-motion、`data-tour`。
+
 ## Unresolved
 - 無。

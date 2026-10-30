@@ -1,6 +1,6 @@
 const supabase = require('../../lib/supabase');
 const { pushMessage } = require('../../lib/line');
-const { buildReminderFlex, nextRecurDue, sendEveningReview, buildVoiceFor } = require('../../lib/commands');
+const { buildReminderFlex, nextRecurDue, sendEveningReview, buildVoiceFor, finalizeStaleMeeting } = require('../../lib/commands');
 const { cronAuth } = require('../../lib/cron-auth');
 const { recordHeartbeat } = require('../../lib/heartbeat');
 const { loadModules, isOn } = require('../../lib/modules');
@@ -26,6 +26,17 @@ module.exports = async function handler(req, res) {
     await require('../../lib/tts').cleanupOldVoice();
   } catch (err) {
     console.error('Voice cleanup error:', err);
+  }
+
+  // 會議模式忘了結束：閒置超過 1 小時就自動存起來並通知；出錯不影響一般提醒
+  try {
+    await loadModules();
+    if (isOn('meetings')) {
+      const stale = await finalizeStaleMeeting();
+      if (stale) await pushMessage(stale);
+    }
+  } catch (err) {
+    console.error('Meeting auto-finish error:', err);
   }
 
   // 清掉過期的對話記憶（每天一次）；出錯不影響一般提醒

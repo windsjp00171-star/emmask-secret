@@ -51,3 +51,49 @@ test('titleAppearsInContent: 前後是標點或行首行尾時仍算比對到', 
   assert.equal(titleAppearsInContent('愛', '上一首\n愛'), true);
   assert.equal(titleAppearsInContent('愛', '（愛）'), true);
 });
+
+const { songHeader } = require('../lib/commands.js')._test;
+
+test('parseSongEntry: 歌名尾巴有英文，調性／BPM／連結不會跑掉（舊的空白格式）', () => {
+  const e = parseSongEntry('無人能比 Nothing Like You D 72 https://x.com\n[verse]\n詞');
+  assert.deepEqual([e.title, e.key, e.bpm, e.link], ['無人能比 Nothing Like You', 'D', '72', 'https://x.com']);
+  assert.equal(e.section, '[verse]\n詞');
+});
+
+test('parseSongEntry: 純英文歌名、只有歌名沒有其他欄位', () => {
+  assert.equal(parseSongEntry('Holy Spirit').title, 'Holy Spirit');
+  const e = parseSongEntry('Holy Spirit Am 68');
+  assert.deepEqual([e.title, e.key, e.bpm], ['Holy Spirit', 'Am', '68']);
+});
+
+test('parseSongEntry: 只有歌名、下一行是段落時，段落不會被當成調性', () => {
+  const e = parseSongEntry('奇異恩典\n[verse]\n詞');
+  assert.deepEqual([e.title, e.key, e.section], ['奇異恩典', '', '[verse]\n詞']);
+});
+
+test('songHeader + parseSongEntry 往返：歌名有空白、欄位有空的，都原樣讀回來', () => {
+  for (const f of [
+    ['神的 愛', '', '', ''],
+    ['神的 愛', 'D', '', ''],
+    ['神的 愛', '', '72', ''],
+    ['Plan B', 'B', '80', 'https://x.com'],
+    ['奇異恩典', '', '', ''],
+  ]) {
+    const content = `${songHeader(...f)}\n段落\n第二行`;
+    const e = parseSongEntry(content);
+    assert.deepEqual([e.title, e.key, e.bpm, e.link], f, JSON.stringify(f));
+    assert.equal(e.section, '段落\n第二行');
+  }
+  assert.equal(songHeader('奇異恩典', '', '', ''), '奇異恩典');
+});
+
+test('後台 index.html 的 parseSongEntry／songHeader 跟 lib 的行為一致', () => {
+  const fs = require('fs');
+  const html = fs.readFileSync(require('path').join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const src = html.slice(html.indexOf('const SONG_KEY_RE'), html.indexOf('const Songs = {'));
+  const { parseSongEntry: p2, songHeader: h2 } = new Function(`${src}\nreturn { parseSongEntry, songHeader };`)();
+  const e = p2(`${h2('愛 Love', '', '72', '')}\n段\n｜版本紀錄:07/14前:D`);
+  assert.deepEqual([e.title, e.key, e.bpm, e.section, e.history], ['愛 Love', '', '72', '段', '07/14前:D']);
+  const legacy = p2('無人能比 Nothing Like You D 72');
+  assert.deepEqual([legacy.title, legacy.key, legacy.bpm], ['無人能比 Nothing Like You', 'D', '72']);
+});

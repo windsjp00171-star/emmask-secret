@@ -160,7 +160,7 @@ function cardOf(p) {
     }));
     return detail.length ? { type: 'carousel', contents: [cover, ...detail.slice(0, 11)] } : cover;
   }
-  const lines = (Array.isArray(p.l) ? p.l : []).slice(0, 40).map((x) => clip(x, 120));
+  const lines = (Array.isArray(p.l) ? p.l : []).slice(0, 40); // 不先截斷：網址在後面要用完整的，顯示時才截
   const head = [
     ...(p.k ? [{ type: 'text', text: clip(p.k, 30), size: 'sm', color: '#cfe9dc' }] : []),
     { type: 'text', text: clip(p.t, 160) || '分享', size: 'xl', weight: 'bold', color: '#ffffff', wrap: true, margin: 'xs' },
@@ -169,7 +169,7 @@ function cardOf(p) {
     type: 'bubble', size: 'mega',
     header: { type: 'box', layout: 'vertical', backgroundColor: '#16513d', paddingAll: '18px', contents: head },
     body: lines.length ? { type: 'box', layout: 'vertical', spacing: 'sm', paddingAll: '16px',
-      contents: lines.flatMap((x) => [{ type: 'text', text: x, size: 'sm', wrap: true, color: '#3a3a3c', ...linkProps(x) }, ...linkBtns(x)]) } : undefined,
+      contents: lines.flatMap((x) => [{ type: 'text', text: clip(x, 120), size: 'sm', wrap: true, color: '#3a3a3c', ...linkProps(x) }, ...linkBtns(x)]) } : undefined,
     footer: { type: 'box', layout: 'vertical', paddingAll: '10px',
       contents: [{ type: 'text', text: clip(p.b, 40), size: 'xxs', color: '#8e8e93', align: 'center' }] },
   };

@@ -51,3 +51,10 @@ test('分享卡：一行有多條連結，每條一顆有名稱的按鈕', () =>
   assert.deepEqual(btns.map((a) => a.uri), ['https://m.example/a', 'https://m.example/b']);
   assert.deepEqual(linksOf('https://a.com/x').map((l) => l.label), ['']);
 });
+
+test('分享卡（沒有橘貓底圖的）：很長的網址（例如語音檔簽名網址）按鈕要拿到完整網址，不能被截成 120 字', () => {
+  const long = `https://x.supabase.co/storage/v1/object/sign/voice-notes/voice/1.m4a?token=${'a'.repeat(380)}`;
+  const acts = uriActions(cardOf({ k: '🔊', t: '提醒', l: [long], b: 'b' }));
+  assert.equal(acts.length, 2);
+  assert.ok(acts.every((a) => a.uri === long));
+});

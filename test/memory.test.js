@@ -108,3 +108,39 @@ test('cleanupExpired：每天只真的清一次，刪的是過期的', async () 
     if (real) require.cache[statePath] = real; else delete require.cache[statePath];
   }
 });
+
+// ── 階段 1：接話 ──
+const { shouldUseContext, buildContextBlock, resolveRef } = memory;
+const NOW = Date.parse('2026-10-30T10:00:00Z');
+const ago = (min) => new Date(NOW - min * 60000).toISOString();
+const turns = [
+  { role: 'bot', text: '已記下：看牙醫 11/1 10:00', ref_note_id: 'n1', created_at: ago(5) },
+  { role: 'user', text: '看牙醫 11/1 10:00', ref_note_id: null, created_at: ago(5) },
+  { role: 'bot', text: '今天有 2 件事', ref_note_id: null, created_at: ago(30) },
+];
+
+test('shouldUseContext：短句或接續詞 + 最近一則回覆動到事項 + 沒過期才帶', () => {
+  assert.equal(shouldUseContext('改成下午三點', turns, NOW), true);
+  assert.equal(shouldUseContext('明天下午在教會開很長很長的規劃會議並且要準備簡報資料', turns, NOW), false); // 長句且沒有接續詞
+  assert.equal(shouldUseContext('改成下午三點', [], NOW), false);
+  assert.equal(shouldUseContext('改成下午三點', [{ role: 'bot', text: 'x', ref_note_id: null, created_at: ago(1) }], NOW), false);
+  assert.equal(shouldUseContext('改成下午三點', [{ ...turns[0], created_at: ago(300) }], NOW), false); // 超過 2 小時
+});
+
+test('buildContextBlock：新的在前、帶相對時間', () => {
+  const b = buildContextBlock(turns, NOW);
+  assert.match(b, /^\[1\] 5 分鐘前 小秘書：已記下/);
+  assert.match(b, /\[3\] 30 分鐘前 小秘書：今天有/);
+});
+
+test('resolveRef：只接受範圍內的整數；使用者那一行改看緊接著的小秘書回覆', () => {
+  assert.equal(resolveRef(1, turns), 'n1');
+  assert.equal(resolveRef('1', turns), 'n1');
+  assert.equal(resolveRef(2, turns), 'n1');
+  assert.equal(resolveRef(3, turns), null);
+  assert.equal(resolveRef(0, turns), null);
+  assert.equal(resolveRef(9, turns), null);
+  assert.equal(resolveRef(1.5, turns), null);
+  assert.equal(resolveRef(null, turns), null);
+  assert.equal(resolveRef('abc', turns), null);
+});

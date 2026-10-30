@@ -123,3 +123,16 @@ test('會議記錄存好後可以整份撤銷（連自動拆的待辦），也�
   assert.match(text(await handlePostback(undoBtn[0])), /已撤銷/); // 復原後還能再撤銷
   assert.match(text(await handlePostback(undoBtn[0])), /已經不在了/); // 重複按不會出錯
 });
+
+test('提醒卡有「知道了」按鈕；按下只記下已讀，不完成也不延後', async () => {
+  reset();
+  tables.notes.push({ id: 'r1', type: 'reminder', content: '繳電話費', is_done: false, due_date: new Date(Date.now() + 3600e3).toISOString(), meta: { keep: 1 } });
+  const { buildReminderFlex } = require('../lib/commands');
+  const card = JSON.stringify(buildReminderFlex(tables.notes[0]));
+  assert.match(card, /act=ack&id=r1/);
+  const reply = await handlePostback('act=ack&id=r1');
+  assert.match(text(reply), /我也知道你知道了：繳電話費/);
+  assert.equal(tables.notes[0].is_done, false);
+  assert.ok(tables.notes[0].meta.acked_at);
+  assert.equal(tables.notes[0].meta.keep, 1); // 原本的 meta 不能被蓋掉
+});

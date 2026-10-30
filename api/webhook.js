@@ -7,6 +7,7 @@ const { transcribeAudio, withHeard, MAX_SECONDS } = require('../lib/voice');
 const { uploadImage } = require('../lib/storage');
 const { isStoreImageMode, setState } = require('../lib/botstate');
 const { loadModules, isOn, disabledReply } = require('../lib/modules');
+const memory = require('../lib/memory');
 
 // 還沒設定 LINE_USER_ID（剛部署好）時，直接告訴對方自己的 userId，
 // 並記下來讓設定精靈頁面可以一鍵複製，不用再去翻 LINE Developers。
@@ -74,16 +75,20 @@ const handler = async function (req, res) {
 
         // Flex 按鈕（完成／延後／改明天）
         if (event.type === 'postback') {
-          const reply = await handlePostback(event.postback.data, event.postback.params);
+          const mem = await memory.isEnabled();
+          const { value: reply, refNoteId } = await memory.track(mem, () => handlePostback(event.postback.data, event.postback.params));
           if (reply) await replyMessage(replyToken, withQuickReply(reply));
+          if (mem && reply) await memory.record({ userText: null, botReply: reply, refNoteId });
           return;
         }
         if (event.type !== 'message') return;
 
         // 文字訊息
         if (event.message.type === 'text') {
-          const reply = await dispatch(event.message.text);
+          const mem = await memory.isEnabled();
+          const { value: reply, refNoteId } = await memory.track(mem, () => dispatch(event.message.text));
           await replyMessage(replyToken, withQuickReply(reply));
+          if (mem) await memory.record({ userText: event.message.text, botReply: reply, refNoteId });
           return;
         }
 
@@ -99,7 +104,11 @@ const handler = async function (req, res) {
             await replyMessage(replyToken, heard.error);
             return;
           }
-          await replyMessage(replyToken, withQuickReply(withHeard(heard.text, await dispatch(heard.text))));
+          const mem = await memory.isEnabled();
+          const { value: dispatched, refNoteId } = await memory.track(mem, () => dispatch(heard.text));
+          const reply = withHeard(heard.text, dispatched);
+          await replyMessage(replyToken, withQuickReply(reply));
+          if (mem) await memory.record({ userText: heard.text, botReply: reply, refNoteId });
           return;
         }
 

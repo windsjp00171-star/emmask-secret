@@ -65,6 +65,19 @@ create table if not exists public.cron_heartbeats (
   last_run_at timestamptz not null default now()
 );
 
+-- 對話記憶（實驗功能，預設關閉）：短期記下最近幾輪對話，之後用來聽懂「改到下午三點」這類接著上一句的話。
+-- 只存截短後的文字；expires_at 到了就會被每日清理刪掉。
+create table if not exists public.conversation_turns (
+  id uuid primary key default gen_random_uuid(),
+  role text not null check (role in ('user', 'bot')),
+  text text not null,
+  kind text,
+  ref_note_id uuid references public.notes(id) on delete set null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '3 days')
+);
+create index if not exists idx_turns_recent on public.conversation_turns (created_at desc);
+
 -- 只有伺服器（service_role 金鑰）能讀寫，公開的 anon 金鑰什麼都看不到
 alter table public.notes enable row level security;
 alter table public.worship_dates enable row level security;
@@ -72,6 +85,7 @@ alter table public.worship_roles enable row level security;
 alter table public.worship_schedule enable row level security;
 alter table public.bot_state enable row level security;
 alter table public.cron_heartbeats enable row level security;
+alter table public.conversation_turns enable row level security;
 
 -- 圖片存檔用的私有空間
 insert into storage.buckets (id, name, public)

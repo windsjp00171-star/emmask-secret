@@ -28,6 +28,13 @@ module.exports = async function handler(req, res) {
     console.error('Voice cleanup error:', err);
   }
 
+  // 清掉過期的對話記憶（每天一次）；出錯不影響一般提醒
+  try {
+    await require('../../lib/memory').cleanupExpired();
+  } catch (err) {
+    console.error('Memory cleanup error:', err);
+  }
+
   // 晚上收工回顧；出錯不影響一般提醒
   try {
     await sendEveningReview();

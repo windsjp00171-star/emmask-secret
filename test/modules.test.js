@@ -19,10 +19,14 @@ test('套餐裡的功能代號都是真的、說明文字都有寫', () => {
   }
 });
 
-test('還沒設定過：全部開啟（升級的人行為不變）；不認得的代號當作開啟', () => {
+test('還沒設定過：全部開啟（升級的人行為不變），只有預設關閉的實驗功能除外；不認得的代號當作開啟', () => {
   mods._test.reset();
-  assert.ok(ALL.every(id => mods.isOn(id)));
+  const off = mods.MODULES.filter(m => m.off).map(m => m.id);
+  assert.deepEqual(off, ['memory']);
+  assert.ok(ALL.filter(id => !off.includes(id)).every(id => mods.isOn(id)));
+  assert.ok(off.every(id => !mods.isOn(id)));
   assert.equal(mods.isOn('不存在的'), true);
+  assert.ok(!mods.PRESETS.all.ids.includes('memory'), '「全部開啟」不含預設關閉的實驗功能');
 });
 
 test('指令對到模組；一般句子不屬於任何模組', () => {

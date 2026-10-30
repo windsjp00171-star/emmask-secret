@@ -15,7 +15,7 @@ function query(table) {
     update(p) { op = 'update'; patch = p; return q; },
     delete() { op = 'delete'; return q; },
     select() { return q; },
-    eq(k, v) { filters.push(r => r[k] === v); return q; },
+    eq(k, v) { const m = k.match(/^(\w+)->>(\w+)$/); filters.push(m ? (r => r[m[1]] && r[m[1]][m[2]] === v) : (r => r[k] === v)); return q; },
     like(k, v) { const re = new RegExp('^' + v.replace('%', '.*') + '$'); filters.push(r => re.test(r[k])); return q; },
     gte(k, v) { filters.push(r => r[k] >= v); return q; },
     order(k, o) { orderKey = k; asc = !o || o.ascending !== false; return q; },
@@ -40,7 +40,7 @@ const modulesPath = require.resolve('../lib/modules');
 const realModules = require('../lib/modules');
 realModules.loadModules = async () => {};
 realModules.isOn = (id) => id !== 'memory';
-const { dispatch, finalizeStaleMeeting } = require('../lib/commands');
+const { dispatch, finalizeStaleMeeting, handlePostback } = require('../lib/commands');
 
 const reset = () => { tables.bot_state = []; tables.notes = []; };
 const text = (r) => (typeof r === 'string' ? r : r.altText || JSON.stringify(r));
@@ -105,4 +105,21 @@ test('補充：會議記錄後面補的「待辦:」也會變成待辦；最近�
 test('補充：找不到可補的事項就說明', async () => {
   reset();
   assert.match(text(await dispatch('補充 什麼')), /找不到要補充的那一筆/);
+});
+
+test('會議記錄存好後可以整份撤銷（連自動拆的待辦），也能復原', async () => {
+  reset();
+  const card = await dispatch('會議 打錯的會議\n待辦: 訂場地');
+  const undoBtn = JSON.stringify(card).match(/act=delmeeting&b=[\w-]+/);
+  assert.ok(undoBtn, '卡片上要有撤銷整份會議記錄的按鈕');
+  assert.equal(tables.notes.length, 2); // 會議記錄 + 一筆待辦
+  const undone = await handlePostback(undoBtn[0]);
+  assert.match(text(undone), /已撤銷/);
+  assert.equal(tables.notes.length, 0);
+  const restoreBtn = JSON.stringify(undone).match(/act=restoremeeting&b=[\w-]+/);
+  assert.ok(restoreBtn);
+  assert.match(text(await handlePostback(restoreBtn[0])), /已復原會議記錄（共 2 筆）/);
+  assert.equal(tables.notes.length, 2);
+  assert.match(text(await handlePostback(undoBtn[0])), /已撤銷/); // 復原後還能再撤銷
+  assert.match(text(await handlePostback(undoBtn[0])), /已經不在了/); // 重複按不會出錯
 });

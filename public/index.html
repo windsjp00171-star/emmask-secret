@@ -307,7 +307,7 @@
   <div class="modal">
     <h3>編輯記錄</h3>
     <label>內容 *</label>
-    <textarea id="editContent" style="resize:vertical;min-height:80px"></textarea>
+    <textarea id="editContent" oninput="autoFillDue('edit')" style="resize:vertical;min-height:80px"></textarea>
     <label>類型 *</label>
     <select id="editType">
       <option value="task">待辦</option>
@@ -341,7 +341,7 @@
   <div class="modal">
     <h3>新增記錄</h3>
     <label>內容 *</label>
-    <textarea id="newContent" placeholder="要記錄的事..."></textarea>
+    <textarea id="newContent" oninput="autoFillDue('new')" placeholder="要記錄的事..."></textarea>
     <label>類型 *</label>
     <select id="newType">
       <option value="task">待辦</option>
@@ -748,6 +748,32 @@ function duePreview(id) {
   if (!v) { out.textContent = ''; return; }
   const d = new Date(v);
   out.textContent = `${d.getMonth() + 1}/${d.getDate()}（${'日一二三四五六'[d.getDay()]}）${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// 內容欄位打出日期時間 → 自動填到期時間（解析交給伺服器，跟 LINE 同一套規則）
+const autoDue = {};
+function autoFillDue(prefix) {
+  const st = autoDue[prefix] = autoDue[prefix] || { timer: null, last: null };
+  clearTimeout(st.timer);
+  st.timer = setTimeout(async () => {
+    const type = document.getElementById(prefix + 'Type').value;
+    if (type !== 'task' && type !== 'reminder') return;
+    const text = document.getElementById(prefix + 'Content').value.trim();
+    if (!text) return;
+    let due = null;
+    try {
+      const res = await fetch('/api/dashboard/notes?parse=' + encodeURIComponent(text), { headers: { 'x-dashboard-token': token } });
+      if (res.ok) due = (await res.json()).due;
+    } catch (e) { return; }
+    if (!due || due === st.last) return;
+    st.last = due;
+    const local = new Date(due);
+    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+    const el = document.getElementById(prefix + 'DueDate');
+    el.value = local.toISOString().slice(0, 16);
+    duePreview(prefix + 'DueDate');
+    toast('已幫你填好到期時間');
+  }, 600);
 }
 
 function goPage(page) {
@@ -1392,6 +1418,7 @@ async function applyBulkProject(project) {
 }
 
 function openModal() {
+  autoDue.new = null;
   document.getElementById('newContent').value = '';
   document.getElementById('newType').value = 'task';
   document.getElementById('newProject').value = '';
@@ -1438,6 +1465,7 @@ function openEditModal(id) {
   const note = allNotes.find(n => n.id === id);
   if (!note) return;
   editingNoteId = id;
+  autoDue.edit = null;
   document.getElementById('editContent').value = note.content || '';
   document.getElementById('editType').value = note.type;
   document.getElementById('editProject').value = note.project || '';

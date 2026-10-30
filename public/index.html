@@ -1098,7 +1098,7 @@ function matchesType(n, type) {
 const SCOPES = {
   todo:    { type: 'todo',    done: '',     sort: 'due_asc' },
   records: { type: 'records', done: '',     sort: 'created_desc' },
-  done:    { type: '',        done: 'true', sort: 'created_desc' },
+  done:    { type: 'todo',    done: 'true', sort: 'created_desc' }, // 完成的只有待辦和提醒
   all:     { type: '',        done: '',     sort: 'created_desc' },
 };
 function setScope(key) {
@@ -1155,14 +1155,16 @@ function noteRow(n) {
          <div class="raw-text">${esc(n.raw_text)}</div>
        </div>`
     : '';
-  return `<div class="row ${n.is_done ? 'done' : ''}" data-id="${esc(n.id)}">
+  // 「完成」只有待辦和提醒才有意義；筆記、專案更新、週報不顯示完成圓圈，也不套已完成的灰色
+  const doable = isActionable(n);
+  return `<div class="row ${doable && n.is_done ? 'done' : ''}" data-id="${esc(n.id)}">
     <label class="sel" onclick="event.stopPropagation()"><input type="checkbox" class="rowCheck" ${selectedIds.has(n.id) ? 'checked' : ''} onchange="toggleSelect('${esc(n.id)}', this.checked)" aria-label="選取" /></label>
     <div class="row-main" role="button" tabindex="0" onclick="rowClick('${esc(n.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();rowClick('${esc(n.id)}')}">
       <span class="avatar ${esc(n.type)}" title="${TYPE_LABEL[n.type] || ''}"><svg class="icon"><use href="#i-${esc(n.type)}"/></svg></span>
       <span class="row-text"><span class="row-title">${esc(n.content)}</span><span class="row-sub num">${sub}</span>${rawBlock}</span>
     </div>
-    ${n.is_done ? '<span class="read">已完成</span>' : ''}
-    <button class="check" onclick="tapDone('${esc(n.id)}', ${!n.is_done})" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i><svg class="icon"><use href="#i-check"/></svg></i></button>
+    ${doable && n.is_done ? '<span class="read">已完成</span>' : ''}
+    ${doable ? `<button class="check" onclick="tapDone('${esc(n.id)}', ${!n.is_done})" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i><svg class="icon"><use href="#i-check"/></svg></i></button>` : ''}
   </div>`;
 }
 
@@ -1311,8 +1313,9 @@ function updateBulkBar() {
 }
 
 async function bulkDone() {
-  const ids = [...selectedIds];
-  if (ids.length === 0) return;
+  // 只有待辦和提醒能標完成；選到的筆記跳過
+  const ids = [...selectedIds].filter(id => { const n = allNotes.find(x => x.id === id); return n && isActionable(n); });
+  if (ids.length === 0) return toast('選到的都是筆記，沒有可以標完成的待辦或提醒');
   const results = await Promise.all(ids.map(id => api('PATCH', { id, is_done: true })));
   const ok = ids.filter((id, i) => results[i]);
   ok.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = true; });

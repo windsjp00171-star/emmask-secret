@@ -77,7 +77,10 @@ const handler = async function (req, res) {
         if (event.type === 'postback') {
           const mem = await memory.isEnabled();
           const { value: reply, refNoteId } = await memory.track(mem, () => handlePostback(event.postback.data, event.postback.params));
-          if (reply) await replyMessage(replyToken, withQuickReply(reply));
+          if (reply) {
+            const sent = await replyMessage(replyToken, withQuickReply(reply));
+            if (mem) await memory.rememberSent(sent, refNoteId);
+          }
           if (mem && reply) await memory.record({ userText: null, botReply: reply, refNoteId });
           return;
         }
@@ -86,8 +89,11 @@ const handler = async function (req, res) {
         // 文字訊息
         if (event.message.type === 'text') {
           const mem = await memory.isEnabled();
-          const { value: reply, refNoteId } = await memory.track(mem, () => dispatch(event.message.text));
-          await replyMessage(replyToken, withQuickReply(reply));
+          // 使用者長按小秘書的訊息按「回覆」：查那則訊息對應哪一筆事項
+          const quoteRef = mem && event.message.quotedMessageId ? await memory.refForMessage(event.message.quotedMessageId) : null;
+          const { value: reply, refNoteId } = await memory.track(mem, () => dispatch(event.message.text), { quoteRef });
+          const sent = await replyMessage(replyToken, withQuickReply(reply));
+          if (mem) await memory.rememberSent(sent, refNoteId);
           if (mem) await memory.record({ userText: event.message.text, botReply: reply, refNoteId });
           return;
         }

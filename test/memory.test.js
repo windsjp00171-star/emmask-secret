@@ -144,3 +144,17 @@ test('resolveRef：只接受範圍內的整數；使用者那一行改看緊接�
   assert.equal(resolveRef(null, turns), null);
   assert.equal(resolveRef('abc', turns), null);
 });
+
+// ── 引用回覆 ──
+test('contextFor：使用者引用了某則訊息，就直接帶那一筆事項，不看句子長短', async () => {
+  const { value } = await memory.track(true, () => memory.contextFor('把這個改成下午三點，順便把地點也換成大禮堂請幫我記一下'), { quoteRef: 'n9' });
+  assert.deepEqual(value, { turns: [], block: '', quoted: true, lastRef: 'n9' });
+});
+
+test('rememberSent：沒有事項或沒有訊息 ID 就什麼都不寫', async () => {
+  reset();
+  await memory.rememberSent({ sentMessages: [{ id: 'm1' }] }, null);
+  await memory.rememberSent({}, 'n1');
+  await memory.rememberSent(undefined, 'n1');
+  assert.equal(calls.length, 0);
+});

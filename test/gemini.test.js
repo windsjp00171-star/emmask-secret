@@ -151,16 +151,25 @@ test('callGemini: 主模型忙線（503）時，第二次改試備用模型；�
     () => callGemini({ parts: [{ text: 'x' }], label: '測試' }));
   assert.equal(urls.length, 2);
   assert.ok(urls[0].includes(`/models/${require('../lib/gemini.js').MODEL}:`));
-  assert.ok(urls[1].includes('gemini-2.5-flash-lite'), urls[1]);
-  assert.equal(usageCalls[usageCalls.length - 1][0], 'gemini-2.5-flash-lite'); // 用量記在實際用的模型上
+  assert.ok(urls[1].includes('gemini-3.5-flash-lite'), urls[1]);
+  assert.equal(usageCalls[usageCalls.length - 1][0], 'gemini-3.5-flash-lite'); // 用量記在實際用的模型上
 
   const urls429 = [];
   await withFetch(async (url) => { urls429.push(String(url)); return urls429.length === 1 ? errResponse(429) : okResponse('ok'); },
     () => callGemini({ parts: [{ text: 'x' }] }));
-  assert.ok(!urls429[1].includes('gemini-2.5-flash-lite'));
+  assert.ok(!urls429[1].includes('gemini-3.5-flash-lite'));
 
   const urlsCustom = [];
   await withFetch(async (url) => { urlsCustom.push(String(url)); return urlsCustom.length === 1 ? errResponse(503) : okResponse('ok'); },
     () => callGemini({ parts: [{ text: 'x' }], model: 'custom-model' }));
   assert.ok(urlsCustom[1].includes('custom-model')); // 呼叫端指定模型時不擅自換
+});
+
+test('callGemini: 備用模型也不能用（404）時，丟出的是主模型忙線的原因', async () => {
+  let n = 0;
+  let err;
+  await withFetch(async () => { n++; return n === 1 ? errResponse(503) : errResponse(404); },
+    async () => { try { await callGemini({ parts: [{ text: 'x' }] }); } catch (e) { err = e; } });
+  assert.equal(n, 2);
+  assert.equal(err.status, 503);
 });

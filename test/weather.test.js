@@ -4,9 +4,13 @@ const assert = require('node:assert/strict');
 const { isWeatherQuery, handleWeather, _test } = require('../lib/weather');
 const { findCity, findDateKey, formatForecast } = _test;
 
-const NOW = new Date('2026-10-31T02:00:00Z'); // 台北 10/31 10:00
+// 日期解析（明天、後天）看的是真實時鐘，所以測試也用真實的現在，日期全部由它推出來，
+// 不然跨過台北午夜測試就會莫名失敗
+const NOW = new Date();
+const dayKey = (offset) => new Date(NOW.getTime() + offset * 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+const D = (i) => dayKey(i);
 const daily = {
-  time: ['2026-10-31', '2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06'],
+  time: [0, 1, 2, 3, 4, 5, 6].map(D),
   weather_code: [0, 2, 61, 3, 95, 1, 80],
   temperature_2m_max: [31.2, 30.4, 26.1, 27, 25, 29, 28],
   temperature_2m_min: [23.6, 23, 22.2, 22, 21, 22, 22],
@@ -28,23 +32,23 @@ test('findCity：預設台南，句子裡有縣市就用那個，臺／台都行
 });
 
 test('findDateKey：沒講日期是今天；「那天」用帶進來的日期', () => {
-  assert.equal(findDateKey('天氣如何', null, NOW), '2026-10-31');
-  assert.equal(findDateKey('明天天氣', null, NOW), '2026-11-01');
+  assert.equal(findDateKey('天氣如何', null, NOW), D(0));
+  assert.equal(findDateKey('明天天氣', null, NOW), D(1));
   assert.equal(findDateKey('那天天氣如何', '2026-11-18T10:30:00+08:00', NOW), '2026-11-18');
-  assert.equal(findDateKey('那天天氣如何', null, NOW), '2026-10-31');
+  assert.equal(findDateKey('那天天氣如何', null, NOW), D(0));
 });
 
 test('formatForecast：天氣、溫度、降雨機率；機率高會提醒帶傘', () => {
-  const sunny = formatForecast('台南', '2026-11-01', daily, NOW);
-  assert.match(sunny, /台南 明天（11\/1）：多雲時晴/);
+  const sunny = formatForecast('台南', D(1), daily, NOW);
+  assert.match(sunny, /台南 明天（\d+\/\d+）：多雲時晴/);
   assert.match(sunny, /23–30°C/);
   assert.match(sunny, /降雨機率 20%$/);
-  assert.match(formatForecast('台南', '2026-11-02', daily, NOW), /下雨[\s\S]*80%，記得帶傘/);
+  assert.match(formatForecast('台南', D(2), daily, NOW), /下雨[\s\S]*80%，記得帶傘/);
 });
 
 test('formatForecast：超出 7 天或已過去要說明', () => {
-  assert.match(formatForecast('台南', '2026-11-18', daily, NOW), /太遠了/);
-  assert.match(formatForecast('台南', '2026-10-20', daily, NOW), /已經過去/);
+  assert.match(formatForecast('台南', D(30), daily, NOW), /太遠了/);
+  assert.match(formatForecast('台南', D(-10), daily, NOW), /已經過去/);
 });
 
 test('handleWeather：用模擬資料走完整流程；服務連不上時回說明', async () => {

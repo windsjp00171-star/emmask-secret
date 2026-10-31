@@ -1,13 +1,6 @@
 const supabase = require('../../lib/supabase');
 
-function authCheck(req, res) {
-  const token = req.query.token || req.headers['x-dashboard-token'];
-  if (token !== process.env.DASHBOARD_TOKEN) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return false;
-  }
-  return true;
-}
+const { dashboardAuth: authCheck } = require('../../lib/auth');
 
 // 後台輸入列送來的一句話：走跟 LINE 一模一樣的 dispatch，回覆轉成純文字給網頁顯示
 function replyToText(reply) {

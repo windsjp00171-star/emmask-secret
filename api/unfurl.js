@@ -1,22 +1,17 @@
 // 收藏連結用：抓目標網頁的標題（og:title 優先，其次 <title>），
 // 讓「收藏」清單顯示可讀的標題而不是一整串網址。
-function authCheck(req, res) {
-  const token = req.query.token || req.headers['x-dashboard-token'];
-  if (token !== process.env.DASHBOARD_TOKEN) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return false;
-  }
-  return true;
-}
+const { dashboardAuth: authCheck } = require('../lib/auth');
 
 // 只允許 http/https，擋掉 localhost / 內網位址，避免這個端點被拿去當內網探測的跳板
 function isSafeUrl(raw) {
   let u;
   try { u = new URL(raw); } catch (e) { return false; }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
-  const host = u.hostname.toLowerCase();
-  if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0') return false;
-  if (/^10\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\.|^169\.254\./.test(host)) return false;
+  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, ''); // IPv6 網址的 hostname 會帶中括號
+  if (host === 'localhost' || host.endsWith('.localhost') || host === '0.0.0.0') return false;
+  if (/^127\.|^10\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\.|^169\.254\.|^0\./.test(host)) return false;
+  // IPv6：本機、私有（fc/fd）、連結本機（fe80）、對應到 IPv4 的寫法
+  if (host === '::1' || host === '::' || /^f[cd][0-9a-f]{2}:|^fe[89ab][0-9a-f]:|^::ffff:/.test(host)) return false;
   return true;
 }
 
@@ -34,15 +29,27 @@ function extractTitle(html) {
   return null;
 }
 
+const MAX_REDIRECTS = 3;
+
 async function fetchTitle(target) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 4000);
   try {
-    const resp = await fetch(target, {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; EmmArkBot/1.0)' },
-    });
+    // 轉址自己一步步跟，每一站都要再檢查一次，不然短網址可以把我們導去內網
+    let url = target;
+    let resp;
+    for (let hop = 0; ; hop++) {
+      resp = await fetch(url, {
+        signal: controller.signal,
+        redirect: 'manual',
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; EmmArkBot/1.0)' },
+      });
+      const loc = resp.status >= 300 && resp.status < 400 && resp.headers.get('location');
+      if (!loc) break;
+      if (hop >= MAX_REDIRECTS) return null;
+      try { url = new URL(loc, url).toString(); } catch (e) { return null; }
+      if (!isSafeUrl(url)) return null;
+    }
     if (!resp.ok || !resp.body) return null;
     const reader = resp.body.getReader();
     let html = '';
@@ -81,4 +88,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports._test = { isSafeUrl, extractTitle };
+module.exports._test = { isSafeUrl, extractTitle, fetchTitle };

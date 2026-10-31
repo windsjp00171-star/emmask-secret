@@ -1,13 +1,6 @@
 const supabase = require('../../lib/supabase');
 
-function authCheck(req, res) {
-  const token = req.query.token || req.headers['x-dashboard-token'];
-  if (token !== process.env.DASHBOARD_TOKEN) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return false;
-  }
-  return true;
-}
+const { dashboardAuth: authCheck } = require('../../lib/auth');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

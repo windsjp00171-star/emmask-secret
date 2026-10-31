@@ -137,12 +137,14 @@ async function safe(fn) {
   try { return await fn(); } catch (err) { return { ok: false, error: err.message }; }
 }
 
+const { tokenOk } = require('../../lib/auth');
+
 module.exports = async function handler(req, res) {
   const token = req.headers['x-dashboard-token'];
   if (!process.env.DASHBOARD_TOKEN) {
     return res.status(503).json({ error: '還沒設定 DASHBOARD_TOKEN：請到 Vercel → Settings → Environment Variables 新增後 Redeploy' });
   }
-  if (token !== process.env.DASHBOARD_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
+  if (!tokenOk(token)) return res.status(401).json({ error: 'Unauthorized' });
 
   const base = baseUrl(req);
   const webhookUrl = `${base}/api/webhook`;

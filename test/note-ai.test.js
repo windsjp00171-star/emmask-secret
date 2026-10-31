@@ -127,24 +127,38 @@ test('整理筆記：AI 失敗時說明，不丟錯；沒筆記時直接說沒�
   assert.match(await dispatch('整理筆記'), /太忙了（不是你的額度用完）/);
 });
 
-test('歸類筆記：給建議卡 → 按確認才寫入 → 可復原；使用者自己改過的不蓋掉', async () => {
+test('歸類筆記：每則一張卡可單獨歸類，也能全部照建議；按之前不寫入，可復原', async () => {
   reset();
-  tables.notes.push(note('a', '特會報到流程'), note('b', '隨手想法'), note('c', '奉獻報表', { project: '會計系統' }));
-  aiReply = '{"assignments":[{"n":1,"project":"We r one"},{"n":2,"project":null}]}';
+  tables.notes.push(note('a', '特會報到流程'), note('b', '隨手想法'), note('c', '奉獻報表', { project: '會計系統' }), note('d', '奉獻統計'));
+  aiReply = '{"assignments":[{"n":1,"project":"We r one"},{"n":2,"project":null},{"n":3,"project":"會計系統"}]}';
   const card = await dispatch('歸類筆記');
-  assert.match(text(card), /特會報到流程 → We r one/);
-  assert.match(text(card), /另外 1 則沒把握/);
-  assert.equal(tables.notes.find(n => n.id === 'a').project, null); // 還沒按確認，不能動
-  const key = text(card).match(/act=assignproj&k=(\w+)/)[1];
+  const cj = text(card);
+  assert.equal(card.contents.type, 'carousel');
+  assert.equal(card.contents.contents.length, 1 + 2); // 一張總覽 + 兩則建議
+  assert.match(cj, /特會報到流程/);
+  assert.match(cj, /→ We r one/);
+  assert.match(cj, /另外 1 則沒把握/);
+  assert.equal(tables.notes.find(n => n.id === 'a').project, null); // 還沒按，不能動
+  const key = cj.match(/act=assignproj&k=(\w+)/)[1];
 
-  const done = await handlePostback(`act=assignproj&k=${key}`);
-  assert.match(text(done), /已歸類 1 則/);
+  // 只按第一則
+  const one = await handlePostback(`act=assignone&k=${key}&i=0`);
+  assert.match(text(one), /已歸到「We r one」/);
   assert.equal(tables.notes.find(n => n.id === 'a').project, 'We r one');
-  assert.match(await handlePostback(`act=assignproj&k=${key}`), /已經過期或用過了/);
+  assert.equal(tables.notes.find(n => n.id === 'd').project, null);
+  assert.match(await handlePostback(`act=assignone&k=${key}&i=0`), /已經處理過了/);
 
-  const undone = await handlePostback(`act=undoassign&k=${key}`);
-  assert.match(undone, /已復原 1 則/);
+  // 復原單則
+  const undoKey = text(one).match(/act=undoassign&k=(\w+)/)[1];
+  assert.match(await handlePostback(`act=undoassign&k=${undoKey}`), /已復原 1 則/);
   assert.equal(tables.notes.find(n => n.id === 'a').project, null);
+
+  // 再按「全部」：第一則已處理過（done）不重複，只做第二則
+  const all = await handlePostback(`act=assignproj&k=${key}`);
+  assert.match(text(all), /已歸類 1 則/);
+  assert.equal(tables.notes.find(n => n.id === 'a').project, null);
+  assert.equal(tables.notes.find(n => n.id === 'd').project, '會計系統');
+  assert.match(await handlePostback(`act=assignproj&k=${key}`), /都已經處理過/);
 });
 
 test('歸類筆記：確認前使用者已自己歸了專案，就不覆蓋', async () => {
@@ -153,8 +167,9 @@ test('歸類筆記：確認前使用者已自己歸了專案，就不覆蓋', as
   aiReply = '{"assignments":[{"n":1,"project":"We r one"}]}';
   const key = text(await dispatch('歸類筆記')).match(/act=assignproj&k=(\w+)/)[1];
   tables.notes[0].project = '會計系統'; // 使用者在後台自己改了
-  assert.match(await handlePostback(`act=assignproj&k=${key}`), /已經被歸類過了/);
+  assert.match(await handlePostback(`act=assignone&k=${key}&i=0`), /已經有專案了/);
   assert.equal(tables.notes[0].project, '會計系統');
+  assert.match(await handlePostback(`act=assignproj&k=${key}`), /都已經處理過/);
 });
 
 test('歸類筆記：都有專案就說一聲；AI 沒把握就維持原樣', async () => {

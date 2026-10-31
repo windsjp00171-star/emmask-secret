@@ -17,7 +17,7 @@ test('你可以這樣說：四頁，含補充、天氣、AI額度、會議模式
   assert.equal(flex.type, 'flex');
   assert.equal(pagesOf(flex).length, 4);
   const all = textOf(flex);
-  for (const phrase of ['補充 還有一件事', '明天天氣如何', 'AI額度', '會議開始', '會議結束', '撤銷']) {
+  for (const phrase of ['補充 還有一件事', '明天天氣如何', 'AI額度', '整理這週的筆記', '歸類筆記', '會議開始', '會議結束', '撤銷']) {
     assert.ok(all.includes(phrase), phrase);
   }
 });

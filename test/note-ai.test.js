@@ -28,6 +28,7 @@ function query(table) {
     eq(k, v) { filters.push(r => r[k] === v); return q; },
     in(k, vs) { filters.push(r => vs.includes(r[k])); return q; },
     is(k, v) { filters.push(r => (r[k] == null ? null : r[k]) === v); return q; },
+    ilike(k, v) { const re = new RegExp('^' + v.replace(/%/g, '.*') + '$', 'i'); filters.push(r => re.test(r[k] || '')); return q; },
     like(k, v) { const re = new RegExp('^' + v.replace('%', '.*') + '$'); filters.push(r => re.test(r[k])); return q; },
     order(k, o) { orderKey = k; asc = !o || o.ascending !== false; return q; },
     limit(n) { lim = n; return q; },
@@ -56,10 +57,12 @@ require.cache[projectsPath] = { id: projectsPath, filename: projectsPath, loaded
 const noteAi = require('../lib/note-ai');
 const { dispatch, handlePostback } = require('../lib/commands');
 const { sanitizeDigest, sanitizeAssignments } = noteAi._test;
-const reset = () => { tables.bot_state = []; tables.notes = []; aiCalls = 0; aiReply = '{}'; };
+const reset = () => { tables.bot_state = []; tables.notes = []; aiCalls = 0; aiReply = '{}'; noteSeq = 0; };
 const text = (r) => (typeof r === 'string' ? r : JSON.stringify(r));
 const daysAgo = (d) => new Date(Date.now() - d * 86400000).toISOString();
-const note = (id, content, extra = {}) => ({ id, type: 'note', project: null, content, created_at: daysAgo(1), ...extra });
+// 先建立的比較新（每則差 1 秒）：資料庫是新的在前，順序要固定，不能靠同一毫秒的巧合
+let noteSeq = 0;
+const note = (id, content, extra = {}) => ({ id, type: 'note', project: null, content, created_at: new Date(Date.now() - 86400000 - (noteSeq++) * 1000).toISOString(), ...extra });
 
 test('selectDigestNotes：期間內的筆記，排除系統專案與非筆記，新的在前、可指定專案', () => {
   const rows = [
@@ -179,4 +182,19 @@ test('歸類筆記：都有專案就說一聲；AI 沒把握就維持原樣', as
   tables.notes.push(note('b', '亂七八糟'));
   aiReply = '{"assignments":[{"n":1,"project":"不存在的專案"}]}';
   assert.match(await dispatch('歸類筆記'), /沒有把握放進現有專案/);
+});
+
+test('倒數日：記下、列出、刪除；存成系統專案，不會混進筆記', async () => {
+  reset();
+  const added = await dispatch('倒數 12/25 聖誕節');
+  assert.match(added, /聖誕節還有 \d+ 天/);
+  const row = tables.notes[0];
+  assert.equal(row.project, '倒數日');
+  assert.equal(row.content, '聖誕節');
+  assert.match(await dispatch('倒數'), /聖誕節：還有 \d+ 天/);
+  assert.match(await dispatch('倒數 聖誕節'), /要寫日期/);
+  assert.match(await dispatch('刪倒數 不存在'), /沒有找到/);
+  assert.match(await dispatch('刪倒數 聖誕節'), /已刪掉倒數日：聖誕節/);
+  assert.equal(tables.notes.length, 0);
+  assert.match(await dispatch('骰子'), /🎲 擲出 [1-6]/);
 });

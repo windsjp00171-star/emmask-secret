@@ -121,7 +121,10 @@ test('整理筆記：AI 失敗時說明，不丟錯；沒筆記時直接說沒�
   assert.match(await dispatch('整理筆記'), /沒有筆記可以整理/);
   tables.notes.push(note('a', '一'), note('b', '二'), note('c', '三'));
   aiReply = new Error('boom');
-  assert.match(await dispatch('整理筆記'), /AI 現在沒辦法處理/);
+  assert.match(await dispatch('整理筆記'), /AI 這次沒有處理成功/);
+  // Google 那邊忙線（5xx）要明說「不是額度用完」
+  aiReply = Object.assign(new Error('Gemini HTTP 503'), { status: 503 });
+  assert.match(await dispatch('整理筆記'), /太忙了（不是你的額度用完）/);
 });
 
 test('歸類筆記：給建議卡 → 按確認才寫入 → 可復原；使用者自己改過的不蓋掉', async () => {

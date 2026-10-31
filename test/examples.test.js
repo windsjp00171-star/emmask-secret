@@ -11,13 +11,13 @@ const { dispatch, _test } = require('../lib/commands');
 const pagesOf = (flex) => flex.contents.contents;
 const textOf = (flex) => JSON.stringify(flex);
 
-test('你可以這樣說：四頁，含補充、天氣、AI額度、會議模式的範例句', () => {
+test('你可以這樣說：五頁，含補充、天氣、AI額度、會議模式的範例句', () => {
   meetingsOn = true;
   const flex = _test.handleExamples();
   assert.equal(flex.type, 'flex');
-  assert.equal(pagesOf(flex).length, 4);
+  assert.equal(pagesOf(flex).length, 5);
   const all = textOf(flex);
-  for (const phrase of ['補充 還有一件事', '明天天氣如何', 'AI額度', '整理這週的筆記', '歸類筆記', '會議開始', '會議結束', '撤銷']) {
+  for (const phrase of ['補充 還有一件事', '明天天氣如何', 'AI額度', '整理這週的筆記', '歸類筆記', 'AI 幫手', '收工回顧', '會議開始', '會議結束', '撤銷']) {
     assert.ok(all.includes(phrase), phrase);
   }
 });
@@ -25,7 +25,7 @@ test('你可以這樣說：四頁，含補充、天氣、AI額度、會議模式
 test('你可以這樣說：會議記錄功能沒開就不列那一頁', () => {
   meetingsOn = false;
   const flex = _test.handleExamples();
-  assert.equal(pagesOf(flex).length, 3);
+  assert.equal(pagesOf(flex).length, 4);
   assert.ok(!textOf(flex).includes('會議開始'));
   meetingsOn = true;
 });

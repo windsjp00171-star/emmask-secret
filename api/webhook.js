@@ -41,8 +41,12 @@ function verifySignature(rawBody, signature) {
     .createHmac('sha256', secret)
     .update(rawBody)
     .digest('base64');
-  console.log(`[webhook] bodyLen=${rawBody.length} secretLen=${secret.length} match=${hash === signature}`);
-  return hash === signature;
+  // 定時比較，不從回應速度洩漏簽章；日誌只在失敗時留一行，不印密鑰長度之類的資訊
+  const a = Buffer.from(hash);
+  const b = Buffer.from(String(signature || ''));
+  const ok = a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (!ok) console.error(`[webhook] 簽章不符 bodyLen=${rawBody.length}`);
+  return ok;
 }
 
 const handler = async function (req, res) {
@@ -172,3 +176,4 @@ const handler = async function (req, res) {
 
 module.exports = handler;
 module.exports.config = { api: { bodyParser: false } };
+module.exports._test = { verifySignature };

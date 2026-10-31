@@ -78,9 +78,10 @@ function lineRequest(method, path, body, isBuffer) {
   });
 }
 
+const { tokenOk } = require('../../lib/auth');
+
 module.exports = async function handler(req, res) {
-  const token = req.query.token;
-  if (token !== process.env.DASHBOARD_TOKEN) {
+  if (!tokenOk(req.query.token)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

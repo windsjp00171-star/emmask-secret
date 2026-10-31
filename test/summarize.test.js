@@ -103,3 +103,17 @@ test('writeSummary: 會剝掉模型多加的引號', async () => {
     else process.env.GEMINI_API_KEY = saved;
   }
 });
+
+test('buildFactSheet: 收工小結要用到的「今天還沒做完」「明天的行程」會列出來', () => {
+  const sheet = buildFactSheet({ doneCount: 2, pendingCount: 1, todayOpen: ['印週報'], tomorrow: ['10:00 後製資料'] });
+  assert.match(sheet, /完成件數：2/);
+  assert.match(sheet, /今天還沒做完：\n- 印週報/);
+  assert.match(sheet, /明天的行程：\n- 10:00 後製資料/);
+});
+
+test('收工小結的提示詞：只能依資料、不責備、不編造', () => {
+  const p = _test.PROMPTS.evening;
+  assert.match(p, /不要編造/);
+  assert.match(p, /不要責備/);
+  assert.match(p, /1 句話/);
+});

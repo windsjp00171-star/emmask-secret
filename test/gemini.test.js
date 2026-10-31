@@ -143,3 +143,24 @@ test('callGemini: 每次送出都記一次用量，被 429 擋掉的不算', asy
   assert.equal(usageCalls.length, 1);
   assert.equal(usageCalls[0][1], '測試');
 });
+
+test('callGemini: 主模型忙線（503）時，第二次改試備用模型；額度 429 不換', async () => {
+  usageCalls.length = 0;
+  const urls = [];
+  await withFetch(async (url) => { urls.push(String(url)); return urls.length === 1 ? errResponse(503) : okResponse('ok'); },
+    () => callGemini({ parts: [{ text: 'x' }], label: '測試' }));
+  assert.equal(urls.length, 2);
+  assert.ok(urls[0].includes(`/models/${require('../lib/gemini.js').MODEL}:`));
+  assert.ok(urls[1].includes('gemini-2.5-flash-lite'), urls[1]);
+  assert.equal(usageCalls[usageCalls.length - 1][0], 'gemini-2.5-flash-lite'); // 用量記在實際用的模型上
+
+  const urls429 = [];
+  await withFetch(async (url) => { urls429.push(String(url)); return urls429.length === 1 ? errResponse(429) : okResponse('ok'); },
+    () => callGemini({ parts: [{ text: 'x' }] }));
+  assert.ok(!urls429[1].includes('gemini-2.5-flash-lite'));
+
+  const urlsCustom = [];
+  await withFetch(async (url) => { urlsCustom.push(String(url)); return urlsCustom.length === 1 ? errResponse(503) : okResponse('ok'); },
+    () => callGemini({ parts: [{ text: 'x' }], model: 'custom-model' }));
+  assert.ok(urlsCustom[1].includes('custom-model')); // 呼叫端指定模型時不擅自換
+});

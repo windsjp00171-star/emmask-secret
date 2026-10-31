@@ -1,6 +1,10 @@
 require('./helpers/env');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+// 用量計數會經過 supabase（底層也是 fetch），會混進這裡數「打了幾次 Gemini」的假 fetch，所以換成空的
+const usagePath = require.resolve('../lib/usage');
+const usageCalls = [];
+require.cache[usagePath] = { id: usagePath, filename: usagePath, loaded: true, exports: { note: async (model, label) => { usageCalls.push([model, label]); } } };
 const { callGemini, extractJson, _test } = require('../lib/gemini.js');
 const { isRetryable } = _test;
 
@@ -130,4 +134,12 @@ test('extractJson: 從夾雜文字的輸出裡挖出 JSON', () => {
 
 test('extractJson: 找不到 JSON 就丟錯', () => {
   assert.throws(() => extractJson('完全沒有'), /No JSON/);
+});
+
+test('callGemini: 每次送出都記一次用量，被 429 擋掉的不算', async () => {
+  usageCalls.length = 0;
+  let n = 0;
+  await withFetch(async () => (++n === 1 ? errResponse(429) : okResponse('ok')), () => callGemini({ parts: [{ text: 'x' }], label: '測試' }));
+  assert.equal(usageCalls.length, 1);
+  assert.equal(usageCalls[0][1], '測試');
 });

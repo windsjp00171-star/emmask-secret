@@ -4,7 +4,7 @@ const { buildReminderFlex, nextRecurDue, sendEveningReview, buildVoiceFor, final
 const { cronAuth } = require('../../lib/cron-auth');
 const { recordHeartbeat } = require('../../lib/heartbeat');
 const { loadModules, isOn } = require('../../lib/modules');
-const { sendWorshipEveReminder } = require('../../lib/worship');
+const { sendWorshipEveReminder, sendWorshipWeeklyRoster } = require('../../lib/worship');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -13,10 +13,13 @@ module.exports = async function handler(req, res) {
   if (!cronAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
   await recordHeartbeat('remind');
 
-  // 服事前一晚提醒（服事表模組開著才發）；出錯不影響一般提醒
+  // 服事前一晚提醒＋每週二早上推本週名單（服事表模組開著才發）；出錯不影響一般提醒
   try {
     await loadModules();
-    if (isOn('worship')) await sendWorshipEveReminder();
+    if (isOn('worship')) {
+      await sendWorshipEveReminder();
+      await sendWorshipWeeklyRoster();
+    }
   } catch (err) {
     console.error('Worship eve reminder error:', err);
   }

@@ -71,3 +71,14 @@ test('asCard：找不到、格式錯誤等文字原樣回傳', () => {
   assert.equal(asCard('找不到 10/3 的服事表，可能尚未排定。'), '找不到 10/3 的服事表，可能尚未排定。');
   assert.deepEqual(asCard({ type: 'flex' }), { type: 'flex' });
 });
+
+test('pickWeeklyTargets：週二早上 8 點後推未來兩週內最近的兩個主日；其他時間不推', () => {
+  const { _test } = require('../lib/worship');
+  const dates = ['2026-11-01', '2026-11-08', '2026-11-15', '2026-11-22'];
+  // 2026-11-03 是週二；台北 08:30 = UTC 00:30
+  assert.deepEqual(_test.pickWeeklyTargets(new Date('2026-11-03T00:30:00Z'), dates), ['2026-11-08', '2026-11-15']);
+  assert.deepEqual(_test.pickWeeklyTargets(new Date('2026-11-03T00:30:00Z'), ['2026-11-15', '2026-11-30']), ['2026-11-15']);
+  assert.deepEqual(_test.pickWeeklyTargets(new Date('2026-11-02T23:30:00Z'), dates), []); // 台北 07:30，還沒到 8 點
+  assert.deepEqual(_test.pickWeeklyTargets(new Date('2026-11-04T01:00:00Z'), dates), []); // 週三
+  assert.deepEqual(_test.pickWeeklyTargets(new Date('2026-11-03T00:30:00Z'), ['2026-11-30']), []); // 兩週內沒有主日
+});

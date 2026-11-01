@@ -23,12 +23,12 @@ test('parseDueDate: 下午四點＝16:00', () => {
   assert.equal(Number(hour), 16);
 });
 
-test('parseDueDate: 下週一是下個星期的週一（1～7 天後）', () => {
+test('parseDueDate: 下週一是下個星期的週一（日期是 1～7 天後；週一清晨時間會讓差距略超過 7 天）', () => {
   const due = new Date(parseDueDate('下週一交報告'));
   const wd = due.toLocaleDateString('en-US', { timeZone: 'Asia/Taipei', weekday: 'short' });
   assert.equal(wd, 'Mon');
   const days = (due - Date.now()) / 86400000;
-  assert.ok(days > 0 && days <= 7, `差了 ${days} 天`);
+  assert.ok(days > 0 && days <= 8, `差了 ${days} 天`);
 });
 
 test('extractLeadMinutes: 提前一小時／提前兩天', () => {

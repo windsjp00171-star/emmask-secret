@@ -88,6 +88,15 @@ module.exports = async function handler(req, res) {
     if (!id) return res.status(400).json({ error: 'id required' });
     const updates = { updated_at: new Date().toISOString() };
     if (is_done !== undefined) updates.is_done = is_done;
+    if (is_done === true) {
+      // 重複提醒勾「完成」只代表這一次：排到下一次，不標成 is_done（不然提醒排程會永遠略過它）
+      const { data: cur } = await supabase.from('notes').select('recur, due_date').eq('id', id).maybeSingle();
+      if (cur && cur.recur && cur.due_date) {
+        updates.is_done = false;
+        updates.is_reminded = false;
+        updates.due_date = require('../../lib/recur').nextOccurrenceAfter(cur.recur, cur.due_date);
+      }
+    }
     if (content !== undefined) { updates.content = content; updates.raw_text = content; }
     if (type !== undefined) updates.type = type;
     if (project !== undefined) updates.project = project || null;

@@ -1674,7 +1674,7 @@ function dateLabel(iso) {
 // ---- 筆記 ----
 // 筆記＝沒有提醒、沒有待辦、沒有日期的記錄（類型是「筆記」，加上「專案更新」）。
 // 收藏、詩歌、順序、會議記錄、相簿、週報各有自己的分頁，不算在這裡。
-const NOTE_OTHER_PROJECTS = ['收藏', '詩歌', '敬拜順序', '順序範本', '會議記錄', '相簿', '週報', '倒數日'];
+const NOTE_OTHER_PROJECTS = ['收藏', '詩歌', '敬拜順序', '順序範本', '會議記錄', '相簿', '週報', '倒數日', '代禱'];
 function isNoteRecord(n) {
   if (n.type === 'project_update') return true;
   return n.type === 'note' && !NOTE_OTHER_PROJECTS.includes(n.project);

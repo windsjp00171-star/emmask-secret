@@ -52,7 +52,7 @@ async function decode(c) {
 
 // 場景（s）＝橘貓底圖，跟小秘書裡看到的海報一樣；夜晚是深色底，字用白色
 const sceneOf = (p) => (typeof p.s === 'string' && /^[a-z]+$/.test(p.s) ? p.s : '');
-const sceneInk = (s) => (s === 'night' ? { ink: '#ffffff', soft: '#cfe9dc' } : s === 'rain' ? { ink: '#16513d', soft: '#3d5a66' } : { ink: '#16513d', soft: '#4f6b5f' });
+const sceneInk = (s) => (s === 'night' || s === 'stars' ? { ink: '#ffffff', soft: '#cfe9dc' } : s === 'rain' ? { ink: '#16513d', soft: '#3d5a66' } : { ink: '#16513d', soft: '#4f6b5f' });
 
 // 整份清單每一行都是「職位：內容」才排成左右兩欄（例如服事名單）；否則一律當一般條列，避免句子裡剛好有冒號被誤拆
 const PAIR = /^[^：・]{1,12}：./;

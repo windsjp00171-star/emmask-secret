@@ -38,6 +38,8 @@
     button.stat-pill.late:hover { background: var(--red-hover); }
     .stat-pill.late[aria-pressed="true"] { background: var(--red); color: #fff; }
     .stat-pill.late[aria-pressed="true"] b { color: #fff; }
+    .search-hint { font-size: 13px; color: var(--ink-2); margin: 0 2px 10px; }
+    .search-hint b { color: var(--ink); }
     .trunc-warn { background: var(--amber-tint); color: var(--amber); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px; }
     /* 列表／日曆切換 */
     /* 專案膠囊 */
@@ -513,6 +515,7 @@
       <span class="duty-text"><b id="nextDutyTitle"></b><span class="num" id="nextDutySub"></span></span>
       <svg class="icon duty-go" aria-hidden="true"><use href="#i-right"/></svg>
     </a>
+    <div class="search-hint" id="searchHint" aria-live="polite" hidden></div>
     <div class="note-list panel" id="tableBody" data-tour="list-table" aria-live="polite"></div>
     </div><!-- /listView -->
     <div id="calendarView" style="display:none">
@@ -1000,9 +1003,10 @@ function applyFilters() {
   if (typeof Notes !== 'undefined') Notes.render(); // 筆記分頁也跟著重畫（新增、編輯、刪除、重新載入之後）
   renderProjectTags();
   renderScopeTabs();
-  const type = document.getElementById('filterType').value;
-  const done = document.getElementById('filterDone').value;
-  const search = document.getElementById('search').value.toLowerCase();
+  const search = document.getElementById('search').value.trim().toLowerCase();
+  // 有打字搜尋時，不管目前選的是「該做的事」還是「已完成」，一律找全部類型與狀態（待辦、提醒、筆記、已完成都找）
+  const type = search ? '' : document.getElementById('filterType').value;
+  const done = search ? '' : document.getElementById('filterDone').value;
 
   let filtered = allNotes.filter(n => {
     if (!matchesType(n, type)) return false;
@@ -1016,6 +1020,15 @@ function applyFilters() {
   const nonDefault = document.getElementById('filterType').value !== DEFAULT_TYPE || document.getElementById('filterDone').value || document.getElementById('sortBy').value !== DEFAULT_SORT;
   document.querySelector('#filterBtn .dot').hidden = !nonDefault;
   const list = document.getElementById('tableBody');
+  const hint = document.getElementById('searchHint');
+  if (search) {
+    const kinds = [['待辦', n => n.type === 'task'], ['提醒', n => n.type === 'reminder'], ['筆記', n => n.type === 'note'], ['專案更新', n => n.type === 'project_update']]
+      .map(([label, f]) => [label, filtered.filter(f).length]).filter(x => x[1]);
+    hint.hidden = false;
+    hint.innerHTML = filtered.length
+      ? `找「<b>${esc(document.getElementById('search').value.trim())}</b>」：在全部記錄裡找到 <b>${filtered.length}</b> 筆（${kinds.map(x => x[0] + ' ' + x[1]).join('、')}，含已完成）`
+      : `在全部記錄（待辦、提醒、筆記、已完成）裡都找不到「<b>${esc(document.getElementById('search').value.trim())}</b>」`;
+  } else hint.hidden = true;
   if (filtered.length === 0) {
     list.classList.remove('as-cards');
     list.innerHTML = '<div class="empty">沒有符合的記錄</div>';
@@ -1043,13 +1056,13 @@ function applyFilters() {
     ? `<div class="backbar"><button type="button" onclick="toggleFocus('${focusKey}')"><svg class="icon" style="transform:rotate(180deg)" aria-hidden="true"><use href="#i-right"/></svg>回總覽</button></div>` : '';
   list.innerHTML = back + groups.filter(g => g[2].length).map(([key, label, rows]) => {
     if (key === 'done') {
-      if (showDoneGroup) renderedIds.push(...rows.map(r => r.id));
+      if (showDoneGroup || search) renderedIds.push(...rows.map(r => r.id));
       return `<div class="sep"><button onclick="showDoneGroup = !showDoneGroup; applyFilters()" aria-expanded="${showDoneGroup}">已完成 <span class="num">${rows.length}</span><svg class="icon" style="width:14px;height:14px;transform:rotate(${showDoneGroup ? 90 : 0}deg)"><use href="#i-right"/></svg></button></div>` +
-        (showDoneGroup ? rows.map(noteRow).join('') : '');
+        (showDoneGroup || search ? rows.map(noteRow).join('') : '');
     }
     // 次要的區（這七天、之後、重複提醒…）預設只露幾列，其餘收起來；點上方數字或「還有 N 筆」才全部展開
     const preview = GROUP_PREVIEW[key];
-    const open = focusKey === key || expandedGroups.has(key) || preview === undefined;
+    const open = !!search || focusKey === key || expandedGroups.has(key) || preview === undefined;
     const shown = open ? rows : rows.slice(0, preview);
     renderedIds.push(...shown.map(r => r.id));
     const hidden = rows.length - shown.length;

@@ -166,6 +166,9 @@
     .nt { margin: 0; font-size: 15.5px; font-weight: 700; line-height: 1.35; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
     .np { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
     .nmeta { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+    .nmonth { grid-column: 1 / -1; margin: 10px 2px 0; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+    .nmonth:first-child { margin-top: 0; }
+    .ncard mark { background: var(--amber-tint); color: inherit; border-radius: 3px; padding: 0 1px; }
     .nproj, .nbadge { padding: 2px 8px; border-radius: 9999px; background: var(--fill); font-weight: 600; color: var(--ink-2); }
     .nbadge { background: var(--blue-tint); color: var(--blue); }
     .ndate { margin-left: auto; }
@@ -541,6 +544,7 @@
       <button class="btn btn-primary" onclick="Notes.openAdd()"><svg class="icon"><use href="#i-plus"/></svg>新增筆記</button>
     </div>
     <div class="project-tags notes-projects" id="notesProjects"></div>
+    <div class="search-hint" id="notesHint" aria-live="polite" hidden></div>
     <div id="notesList" class="notes-grid"></div>
   </div>
 
@@ -1012,7 +1016,7 @@ function applyFilters() {
     if (!matchesType(n, type)) return false;
     if (done !== '' && String(n.is_done) !== done) return false;
     if (activeProject && n.project !== activeProject) return false;
-    if (search && !n.content.toLowerCase().includes(search) && !(n.project || '').toLowerCase().includes(search)) return false;
+    if (search && !matchesWords(n, searchWords(search))) return false;
     return true;
   });
   filtered = sortNotes(filtered, document.getElementById('sortBy').value);
@@ -1703,10 +1707,45 @@ function noteDate(iso) {
   const sameYear = taipeiKey(iso).slice(0, 4) === todayKey().slice(0, 4);
   return d.toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', ...(sameYear ? {} : { year: 'numeric' }), month: 'numeric', day: 'numeric' });
 }
+// 搜尋用：空白分開的每個字都要出現（「音控 報價」找得到「音控設備報價」），不分大小寫
+function searchWords(q) { return String(q || '').toLowerCase().split(/\s+/).filter(Boolean); }
+function matchesWords(n, words) {
+  const hay = ((n.content || '') + ' ' + (n.project || '')).toLowerCase();
+  return words.every(w => hay.includes(w));
+}
+// 把比對到的字標黃（先切片再逐段跳脫，不會破壞 HTML）
+function hl(text, words) {
+  const t = String(text == null ? '' : text);
+  if (!words.length) return esc(t);
+  const low = t.toLowerCase(), marks = [];
+  words.forEach(w => { let i = low.indexOf(w); while (i !== -1) { marks.push([i, i + w.length]); i = low.indexOf(w, i + w.length); } });
+  marks.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  marks.forEach(m => { const last = merged[merged.length - 1]; if (last && m[0] <= last[1]) last[1] = Math.max(last[1], m[1]); else merged.push(m.slice()); });
+  let out = '', pos = 0;
+  merged.forEach(([a, b]) => { out += esc(t.slice(pos, a)) + '<mark>' + esc(t.slice(a, b)) + '</mark>'; pos = b; });
+  return out + esc(t.slice(pos));
+}
+// 比對到的字不在標題或前幾行時，預覽改成「…比對處前後…」，才看得出為什麼找到它
+function matchSnippet(content, words) {
+  const t = String(content || '').replace(/\s+/g, ' ');
+  const low = t.toLowerCase();
+  let at = -1;
+  for (const w of words) { const i = low.indexOf(w); if (i !== -1 && (at === -1 || i < at)) at = i; }
+  if (at === -1) return '';
+  const start = Math.max(0, at - 24);
+  return (start > 0 ? '…' : '') + t.slice(start, at + 90) + (at + 90 < t.length ? '…' : '');
+}
+function monthLabel(iso) {
+  const k = taipeiKey(iso);
+  return k.slice(0, 4) === todayKey().slice(0, 4) ? `${+k.slice(5, 7)} 月` : `${k.slice(0, 4)} 年 ${+k.slice(5, 7)} 月`;
+}
 const Notes = {
   project: '', // '' 全部；'__none__' 未分類；其他是專案名稱
   visible() { return document.getElementById('panel-notes').style.display !== 'none'; },
   items() { return allNotes.filter(isNoteRecord).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); },
+  // 打字搜尋時連收藏、會議記錄、詩歌、週報…這些有自己分頁的筆記也一起找（不然只在別的分頁找得到，很難想到要去那裡）
+  searchItems() { return allNotes.filter(n => n.type === 'note' || n.type === 'project_update').sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); },
   setProject(p) { this.project = this.project === p ? '' : p; this.render(); },
   openAdd() {
     openModal();
@@ -1718,32 +1757,52 @@ const Notes = {
     const all = this.items();
     const kw = document.getElementById('notesSearch').value.trim().toLowerCase();
     // 專案按鈕：只列這些筆記裡有的專案，點了只看那個專案，再點一次回到全部
+    const words = searchWords(kw);
+    const base = words.length ? this.searchItems().filter(n => matchesWords(n, words)) : all; // 搜尋時，專案按鈕的數字也只算找到的
     const count = {};
     let none = 0;
-    all.forEach(n => { if (n.project) count[n.project] = (count[n.project] || 0) + 1; else none++; });
+    base.forEach(n => { if (n.project) count[n.project] = (count[n.project] || 0) + 1; else none++; });
     if (this.project && this.project !== '__none__' && !(this.project in count)) this.project = '';
     const names = Object.keys(count).sort((a, b) => count[b] - count[a]);
     const tag = (key, label, n) => `<button type="button" class="project-tag ${this.project === key ? 'active' : ''}" data-project="${esc(key)}">${esc(label)} <span class="num">${n}</span></button>`;
     const tags = document.getElementById('notesProjects');
-    tags.innerHTML = names.length || none ? [`<button type="button" class="project-tag ${this.project === '' ? 'active' : ''}" data-project="">全部 <span class="num">${all.length}</span></button>`]
+    tags.innerHTML = names.length || none ? [`<button type="button" class="project-tag ${this.project === '' ? 'active' : ''}" data-project="">全部 <span class="num">${base.length}</span></button>`]
       .concat(names.map(p => tag(p, p, count[p])), none ? [tag('__none__', '未分類', none)] : []).join('') : '';
     tags.onclick = e => { const b = e.target.closest('.project-tag'); if (b) { if (b.dataset.project === '') { this.project = ''; this.render(); } else this.setProject(b.dataset.project); } };
 
-    const shown = all.filter(n => {
+    const pool = words.length ? this.searchItems() : all;
+    const shown = pool.filter(n => {
       if (this.project === '__none__' ? n.project : (this.project && n.project !== this.project)) return false;
-      return !kw || (n.content || '').toLowerCase().includes(kw) || (n.project || '').toLowerCase().includes(kw);
+      return !words.length || matchesWords(n, words);
     });
     const list = document.getElementById('notesList');
-    if (!all.length) {
+    const hint = document.getElementById('notesHint');
+    if (words.length) {
+      const by = {};
+      shown.forEach(n => { const k = NOTE_OTHER_PROJECTS.includes(n.project) ? n.project : '筆記'; by[k] = (by[k] || 0) + 1; });
+      const parts = Object.entries(by).sort((a, b) => b[1] - a[1]).map(([k, c]) => `${k} ${c}`);
+      hint.hidden = false;
+      hint.innerHTML = shown.length
+        ? `找到 <b>${shown.length}</b> 筆（${parts.map(esc).join('、')}）——收藏、會議記錄、詩歌、週報也一起找了`
+        : '連收藏、會議記錄、詩歌、週報都找過了，沒有符合的。可以少打幾個字，或換個說法';
+    } else hint.hidden = true;
+    if (!all.length && !words.length) {
       list.innerHTML = '<div class="empty">還沒有筆記。<br>在 LINE 打「筆記 內容」，或按右上角「新增筆記」。</div>';
       return;
     }
-    if (!shown.length) { list.innerHTML = '<div class="empty">沒有符合的筆記</div>'; return; }
+    if (!shown.length) { list.innerHTML = words.length ? '' : '<div class="empty">沒有符合的筆記</div>'; return; }
+    let lastMonth = '';
     list.innerHTML = shown.map(n => {
       const { title, preview } = noteParts(n.content);
-      const meta = [n.type === 'project_update' ? '<span class="nbadge">專案更新</span>' : '', n.project ? `<span class="nproj">${esc(n.project)}</span>` : '', `<span class="ndate num">${noteDate(n.created_at)}</span>`].filter(Boolean).join('');
-      return `<article class="ncard" role="button" tabindex="0" data-id="${esc(n.id)}" onclick="openEditModal('${esc(n.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openEditModal('${esc(n.id)}')}">
-        <h4 class="nt">${esc(title)}</h4>${preview ? `<p class="np">${esc(preview)}</p>` : ''}
+      const other = NOTE_OTHER_PROJECTS.includes(n.project);
+      const meta = [n.type === 'project_update' ? '<span class="nbadge">專案更新</span>' : '', other && words.length ? `<span class="nbadge">${esc(n.project)}</span>` : (n.project ? `<span class="nproj">${hl(n.project, words)}</span>` : ''), `<span class="ndate num">${noteDate(n.created_at)}</span>`].filter(Boolean).join('');
+      const inHead = words.every(w => (title + ' ' + preview).toLowerCase().includes(w));
+      const body = words.length && !inHead ? matchSnippet(n.content, words) : preview;
+      const month = monthLabel(n.created_at);
+      const head = month !== lastMonth ? `<h3 class="nmonth">${esc(month)}</h3>` : '';
+      lastMonth = month;
+      return head + `<article class="ncard" role="button" tabindex="0" data-id="${esc(n.id)}" onclick="openEditModal('${esc(n.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openEditModal('${esc(n.id)}')}">
+        <h4 class="nt">${hl(title, words)}</h4>${body ? `<p class="np">${hl(body, words)}</p>` : ''}
         <div class="nmeta">${meta}</div>
       </article>`;
     }).join('');

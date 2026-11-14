@@ -32,6 +32,13 @@ module.exports = async function handler(req, res) {
     console.error('Google calendar reminder error:', err);
   }
 
+  // 倒數日每天早上推一則；出錯不影響一般提醒
+  try {
+    await require('../../lib/countdown').sendDailyCountdown();
+  } catch (err) {
+    console.error('Countdown push error:', err);
+  }
+
   // 清掉超過保存期限的語音檔（每天一次）；出錯不影響一般提醒
   try {
     await require('../../lib/tts').cleanupOldVoice();

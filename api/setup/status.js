@@ -19,6 +19,7 @@ const OPTIONAL_ENV = [
   { key: 'CRON_SECRET', hint: '保護提醒排程網址，隨便取一組亂碼' },
   { key: 'WORSHIP_MY_NAME', hint: '你在服事表上的名字，用來查「我的服事」' },
   { key: 'CALENDAR_TOKEN', hint: '行事曆訂閱（.ics）用的密碼' },
+  { key: 'GOOGLE_ICAL_URL', hint: 'Google 日曆 → 設定 → 整合日曆 →「iCal 格式的私人網址」；設了就會在早安簡報列出今天的行程、行程前 30 分鐘提醒（要保密）' },
   { key: 'LIFF_ID', hint: '分享整張卡片用的 LIFF ID（不設也能用，分享會傳純文字）' },
 ];
 const TABLES = ['notes', 'worship_dates', 'worship_roles', 'worship_schedule', 'bot_state', 'cron_heartbeats'];

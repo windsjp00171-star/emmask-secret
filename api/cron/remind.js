@@ -4,7 +4,7 @@ const { buildReminderFlex, nextRecurDue, sendEveningReview, buildVoiceFor, final
 const { cronAuth } = require('../../lib/cron-auth');
 const { recordHeartbeat } = require('../../lib/heartbeat');
 const { loadModules, isOn } = require('../../lib/modules');
-const { sendWorshipEveReminder, sendWorshipWeeklyRoster } = require('../../lib/worship');
+const { sendWorshipEveReminder, sendWorshipWeeklyRoster, syncWorshipNotes } = require('../../lib/worship');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -19,6 +19,7 @@ module.exports = async function handler(req, res) {
     if (isOn('worship')) {
       await sendWorshipEveReminder();
       await sendWorshipWeeklyRoster();
+      await syncWorshipNotes();
     }
   } catch (err) {
     console.error('Worship eve reminder error:', err);

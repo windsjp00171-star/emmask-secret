@@ -136,3 +136,17 @@ test('提醒卡有「知道了」按鈕；按下只記下已讀，不完成也�
   assert.ok(tables.notes[0].meta.acked_at);
   assert.equal(tables.notes[0].meta.keep, 1); // 原本的 meta 不能被蓋掉
 });
+
+test('會議記錄的待辦：有日期的＝行程＋提醒（reminder、前 3 天提醒），沒日期的還是普通待辦', async () => {
+  reset();
+  await dispatch('會議 12/1 聖誕籌備\n待辦: 12/24 聖誕晚會訂場地\n待辦: 訂便當');
+  const dated = tables.notes.find(n => n.content === '12/24 聖誕晚會訂場地');
+  assert.equal(dated.type, 'reminder');
+  assert.ok(dated.due_date);
+  assert.equal(dated.is_reminded, false);
+  assert.ok(dated.remind_lead_minutes > 0);
+  assert.equal(dated.project, '會議記錄');
+  const plain = tables.notes.find(n => n.content === '訂便當');
+  assert.equal(plain.type, 'task');
+  assert.equal(plain.due_date, null);
+});

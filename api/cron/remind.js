@@ -24,6 +24,13 @@ module.exports = async function handler(req, res) {
     console.error('Worship eve reminder error:', err);
   }
 
+  // Google 日曆（有設 GOOGLE_ICAL_URL 才會做）：行程開始前提醒；出錯不影響一般提醒
+  try {
+    await require('../../lib/gcal').sendGcalReminders();
+  } catch (err) {
+    console.error('Google calendar reminder error:', err);
+  }
+
   // 清掉超過保存期限的語音檔（每天一次）；出錯不影響一般提醒
   try {
     await require('../../lib/tts').cleanupOldVoice();

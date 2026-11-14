@@ -65,3 +65,15 @@ test('小玩具：抽籤、骰子、硬幣、吃什麼；其他句子不理', ()
   assert.equal(handleToy('明天吃什麼時候開會', rng(0)), null);
   assert.equal(handleToy('買牛奶', rng(0)), null);
 });
+
+test('倒數日每日推播文字：由近到遠、過期不列、沒有就 null', () => {
+  const { dailyText } = require('../lib/countdown');
+  const now = new Date('2026-11-14T02:00:00Z');
+  assert.equal(dailyText([], now), null);
+  const t = dailyText([
+    { content: '聖誕節', due_date: '2026-12-25T00:00:00+08:00' },
+    { content: '退伍', due_date: '2026-11-16T00:00:00+08:00' },
+    { content: '過期的', due_date: '2026-11-01T00:00:00+08:00' },
+  ], now);
+  assert.equal(t, '⏳ 退伍還有 2 天\n⏳ 聖誕節還有 41 天');
+});

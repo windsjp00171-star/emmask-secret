@@ -100,6 +100,10 @@ module.exports = async function handler(req, res) {
         // 重複提醒：排下一次、保持未提醒狀態
         const next = nextRecurDue(note.recur, note.due_date);
         await supabase.from('notes').update({ due_date: next, is_reminded: false }).eq('id', note.id);
+      } else if (note.meta && Array.isArray(note.meta.next_leads) && note.meta.next_leads.length) {
+        // 還有下一次提醒（例如前 3 天提醒過，前 1 天再提醒一次）
+        const [lead, ...rest] = note.meta.next_leads;
+        await supabase.from('notes').update({ remind_lead_minutes: lead, is_reminded: false, meta: { ...note.meta, next_leads: rest } }).eq('id', note.id);
       } else {
         await supabase.from('notes').update({ is_reminded: true }).eq('id', note.id);
       }

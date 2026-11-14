@@ -37,3 +37,11 @@ test('planNoteReminders：不到一週的備註盡快提醒', () => {
   assert.equal(out[0].is_reminded, false);
   assert.ok(out[0].remind_lead_minutes < 7 * 24 * 60);
 });
+
+test('提醒兩次：前 7 天一次、前 1 天再一次；不到一天只提醒一次', () => {
+  const a = _test.planNoteReminders([{ service_date: '2026-12-13', person_name: '聖餐' }], [], now)[0];
+  assert.deepEqual(a.meta.next_leads, [15 * 60 + 24 * 60 * 0 + 0].map(() => a.meta.next_leads[0]));
+  assert.equal(a.meta.next_leads[0], 24 * 60); // 前一天 09:00 ＝ 活動當天 09:00 前 24 小時
+  const b = _test.planNoteReminders([{ service_date: '2026-11-15', person_name: '聖餐' }], [], now)[0];
+  assert.equal(b.meta.next_leads, undefined);
+});

@@ -509,6 +509,7 @@
       <label class="select-all"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this.checked)" />全選</label>
       <span id="bulkCount"></span>
       <button class="btn-sm btn-done" onclick="bulkDone()">完成</button>
+      <button class="btn-sm btn-edit" onclick="bulkShare()">分享</button>
       <button class="btn-sm btn-edit" onclick="bulkSetProject()">改專案</button>
       <button class="btn-sm btn-del" onclick="bulkDelete()">刪除</button>
       <button class="btn-sm btn-cancel" onclick="setSelectMode(false)">取消</button>
@@ -1403,6 +1404,27 @@ async function bulkDelete() {
   if (ids.length === 0) return;
   setSelectMode(false);
   deleteNotes(ids);
+}
+
+// 勾好的行程一次分享：整理成一則文字，開 LINE 的「選聊天室」（選牧者群組送出）；電腦上沒有 LINE 就改成複製
+function bulkShare() {
+  const items = [...selectedIds].map(id => allNotes.find(x => x.id === id)).filter(Boolean)
+    .sort((a, b) => String(a.due_date || '9').localeCompare(String(b.due_date || '9')));
+  if (items.length === 0) return;
+  const wd = '日一二三四五六';
+  const line = n => {
+    const t = n.content.replace(/^⛪\s*/, '').split('\n')[0];
+    if (!n.due_date) return `・${t}`;
+    const d = new Date(new Date(n.due_date).getTime() + 8 * 3600e3);
+    const hhmm = d.toISOString().slice(11, 16);
+    return `・${d.getUTCMonth() + 1}/${d.getUTCDate()}（${wd[d.getUTCDay()]}）${hhmm === '00:00' ? '' : hhmm + ' '}${t}`;
+  };
+  const text = `📅 行程提醒\n${items.map(line).join('\n')}`;
+  const url = 'https://line.me/R/msg/text/?' + encodeURIComponent(text);
+  if (/Android|iPhone|iPad/i.test(navigator.userAgent)) { location.href = url; return; }
+  const done = () => toast(`已複製 ${items.length} 筆行程，到 LINE 群組貼上就好`);
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => window.open(url, '_blank'));
+  else window.open(url, '_blank');
 }
 
 function bulkSetProject() {

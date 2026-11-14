@@ -81,6 +81,7 @@ test('LINE 指令：「找 …」走新搜尋，點一筆看全文；找歌不�
     assert.equal(out.type, 'flex');
     assert.match(JSON.stringify(out), /act=notefull&id=1/);
     assert.match(JSON.stringify(out), /act=notefull&id=2/);
+    assert.match(String(await dispatch('找')), /找以前的筆記/); // 單打「找」給用法，不會被存成筆記
     const none = await dispatch('找 不存在的字');
     assert.match(String(none), /找不到/);
     const full = await handlePostback('act=notefull&id=2');

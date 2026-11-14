@@ -38,3 +38,10 @@ test('傳「你可以這樣說」「範例」會出範例卡；功能選單的�
   assert.match(textOf(await dispatch('選單')), /run=你可以這樣說/);
   assert.match(textOf(await dispatch('指令')), /傳「你可以這樣說」看範例/);
 });
+
+test('選單第一頁是「最常用」五顆按鈕；單打「找」不會被存成筆記', async () => {
+  const menu = JSON.stringify(require('../lib/commands.js')._test.handleMenu());
+  const first = menu.indexOf('最常用');
+  assert.ok(first > 0 && first < menu.indexOf('📅 查看'));
+  for (const label of ['今天', '待辦清單', '最近筆記', '找筆記', '你可以這樣說']) assert.ok(menu.includes(label), label);
+});

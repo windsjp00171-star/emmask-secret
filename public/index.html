@@ -81,6 +81,12 @@
     body.selecting .composer { display: none; }
     body.selecting #bulkBar { bottom: calc(16px + env(safe-area-inset-bottom)); }
     #bulkCount { font-weight: 700; flex: 1; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* 手機放不下一排：按鈕換到第二排平分寬度，「取消」「刪除」才不會被切掉 */
+    @media (max-width: 480px) {
+      #bulkBar { flex-wrap: wrap; row-gap: 8px; border-radius: 22px; padding: 8px 10px; }
+      #bulkCount { flex: 1 1 60%; }
+      #bulkBar .btn-sm { flex: 1 1 15%; min-width: 0; padding-left: 4px; padding-right: 4px; white-space: nowrap; }
+    }
     #bulkBar .btn-sm { background: var(--fill); color: var(--ink); }
     #bulkBar .btn-sm:hover { background: var(--fill-hover); }
     #bulkBar .btn-del { background: var(--red-tint); color: var(--red); }

@@ -92,3 +92,9 @@ test('LINE 指令：「找 …」走新搜尋，點一筆看全文；找歌不�
     delete require.cache[require.resolve('../lib/commands.js')];
   }
 });
+
+test('emptyReply：只有時間詞找不到時，說那段時間沒有記錄', () => {
+  const ns2 = require('../lib/note-search');
+  assert.match(ns2.emptyReply(ns2.parseQuery('上個月', NOW)), /^🔍 上個月沒有任何記錄/);
+  assert.match(ns2.emptyReply(ns2.parseQuery('音控 上個月', NOW)), /找不到「音控 上個月」/);
+});

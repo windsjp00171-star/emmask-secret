@@ -44,7 +44,15 @@
     /* 列表／日曆切換 */
     /* 專案膠囊 */
     /* 看哪一類：該做的事（預設）／筆記與紀錄（含週報）／已完成／全部。舊的東西都在這裡找得到 */
-    .scope-tabs { display: flex; width: 100%; margin-bottom: 10px; }
+    .scope-tabs { display: flex; flex: none; width: 220px; }
+    /* 「該做的事／已完成」和「列表／日曆」同一排，手機第一屏少一層；沒有數字膠囊時那一格整個收起來 */
+    .stats.no-pills { display: none; }
+    @media (max-width: 360px) { .tabbar .tab-btn { padding: 0 9px; } } /* 小手機五個分頁擠得下，「更多」不被切掉 */
+    @media (max-width: 600px) {
+      .overview { flex-wrap: wrap; row-gap: 8px; }
+      .overview .stats { flex-basis: 100%; order: -1; }
+      .overview .scope-tabs { flex: 1; width: auto; min-width: 0; }
+    }
     .scope-tabs .view-tab { flex: 1; padding: 0 8px; white-space: nowrap; }
     .list-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .project-tags { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
@@ -464,24 +472,24 @@
 
   <div id="panel-dashboard" class="tab-panel container">
     <div id="truncWarn" class="trunc-warn" style="display:none"></div>
-    <div class="overview">
-    <div class="stats" id="stats" data-tour="stats"></div>
+    <div class="overview" data-tour="stats">
+    <div class="stats" id="stats"></div>
+    <div class="view-tabs scope-tabs" id="scopeTabs" role="group" aria-label="看哪一類記錄">
+      <button class="view-tab active" data-scope="todo" onclick="setScope('todo')">該做的事</button>
+      <button class="view-tab" data-scope="done" onclick="setScope('done')">已完成</button>
+    </div>
     <div class="view-tabs" data-tour="view-tabs">
       <button class="view-tab active" id="tabList" onclick="switchView('list')">列表</button>
       <button class="view-tab" id="tabCalendar" onclick="switchView('calendar')">日曆</button>
     </div>
     </div>
     <div id="listView">
-    <div class="view-tabs scope-tabs" id="scopeTabs" role="group" aria-label="看哪一類記錄">
-      <button class="view-tab active" data-scope="todo" onclick="setScope('todo')">該做的事</button>
-      <button class="view-tab" data-scope="done" onclick="setScope('done')">已完成</button>
-    </div>
     <div class="list-head">
       <div class="project-tags" id="projectTags"></div>
     </div>
     <div class="filters" data-tour="filters">
       <div class="filter-row">
-        <input type="search" id="search" placeholder="搜尋內容或專案" oninput="applyFilters()" aria-label="搜尋（快捷鍵 /）" />
+        <input type="search" id="search" placeholder="搜尋" oninput="applyFilters()" aria-label="搜尋（快捷鍵 /）" />
         <button class="chip-btn" id="filterBtn" aria-expanded="false" aria-controls="filterPanel" onclick="toggleFilterPanel()"><svg class="icon"><use href="#i-filter"/></svg>篩選<i class="dot" hidden></i></button>
         <button class="chip-btn" id="layoutBtn" type="button" onclick="toggleLayout()" aria-label="切換卡片或列表檢視" title="切換卡片或列表檢視"></button>
         <button class="chip-btn" id="selectBtn" aria-pressed="false" onclick="setSelectMode(!selectMode)"><svg class="icon"><use href="#i-check"/></svg>選取</button>
@@ -962,6 +970,9 @@ function renderStats() {
   const counts = Object.fromEntries(groupByDue(open).map(([key, , rows]) => [key, rows.length]));
   if (focusKey && !counts[focusKey]) focusKey = ''; // 那一區都處理完了，自動回到全部
   const cards = cardsActive();
+  // 沒有可點的數字膠囊（卡片檢視、或什麼都沒排）時把那一格收起來；「未完成」那顆在手機上本來就隱藏
+  const pills = !cards && STAT_GROUPS.some(([key]) => counts[key]);
+  document.getElementById('stats').classList.toggle('no-pills', !pills && window.matchMedia('(max-width: 600px)').matches);
   document.getElementById('stats').innerHTML = `
     <span class="stat-pill sum num">未完成 <b>${open.length}</b></span>
     ${cards ? '' : STAT_GROUPS.filter(([key]) => counts[key]).map(([key, label]) =>
@@ -1576,6 +1587,7 @@ function switchView(view) {
   document.getElementById('tabList').classList.toggle('active', view === 'list');
   document.getElementById('tabCalendar').classList.toggle('active', view === 'calendar');
   document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+  document.getElementById('scopeTabs').style.display = view === 'list' ? '' : 'none'; // 日曆沒有「已完成」這一分
   document.getElementById('calendarView').style.display = view === 'calendar' ? 'block' : 'none';
   if (view === 'calendar') {
     if (calYear === null) {
@@ -2456,7 +2468,7 @@ Tour.mount({
     { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、筆記、服事表、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上先顯示常用的幾個，其他在「更多」裡。' },
     { target: 'notes-tab', title: '筆記', text: '沒有提醒、沒有待辦、沒有日期的記錄都在這裡，一則一張卡：第一行是標題，後面是預覽。\n上面搜尋框可以找內容或專案，專案按鈕點一下只看那個專案，再點一次回到全部。\n點卡片可以編輯，也能改成待辦或提醒；右上角「新增筆記」可以直接寫。收藏、詩歌、會議記錄、週報有各自的分頁，不在這裡。', before: () => switchTab('notes') },
     { target: 'worship-link', title: '服事表', text: '主日服事表在第二個分頁，點進去可以看整季班表。' },
-    { target: 'stats', title: '總覽', text: '這裡是還沒做完的總數。\n下面「卡片檢視」把事情分成過期（紅色）、今天、明天、這七天，一個時段一張卡，每張只放最近 3 筆；點「看全部」或「還有 N 筆」才展開那一區的完整列表，再點「回總覽」回來。\n之後、重複提醒、未排時間收成下方一排小按鈕。', before: () => switchTab('dashboard') },
+    { target: 'stats', title: '總覽', text: '最上面這排：左邊切「該做的事／已完成」，右邊切「列表／日曆」；有數字的小膠囊（過期、今天…）點了只看那一區。\n下面「卡片檢視」把事情分成過期（紅色）、今天、明天、這七天，一個時段一張卡，每張只放最近 3 筆；點「看全部」或「還有 N 筆」才展開那一區的完整列表，再點「回總覽」回來。\n之後、重複提醒、未排時間收成下方一排小按鈕。', before: () => switchTab('dashboard') },
     { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },
     { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n這裡只放「該做的事」（待辦和提醒），照到期時間分成過期、今天、明天、這七天、之後；做完的事在「已完成」。筆記和專案更新在旁邊的「筆記」分頁。「篩選」可以自己組合類型、狀態和排序，有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
     { target: 'list-table', title: '每一筆都能直接操作', text: '點圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一筆可以編輯，刪除也在編輯面板裡。\n習慣條列的話，按搜尋列旁的「列表檢視」就切成完整列表（會記在這台裝置），再按一次回到卡片。搜尋、選專案、批次選取時也會自動用列表。\n有排到你服事時，上方會多一列「下一次服事」，點了直接到服事表。' },

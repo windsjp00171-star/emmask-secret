@@ -45,3 +45,15 @@ test('沒把握的一律交給 AI（回 null）', () => {
 test('沒解出時間就不處理', () => {
   assert.equal(localClassify('明天下午三點看牙醫', null, PROJECTS), null);
 });
+
+test('localExpense：「品項 金額」看得出是花費才記帳，其他交給 AI', () => {
+  const { localExpense } = require('../lib/localclassify');
+  assert.deepEqual(
+    [localExpense('午餐 150'), localExpense('咖啡 $85'), localExpense('計程車 230元')].map(x => [x.content, x.amount, x.category]),
+    [['午餐', 150, '餐飲'], ['咖啡', 85, '餐飲'], ['計程車', 230, '交通']],
+  );
+  assert.equal(localExpense('禮物 500元').category, '其他'); // 有寫「元」就算
+  assert.equal(localExpense('小組 12'), null); // 看不出是花費
+  assert.equal(localExpense('早餐8點'), null);
+  assert.equal(localExpense('明天下午三點看牙醫'), null);
+});

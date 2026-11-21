@@ -15,6 +15,13 @@
   <link rel="stylesheet" href="/app.css">
   <style>
     #main { display: none; }
+    /* 小秘書在場：待辦頁最上面一行她說的話（手機上標題被收起來，這是唯一看得到她的地方） */
+    .greet { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+    .greet-cat { width: 28px; height: 28px; flex: none; }
+    .greet p { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.4; }
+    .greet-time { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+    @media (min-width: 641px) { .greet-cat, .greet-time { display: none; } } /* 電腦版標題列已經有她和更新時間 */
+    .login-cat { display: block; width: 72px; height: 72px; margin: 0 auto 12px; }
     /* 總覽：一行摘要，不做大數字卡片 */
     .overview { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     .stats { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -27,8 +34,6 @@
       .stats::-webkit-scrollbar { display: none; }
       .stat-pill { flex: none; white-space: nowrap; padding: 0 8px; }
       .stat-pill.sum { display: none; } /* 窄螢幕先讓位給過期／今天／明天／這七天 */
-      .overview .view-tabs { flex: none; white-space: nowrap; }
-      .overview .view-tab { padding-left: 10px; padding-right: 10px; font-size: 13px; }
     }
     .stat-pill { display: inline-flex; align-items: baseline; gap: 6px; height: 30px; padding: 0 12px; border-radius: 9999px; background: var(--fill); font-size: 13px; color: var(--ink-2); }
     .stat-pill b { font-size: 15px; color: var(--ink); font-weight: 700; }
@@ -44,16 +49,28 @@
     /* 列表／日曆切換 */
     /* 專案膠囊 */
     /* 看哪一類：該做的事（預設）／筆記與紀錄（含週報）／已完成／全部。舊的東西都在這裡找得到 */
-    .scope-tabs { display: flex; flex: none; width: 220px; }
     /* 「該做的事／已完成」和「列表／日曆」同一排，手機第一屏少一層；沒有數字膠囊時那一格整個收起來 */
-    .stats.no-pills { display: none; }
+    .stats.no-pills, .overview.no-pills { display: none; }
+    /* 卡片｜列表｜日曆 一組切換，放在搜尋列；手機只留圖示 */
+    .view-seg { flex: none; }
+    .view-seg .view-tab { display: inline-flex; align-items: center; gap: 4px; padding: 0 12px; }
+    .view-seg .view-tab .icon { width: 16px; height: 16px; }
+    .view-tab[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+    @media (max-width: 640px) {
+      .view-seg .view-tab { padding: 0 9px; }
+      .view-seg .lbl, #filterBtn .lbl, #selectBtn .lbl { display: none; }
+      #filterBtn, #selectBtn { padding: 0 11px; }
+      /* 專案膠囊平常收起來，開「篩選」或正在看某個專案時才出現 */
+      #panel-dashboard:not(.show-projects):not(.has-project) .list-head { display: none; }
+    }
+    /* 日曆只留檢視切換 */
+    body.cal-mode .filter-row > :not(#viewSeg), body.cal-mode .filter-panel { display: none; }
+    .done-link { padding-top: 8px; }
     @media (max-width: 360px) { .tabbar .tab-btn { padding: 0 9px; } } /* 小手機五個分頁擠得下，「更多」不被切掉 */
     @media (max-width: 600px) {
       .overview { flex-wrap: wrap; row-gap: 8px; }
       .overview .stats { flex-basis: 100%; order: -1; }
-      .overview .scope-tabs { flex: 1; width: auto; min-width: 0; }
     }
-    .scope-tabs .view-tab { flex: 1; padding: 0 8px; white-space: nowrap; }
     .list-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .project-tags { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
     /* 手機：分頁只放 待辦／服事表／詩歌庫，其餘收進「更多」，不再被切掉 */
@@ -110,7 +127,7 @@
     #bulkCount { font-weight: 700; flex: 1; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* 手機放不下一排：按鈕換到第二排平分寬度，「取消」「刪除」才不會被切掉 */
     @media (max-width: 480px) {
-      #bulkBar { flex-wrap: wrap; row-gap: 8px; border-radius: 22px; padding: 8px 10px; }
+      #bulkBar { flex-wrap: wrap; row-gap: 8px; border-radius: 16px; padding: 8px 10px; }
       #bulkCount { flex: 1 1 60%; }
       #bulkBar .btn-sm { flex: 1 1 15%; min-width: 0; padding-left: 4px; padding-right: 4px; white-space: nowrap; }
     }
@@ -161,7 +178,17 @@
     .cgroup.overdue { border-color: var(--red); }
     .cgroup.overdue .cname { color: var(--red); }
     .cgroup.overdue .cnum { background: var(--red-tint); color: var(--red); }
-    .cgroup.today .cnum { background: var(--green-tint); color: var(--green-ink); }
+    .cgroup.today:not(.empty) { border-color: var(--ink-3); }
+    .cgroup.today.empty .cnum { background: var(--fill); color: var(--ink-2); }
+    .cgroup.today:not(.empty) .cnum { background: var(--ink); color: var(--on-ink); } /* 「即將」用墨色，綠色只給行動與完成 */
+    .cgroup.week { background: var(--fill); border-color: transparent; box-shadow: none; }
+    .cgroup.week .cname { color: var(--ink-2); }
+    .cgroup.week .citem { border-top-color: var(--fill-hover); }
+    .cgroup.week .avatar.task { background: var(--surface); }
+    .citem .avatar.sm { width: 32px; height: 32px; }
+    .citem .avatar.sm .icon { width: 18px; height: 18px; }
+    .citem { gap: 10px; }
+    .citem.done .avatar { filter: grayscale(1); opacity: .55; }
     .cgo, .cmore { border: none; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; border-radius: 9999px; }
     .cgo { margin-left: auto; min-height: 44px; padding: 0 8px 0 12px; display: inline-flex; align-items: center; gap: 2px; margin-top: -6px; margin-bottom: -6px; }
     .cgo .icon { width: 14px; height: 14px; }
@@ -186,7 +213,6 @@
     .backbar button { min-height: 44px; display: inline-flex; align-items: center; gap: 4px; border: none; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink-2); cursor: pointer; border-radius: 9999px; padding: 0 12px 0 6px; }
     .backbar button:hover { background: var(--row-hover); }
     .stats:empty { display: none; }
-    @media (max-width: 640px) { #layoutBtn .lbl { display: none; } #layoutBtn { padding: 0 10px; } } /* 窄螢幕只留圖示，搜尋框才有地方 */
     /* 筆記：一則一張卡，由左到右、由上到下，新的在前 */
     .notes-projects { margin-bottom: 12px; flex: none; }
     .notes-projects .project-tag .num { margin-left: 6px; font-size: 12.5px; opacity: .7; }
@@ -201,7 +227,7 @@
     .nmeta { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
     .nmonth { grid-column: 1 / -1; margin: 10px 2px 0; font-size: 13px; font-weight: 700; color: var(--ink-2); }
     .nmonth:first-child { margin-top: 0; }
-    .ncard mark { background: var(--amber-tint); color: inherit; border-radius: 3px; padding: 0 1px; }
+    .ncard mark { background: var(--amber-tint); color: inherit; border-radius: 4px; padding: 0 1px; }
     .nproj, .nbadge { padding: 2px 8px; border-radius: 9999px; background: var(--fill); font-weight: 600; color: var(--ink-2); }
     .nbadge { background: var(--blue-tint); color: var(--blue); }
     .ndate { margin-left: auto; }
@@ -216,6 +242,7 @@
     .check i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ring); display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: background-color .16s var(--ease), border-color .16s var(--ease); }
     .check i svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; transition: opacity .16s var(--ease); }
     .check:hover i { border-color: var(--green-btn); }
+    @media (max-width: 640px) { .check { width: 44px; height: 44px; margin-left: 2px; } } /* 拇指點得到 */
     .row.done .check i { background: var(--green-btn); border-color: var(--green-btn); }
     .row.done .check i svg { opacity: 1; }
     .row.done .row-title { color: var(--ink-3); font-weight: 400; }
@@ -311,6 +338,17 @@
     .send:disabled { background: var(--fill-hover); color: var(--ink-3); cursor: default; }
     .send.busy { opacity: .6; }
     body.no-composer .composer { display: none; }
+    .compose-tray { pointer-events: auto; max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px; background: var(--surface); border-top: 1px solid var(--line); }
+    .compose-tray[hidden] { display: none; }
+    @media (min-width: 900px) { .compose-tray { border: 1px solid var(--line); border-bottom: none; border-radius: 16px 16px 0 0; } .compose-tray:not([hidden]) + .composer-inner { border-radius: 0; } }
+    .tray-types { display: inline-flex; gap: 4px; }
+    .tray-types button, .tray-more { height: 36px; padding: 0 12px; border: none; border-radius: 9999px; background: var(--fill); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .tray-types button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+    .compose-tray input { height: 36px; min-height: 36px; border-radius: 10px; font-size: 14px; padding: 0 10px; }
+    #trayDue { flex: 1 1 180px; min-width: 0; }
+    #trayProject { flex: 1 1 120px; min-width: 0; }
+    .tray-more { background: none; color: var(--ink-2); margin-left: auto; }
+    .tray-more:hover { background: var(--fill); }
   </style>
 </head>
 <body class="narrow">
@@ -334,9 +372,10 @@
 
 <div id="login">
   <div class="login-box">
+    <img class="login-cat" src="/img/mascot.png" alt="" width="72" height="72">
     <h2>EmmArk 小秘書</h2>
-    <p>請輸入 Dashboard 密碼</p>
-    <input type="password" id="tokenInput" placeholder="密碼" aria-label="Dashboard 密碼" onkeydown="if(event.key==='Enter')doLogin()" />
+    <p>嗨，輸入密碼就能看我幫你整理好的事</p>
+    <input type="password" id="tokenInput" placeholder="密碼" aria-label="密碼" onkeydown="if(event.key==='Enter')doLogin()" />
     <button onclick="doLogin()">進入</button>
   </div>
 </div>
@@ -477,7 +516,7 @@
   <header>
     <h1><img class="brand-cat" src="/img/mascot.png" alt="" width="32" height="32" style="vertical-align:middle;margin-right:6px"><span class="brand-name">小秘書</span> <span id="lastRefresh" class="num"></span></h1>
     <nav class="tabbar" id="tabbar" data-tour="tabbar">
-      <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">待辦</button>
+      <button class="tab-btn active" id="tabBtn-dashboard" aria-current="page" onclick="switchTab('dashboard')">待辦</button>
       <button class="tab-btn" id="tabBtn-notes" data-tour="notes-tab" onclick="switchTab('notes')">筆記</button>
       <a href="#" class="tab-btn" data-tour="worship-link" onclick="event.preventDefault(); goPage('worship.html')">服事表</a>
       <button class="tab-btn" id="tabBtn-songs" onclick="switchTab('songs')">詩歌庫</button>
@@ -491,27 +530,20 @@
 
   <div id="panel-dashboard" class="tab-panel container">
     <div id="truncWarn" class="trunc-warn" style="display:none"></div>
-    <div class="overview" data-tour="stats">
+    <div class="greet" id="greet" data-tour="stats"><img class="greet-cat" src="/img/mascot.png" alt="" width="28" height="28"><p><span id="greetText"></span><span class="greet-time num" id="greetTime"></span></p></div>
+    <div class="overview">
     <div class="stats" id="stats"></div>
-    <div class="view-tabs scope-tabs" id="scopeTabs" role="group" aria-label="看哪一類記錄">
-      <button class="view-tab active" data-scope="todo" onclick="setScope('todo')">該做的事</button>
-      <button class="view-tab" data-scope="done" onclick="setScope('done')">已完成</button>
-    </div>
-    <div class="view-tabs" data-tour="view-tabs">
-      <button class="view-tab active" id="tabList" onclick="switchView('list')">列表</button>
-      <button class="view-tab" id="tabCalendar" onclick="switchView('calendar')">日曆</button>
-    </div>
-    </div>
-    <div id="listView">
-    <div class="list-head">
-      <div class="project-tags" id="projectTags"></div>
     </div>
     <div class="filters" data-tour="filters">
       <div class="filter-row">
         <input type="search" id="search" placeholder="搜尋" oninput="applyFilters()" aria-label="搜尋（快捷鍵 /）" />
-        <button class="chip-btn" id="filterBtn" aria-expanded="false" aria-controls="filterPanel" onclick="toggleFilterPanel()"><svg class="icon"><use href="#i-filter"/></svg>篩選<i class="dot" hidden></i></button>
-        <button class="chip-btn" id="layoutBtn" type="button" onclick="toggleLayout()" aria-label="切換卡片或列表檢視" title="切換卡片或列表檢視"></button>
-        <button class="chip-btn" id="selectBtn" aria-pressed="false" onclick="setSelectMode(!selectMode)"><svg class="icon"><use href="#i-check"/></svg>選取</button>
+        <div class="view-tabs view-seg" id="viewSeg" role="group" aria-label="檢視方式" data-tour="view-tabs">
+          <button class="view-tab" data-v="cards" onclick="setView('cards')" aria-label="卡片" title="卡片"><svg class="icon"><use href="#i-grid"/></svg><span class="lbl">卡片</span></button>
+          <button class="view-tab" data-v="list" onclick="setView('list')" aria-label="列表" title="列表"><svg class="icon"><use href="#i-list"/></svg><span class="lbl">列表</span></button>
+          <button class="view-tab" data-v="calendar" onclick="setView('calendar')" aria-label="日曆" title="日曆"><svg class="icon"><use href="#i-calendar"/></svg><span class="lbl">日曆</span></button>
+        </div>
+        <button class="chip-btn" id="filterBtn" aria-expanded="false" aria-controls="filterPanel" aria-label="篩選" onclick="toggleFilterPanel()"><svg class="icon"><use href="#i-filter"/></svg><span class="lbl">篩選</span><i class="dot" hidden></i></button>
+        <button class="chip-btn" id="selectBtn" aria-pressed="false" aria-label="選取" onclick="setSelectMode(!selectMode)"><svg class="icon"><use href="#i-check"/></svg><span class="lbl">選取</span></button>
       </div>
       <div class="filter-panel" id="filterPanel" hidden>
         <label>類型<select id="filterType" onchange="applyFilters()">
@@ -537,6 +569,10 @@
         </select></label>
         <button class="btn-sm" onclick="resetFilters()">重設</button>
       </div>
+    </div>
+    <div id="listView">
+    <div class="list-head">
+      <div class="project-tags" id="projectTags"></div>
     </div>
     <div id="bulkBar" role="toolbar" aria-label="批次處理">
       <label class="select-all"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this.checked)" />全選</label>
@@ -628,8 +664,18 @@
   </div>
 
   <form class="composer" id="composer" data-tour="fab" onsubmit="event.preventDefault(); sendText()">
+    <div class="compose-tray" id="composeTray" hidden>
+      <div class="tray-types" role="group" aria-label="類型">
+        <button type="button" data-type="task" aria-pressed="false" onclick="trayType(this)">待辦</button>
+        <button type="button" data-type="reminder" aria-pressed="false" onclick="trayType(this)">提醒</button>
+        <button type="button" data-type="note" aria-pressed="false" onclick="trayType(this)">筆記</button>
+      </div>
+      <input type="datetime-local" id="trayDue" lang="zh-Hant-TW" aria-label="到期時間" />
+      <input type="text" id="trayProject" list="projectList" placeholder="專案" aria-label="專案" />
+      <button type="button" class="tray-more" onclick="trayMore()">更多欄位</button>
+    </div>
     <div class="composer-inner">
-      <button type="button" class="icon-btn" onclick="openModal()" title="用表單新增（可設專案、提醒時間）" aria-label="用表單新增"><svg class="icon"><use href="#i-plus"/></svg></button>
+      <button type="button" class="icon-btn" id="trayBtn" onclick="toggleTray()" aria-expanded="false" aria-controls="composeTray" title="選類型、時間或專案" aria-label="選類型、時間或專案"><svg class="icon"><use href="#i-plus"/></svg></button>
       <input id="composerInput" class="composer-input" placeholder="跟小秘書說一句話…" autocomplete="off" aria-label="跟小秘書說一句話（快捷鍵 n）" oninput="document.getElementById('sendBtn').disabled = !this.value.trim()" />
       <button type="submit" class="send" id="sendBtn" disabled aria-label="送出"><svg class="icon"><use href="#i-send"/></svg></button>
     </div>
@@ -668,7 +714,9 @@ function switchTab(name) {
   setMoreTabs(EXTRA_TABS.includes(name)); // 目前分頁在「更多」裡就保持展開，才看得到底線在哪
   TABS.forEach(t => {
     document.getElementById('panel-' + t).style.display = t === name ? 'block' : 'none';
-    document.getElementById('tabBtn-' + t).classList.toggle('active', t === name);
+    const b = document.getElementById('tabBtn-' + t);
+    b.classList.toggle('active', t === name);
+    if (t === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); // 讀螢幕要知道現在在哪一頁
   });
   // 相簿只能從 LINE 傳圖進來，後台沒有「新增」這個動作，所以把 ＋ 收起來
   // 輸入列只在待辦分頁出現；其他分頁用各自的新增按鈕
@@ -714,12 +762,65 @@ function hideToast(undone) {
   if (f && !undone) f();
 }
 
+// ---- 輸入列的小選項：沒選就交給 AI 分類；選了類型、時間或專案就照選的存 ----
+function toggleTray(open) {
+  const tray = document.getElementById('composeTray');
+  open = open !== undefined ? open : tray.hidden;
+  tray.hidden = !open;
+  document.getElementById('trayBtn').setAttribute('aria-expanded', String(open));
+  if (!open) {
+    tray.querySelectorAll('[data-type]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    document.getElementById('trayDue').value = '';
+    document.getElementById('trayProject').value = '';
+  }
+}
+function trayType(btn) {
+  const on = btn.getAttribute('aria-pressed') !== 'true';
+  document.querySelectorAll('#composeTray [data-type]').forEach(b => b.setAttribute('aria-pressed', String(b === btn && on)));
+}
+function trayValues() {
+  if (document.getElementById('composeTray').hidden) return null;
+  const pick = document.querySelector('#composeTray [data-type][aria-pressed="true"]');
+  const due = document.getElementById('trayDue').value;
+  const project = document.getElementById('trayProject').value.trim();
+  if (!pick && !due && !project) return null;
+  return { type: pick ? pick.dataset.type : 'task', due, project };
+}
+// 要設提前提醒等其他欄位：把已經打的字和選好的值帶進完整表單
+function trayMore() {
+  const t = trayValues() || { type: 'task', due: '', project: '' };
+  const text = document.getElementById('composerInput').value;
+  openModal();
+  document.getElementById('newContent').value = text;
+  document.getElementById('newType').value = t.type;
+  document.getElementById('newProject').value = t.project;
+  document.getElementById('newDueDate').value = t.due;
+  duePreview('newDueDate');
+  document.getElementById('composerInput').value = '';
+  document.getElementById('sendBtn').disabled = true;
+  toggleTray(false);
+}
+async function sendTyped(text, t) {
+  const btn = document.getElementById('sendBtn');
+  btn.classList.add('busy'); btn.disabled = true;
+  const data = await api('POST', { type: t.type, project: t.project, content: text, due_date: t.due ? new Date(t.due).toISOString() : null });
+  btn.classList.remove('busy');
+  if (!data) { btn.disabled = false; return; } // api 已提示；字留在輸入列
+  document.getElementById('composerInput').value = '';
+  toggleTray(false);
+  allNotes.unshift(data);
+  renderStats(); renderProjectTags(); updateProjectList(); applyFilters();
+  toast(`${TYPE_LABEL[t.type]}記下了：${text}`, { action: { label: '復原', run: () => deleteNotes([data.id]) } });
+}
+
 // ---- 輸入列：跟 LINE 一樣打一句話就送出（同一套 AI 分類與指令） ----
 async function sendText() {
   const input = document.getElementById('composerInput');
   const btn = document.getElementById('sendBtn');
   const text = input.value.trim();
   if (!text || btn.classList.contains('busy')) return;
+  const picked = trayValues();
+  if (picked) return sendTyped(text, picked);
   btn.classList.add('busy'); btn.disabled = true;
   const data = await api('POST', { text });
   btn.classList.remove('busy');
@@ -927,6 +1028,7 @@ async function loadNotes() {
   document.getElementById('login').style.display = 'none';
   document.getElementById('main').style.display = 'block';
   document.getElementById('lastRefresh').textContent = '更新 ' + new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+  document.getElementById('greetTime').textContent = document.getElementById('lastRefresh').textContent;
   renderStats();
   renderProjectTags();
   updateProjectList();
@@ -966,12 +1068,19 @@ function isOverdue(n) { return !n.is_done && n.due_date && isActionable(n) && ne
 // 版面偏好：卡片（預設，一區一張卡、每張最多 3 筆）或列表（全部條列）。記在這台裝置，讀不到就用卡片。
 let layoutPref = 'cards';
 try { if (localStorage.getItem('todoLayout') === 'list') layoutPref = 'list'; } catch (e) { /* 沒有也沒關係 */ }
-function toggleLayout() {
-  layoutPref = layoutPref === 'cards' ? 'list' : 'cards';
+// 卡片｜列表｜日曆 合成一組：卡片和列表記在這台裝置，日曆是另一個畫面
+function setView(v) {
+  if (v === 'calendar') return switchView('calendar');
+  layoutPref = v === 'list' ? 'list' : 'cards';
   try { localStorage.setItem('todoLayout', layoutPref); } catch (e) { /* 沒有也沒關係 */ }
   focusKey = '';
+  if (currentView === 'calendar') switchView('list');
   renderStats();
   applyFilters();
+}
+function renderViewSeg() {
+  const cur = currentView === 'calendar' ? 'calendar' : layoutPref;
+  document.querySelectorAll('#viewSeg .view-tab').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === cur)));
 }
 // 卡片總覽只用在「預設的待辦視圖」：有搜尋、專案篩選、改過篩選、選取模式時，一律回到列表
 function cardsActive() {
@@ -982,19 +1091,32 @@ function cardsActive() {
     && document.getElementById('sortBy').value === DEFAULT_SORT;
 }
 
+// 小秘書的一句話：只講最該知道的（過期、今天），全部做完時說一聲
+function greetLine(open, counts) {
+  const h = Number(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei', hour: 'numeric', hour12: false })) % 24;
+  const hi = h >= 5 && h < 11 ? '早安' : h >= 11 && h < 18 ? '午安' : '晚安';
+  if (!open) return `${hi}，該做的事都清掉了`;
+  const parts = [];
+  if (counts.overdue) parts.push(`過期 ${counts.overdue} 件先處理`);
+  if (counts.today) parts.push(`今天還有 ${counts.today} 件`);
+  return `${hi}，${parts.join('，') || '今天沒有到期的事'}`;
+}
 // 上方數字膠囊＝列表的捷徑：每一區有幾件、點了只看那一區
 const STAT_GROUPS = [['overdue', '過期'], ['today', '今天'], ['tomorrow', '明天'], ['week', '這七天']];
 function renderStats() {
   const open = allNotes.filter(n => !n.is_done && isActionable(n));
   const counts = Object.fromEntries(groupByDue(open).map(([key, , rows]) => [key, rows.length]));
   if (focusKey && !counts[focusKey]) focusKey = ''; // 那一區都處理完了，自動回到全部
+  document.getElementById('greetText').textContent = greetLine(open.length, counts);
   const cards = cardsActive();
   // 沒有可點的數字膠囊（卡片檢視、或什麼都沒排）時把那一格收起來；「未完成」那顆在手機上本來就隱藏
-  const pills = !cards && STAT_GROUPS.some(([key]) => counts[key]);
-  document.getElementById('stats').classList.toggle('no-pills', !pills && window.matchMedia('(max-width: 600px)').matches);
+  const pills = !cards && !inDoneScope() && STAT_GROUPS.some(([key]) => counts[key]);
+  const narrow = window.matchMedia('(max-width: 640px)').matches;
+  document.getElementById('stats').classList.toggle('no-pills', !pills && narrow);
+  document.querySelector('.overview').classList.toggle('no-pills', !pills); // 卡片總覽時「未完成 N」跟問候句重複，收起來
   document.getElementById('stats').innerHTML = `
     <span class="stat-pill sum num">未完成 <b>${open.length}</b></span>
-    ${cards ? '' : STAT_GROUPS.filter(([key]) => counts[key]).map(([key, label]) =>
+    ${!pills ? '' : STAT_GROUPS.filter(([key]) => counts[key]).map(([key, label]) =>
       `<button type="button" class="stat-pill ${key === 'overdue' ? 'late' : ''} num" onclick="toggleFocus('${key}')" aria-pressed="${focusKey === key}" title="${focusKey === key ? '回到全部' : `只看${label}的`}">${label} <b>${counts[key]}</b></button>`).join('')}
   `;
 }
@@ -1016,6 +1138,7 @@ function renderProjectTags() {
   container.innerHTML = [''].concat(projects).map(p =>
     `<button class="project-tag ${activeProject === p ? 'active' : ''}" data-project="${esc(p)}">${p ? esc(p) : '全部'}</button>`).join('');
   container.onclick = e => { const b = e.target.closest('.project-tag'); if (b) setProject(b.dataset.project); };
+  document.getElementById('panel-dashboard').classList.toggle('has-project', !!activeProject);
 }
 
 function setProject(p) {
@@ -1043,7 +1166,6 @@ function sortNotes(items, sortBy) {
 function applyFilters() {
   if (typeof Notes !== 'undefined') Notes.render(); // 筆記分頁也跟著重畫（新增、編輯、刪除、重新載入之後）
   renderProjectTags();
-  renderScopeTabs();
   const search = document.getElementById('search').value.trim().toLowerCase();
   // 有打字搜尋時，不管目前選的是「該做的事」還是「已完成」，一律找全部類型與狀態（待辦、提醒、筆記、已完成都找）
   const type = search ? '' : document.getElementById('filterType').value;
@@ -1059,7 +1181,7 @@ function applyFilters() {
   filtered = sortNotes(filtered, document.getElementById('sortBy').value);
 
   const nonDefault = document.getElementById('filterType').value !== DEFAULT_TYPE || document.getElementById('filterDone').value || document.getElementById('sortBy').value !== DEFAULT_SORT;
-  document.querySelector('#filterBtn .dot').hidden = !nonDefault;
+  document.querySelector('#filterBtn .dot').hidden = (!nonDefault || inDoneScope()) && !activeProject; // 「已完成」是一個看法，不算改過篩選
   const list = document.getElementById('tableBody');
   const hint = document.getElementById('searchHint');
   if (search) {
@@ -1072,7 +1194,7 @@ function applyFilters() {
   } else hint.hidden = true;
   if (filtered.length === 0) {
     list.classList.remove('as-cards');
-    list.innerHTML = '<div class="empty">沒有符合的記錄</div>';
+    list.innerHTML = (inDoneScope() ? `<div class="backbar"><button type="button" onclick="setScope('todo')">回該做的事</button></div>` : '') + '<div class="empty">沒有符合的記錄</div>';
     renderedIds = [];
     updateBulkBar();
     return;
@@ -1087,14 +1209,15 @@ function applyFilters() {
   renderedIds = [];
   const asCards = cardsActive() && groups.some(g => g[0] === 'today' || g[2].length);
   list.classList.toggle('as-cards', asCards);
-  document.getElementById('layoutBtn').innerHTML = asCards || layoutPref === 'cards' ? '<svg class="icon"><use href="#i-list"/></svg><span class="lbl">列表檢視</span>' : '<svg class="icon"><use href="#i-grid"/></svg><span class="lbl">卡片檢視</span>';
+  renderViewSeg();
   if (asCards) {
     list.innerHTML = cardsHtml(groups);
     updateBulkBar();
     return;
   }
-  const back = focusKey && layoutPref === 'cards'
-    ? `<div class="backbar"><button type="button" onclick="toggleFocus('${focusKey}')"><svg class="icon" style="transform:rotate(180deg)" aria-hidden="true"><use href="#i-right"/></svg>回總覽</button></div>` : '';
+  const backBtn = (run, label) => `<div class="backbar"><button type="button" onclick="${run}"><svg class="icon" style="transform:rotate(180deg)" aria-hidden="true"><use href="#i-right"/></svg>${label}</button></div>`;
+  const back = focusKey && layoutPref === 'cards' ? backBtn(`toggleFocus('${focusKey}')`, '回總覽')
+    : inDoneScope() && !search ? backBtn(`setScope('todo')`, '回該做的事') : '';
   list.innerHTML = back + groups.filter(g => g[2].length).map(([key, label, rows]) => {
     if (key === 'done') {
       if (showDoneGroup || search) renderedIds.push(...rows.map(r => r.id));
@@ -1129,8 +1252,9 @@ function cardTime(n, key) {
 function cardItem(n, key) {
   const meta = [n.project ? esc(n.project) : '', n.due_date ? cardTime(n, key) : '', n.recur ? '重複' : ''].filter(Boolean).join('・');
   return `<div class="citem ${n.is_done ? 'done' : ''}" data-id="${esc(n.id)}">
-    <button class="check" onclick="tapDone('${esc(n.id)}', ${!n.is_done})" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i><svg class="icon"><use href="#i-check"/></svg></i></button>
+    <span class="avatar sm ${esc(n.type)}" title="${TYPE_LABEL[n.type] || ''}" aria-hidden="true"><svg class="icon"><use href="#i-${esc(n.type)}"/></svg></span>
     <button type="button" class="ctext" onclick="rowClick('${esc(n.id)}')"><span class="ct">${esc(n.content)}</span>${meta ? `<span class="cm num">${meta}</span>` : ''}</button>
+    <button class="check" onclick="tapDone('${esc(n.id)}', ${!n.is_done})" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i><svg class="icon"><use href="#i-check"/></svg></i></button>
   </div>`;
 }
 function cardsHtml(groups) {
@@ -1138,7 +1262,7 @@ function cardsHtml(groups) {
   const main = CARD_MAIN.filter(([key]) => (by[key] || []).length || key === 'today').map(([key, label]) => {
     const rows = by[key] || [];
     const more = rows.length - CARD_ITEMS;
-    return `<section class="cgroup ${key}">
+    return `<section class="cgroup ${key}${rows.length ? '' : ' empty'}">
       <div class="chead"><span class="cname">${label}</span><span class="cnum num">${rows.length}</span>${more > 0 ? `<button type="button" class="cgo" onclick="toggleFocus('${key}')">看全部<svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></button>` : ''}</div>
       ${rows.length ? rows.slice(0, CARD_ITEMS).map(n => cardItem(n, key)).join('') : '<p class="cempty">今天沒有排事情</p>'}
       ${more > 0 ? `<button type="button" class="cmore" onclick="toggleFocus('${key}')">還有 ${more} 筆</button>` : ''}
@@ -1146,7 +1270,9 @@ function cardsHtml(groups) {
   }).join('');
   const mini = CARD_MINI.filter(([key]) => (by[key] || []).length).map(([key, label]) =>
     `<button type="button" class="cmini" onclick="toggleFocus('${key}')"><span>${label}</span><b class="num">${by[key].length}</b><svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></button>`).join('');
-  return `<div class="cards">${main}</div>${mini ? `<div class="cminis">${mini}</div>` : ''}`;
+  const done = (by.done || []).length;
+  const doneLink = done ? `<div class="more done-link"><button type="button" onclick="setScope('done')">已完成 <span class="num">${done}</span> 筆<svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></button></div>` : '';
+  return `<div class="cards">${main}</div>${mini ? `<div class="cminis">${mini}</div>` : ''}${doneLink}`;
 }
 
 // 實際畫在畫面上的那些列（「全選」只選看得到的，收起來的不算）
@@ -1218,14 +1344,8 @@ function setScope(key) {
   renderStats();
   applyFilters();
 }
-function renderScopeTabs() {
-  const cur = [document.getElementById('filterType').value, document.getElementById('filterDone').value, document.getElementById('sortBy').value].join('|');
-  document.querySelectorAll('#scopeTabs .view-tab').forEach(b => {
-    const sc = SCOPES[b.dataset.scope];
-    const on = [sc.type, sc.done, sc.sort].join('|') === cur;
-    b.classList.toggle('active', on);
-    b.setAttribute('aria-pressed', String(on));
-  });
+function inDoneScope() {
+  return document.getElementById('filterDone').value === 'true' && document.getElementById('filterType').value === 'todo';
 }
 function groupByCreated(items) {
   const today = todayKey(), yesterday = addDaysKey(today, -1), map = new Map();
@@ -1290,7 +1410,8 @@ function tapDone(id, is_done) {
 }
 
 async function toggleDone(id, is_done, quiet) {
-  const note = allNotes.find(n => n.id === id);
+  const note = allNotes.find(n => String(n.id) === String(id));
+  if (!note) { toastErr('找不到這筆記錄，請重新整理再試一次'); return; }
   // 先讓那一列變成已完成（像訊息變已讀），再沉到「已完成」群組
   const row = document.querySelector(`.row[data-id="${CSS.escape(String(id))}"], .citem[data-id="${CSS.escape(String(id))}"]`);
   if (row) row.classList.toggle('done', is_done);
@@ -1306,12 +1427,13 @@ async function toggleDone(id, is_done, quiet) {
 // 刪除先從畫面拿掉，5 秒內可以按「復原」；時間到才真的刪
 const pendingDeletes = new Map(); // id -> note
 function deleteNotes(ids) {
-  const removed = allNotes.filter(n => ids.includes(n.id));
+  const want = new Set(ids.map(String));
+  const removed = allNotes.filter(n => want.has(String(n.id)));
   if (!removed.length) return;
   removed.forEach(n => pendingDeletes.set(n.id, n));
-  allNotes = allNotes.filter(n => !ids.includes(n.id));
+  allNotes = allNotes.filter(n => !want.has(String(n.id)));
   ids.forEach(id => selectedIds.delete(id));
-  if (ids.includes(editingNoteId)) closeEditModal();
+  if (editingNoteId != null && want.has(String(editingNoteId))) closeEditModal();
   renderStats(); renderProjectTags(); applyFilters();
   if (currentView === 'calendar') { renderCalendar(); if (selectedKey) showDay(selectedKey); }
   const label = removed.length === 1 ? `已刪除：${removed[0].content}` : `已刪除 ${removed.length} 筆`;
@@ -1338,7 +1460,7 @@ async function flushDeletes() {
 const deleteReloads = new Map(); // id -> 刪除失敗時要重新載入的函式
 function deleteItem(store, key, id, label) {
   const list = store[key];
-  const idx = list.findIndex(n => n.id === id);
+  const idx = list.findIndex(n => String(n.id) === String(id));
   if (idx < 0) return;
   const item = list[idx];
   list.splice(idx, 1);
@@ -1400,6 +1522,7 @@ function toggleFilterPanel(force) {
   const open = force !== undefined ? force : panel.hidden;
   panel.hidden = !open;
   document.getElementById('filterBtn').setAttribute('aria-expanded', String(open));
+  document.getElementById('panel-dashboard').classList.toggle('show-projects', open);
 }
 function resetFilters() {
   document.getElementById('filterType').value = DEFAULT_TYPE;
@@ -1420,17 +1543,17 @@ function updateBulkBar() {
 
 async function bulkDone() {
   // 只有待辦和提醒能標完成；選到的筆記跳過
-  const ids = [...selectedIds].filter(id => { const n = allNotes.find(x => x.id === id); return n && isActionable(n); });
+  const ids = [...selectedIds].filter(id => { const n = allNotes.find(x => String(x.id) === String(id)); return n && isActionable(n); });
   if (ids.length === 0) return toast('選到的都是筆記，沒有可以標完成的待辦或提醒');
   const results = await Promise.all(ids.map(id => api('PATCH', { id, is_done: true })));
   const ok = ids.filter((id, i) => results[i]);
-  ok.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = true; });
+  ok.forEach(id => { const n = allNotes.find(x => String(x.id) === String(id)); if (n) n.is_done = true; });
   setSelectMode(false);
   renderStats();
   applyFilters();
   if (ok.length) toast(`已完成 ${ok.length} 筆`, { action: { label: '復原', run: async () => {
     await Promise.all(ok.map(id => api('PATCH', { id, is_done: false })));
-    ok.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.is_done = false; });
+    ok.forEach(id => { const n = allNotes.find(x => String(x.id) === String(id)); if (n) n.is_done = false; });
     renderStats(); applyFilters();
   } } });
 }
@@ -1444,7 +1567,7 @@ async function bulkDelete() {
 
 // 勾好的行程一次分享：整理成一則文字，開 LINE 的「選聊天室」（選牧者群組送出）；電腦上沒有 LINE 就改成複製
 function bulkShare() {
-  const items = [...selectedIds].map(id => allNotes.find(x => x.id === id)).filter(Boolean)
+  const items = [...selectedIds].map(id => allNotes.find(x => String(x.id) === String(id))).filter(Boolean)
     .sort((a, b) => String(a.due_date || '9').localeCompare(String(b.due_date || '9')));
   if (items.length === 0) return;
   const wd = '日一二三四五六';
@@ -1484,7 +1607,7 @@ async function applyBulkProject(project) {
   closeProjectModal();
   if (ids.length === 0) return;
   await Promise.all(ids.map(id => api('PATCH', { id, project })));
-  ids.forEach(id => { const n = allNotes.find(x => x.id === id); if (n) n.project = project || null; });
+  ids.forEach(id => { const n = allNotes.find(x => String(x.id) === String(id)); if (n) n.project = project || null; });
   setSelectMode(false);
   renderProjectTags();
   updateProjectList();
@@ -1537,7 +1660,7 @@ function updateProjectList() {
 let editingNoteId = null;
 
 function openEditModal(id) {
-  const note = allNotes.find(n => n.id === id);
+  const note = allNotes.find(n => String(n.id) === String(id));
   if (!note) return;
   editingNoteId = id;
   autoDue.edit = null;
@@ -1603,10 +1726,10 @@ function pad2(n) { return String(n).padStart(2, '0'); }
 
 function switchView(view) {
   currentView = view;
-  document.getElementById('tabList').classList.toggle('active', view === 'list');
-  document.getElementById('tabCalendar').classList.toggle('active', view === 'calendar');
+  document.body.classList.toggle('cal-mode', view === 'calendar');
+  if (view === 'calendar') setSelectMode(false);
+  renderViewSeg();
   document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
-  document.getElementById('scopeTabs').style.display = view === 'list' ? '' : 'none'; // 日曆沒有「已完成」這一分
   document.getElementById('calendarView').style.display = view === 'calendar' ? 'block' : 'none';
   if (view === 'calendar') {
     if (calYear === null) {
@@ -1990,7 +2113,7 @@ const Songs = {
   },
 
   openEdit(id) {
-    const note = this.items.find(n => n.id === id);
+    const note = this.items.find(n => String(n.id) === String(id));
     if (!note) return;
     const entry = parseSongEntry(note.content || '');
     this.editingId = id;
@@ -2094,7 +2217,7 @@ const Order = {
   },
 
   openEdit(id) {
-    const n = this.items.find(x => x.id === id);
+    const n = this.items.find(x => String(x.id) === String(id));
     if (!n) return;
     this.editingId = id;
     document.getElementById('orderModalTitle').textContent = '編輯敬拜順序';
@@ -2221,7 +2344,7 @@ const Meetings = {
   },
 
   openEdit(id) {
-    const n = this.items.find(x => x.id === id);
+    const n = this.items.find(x => String(x.id) === String(id));
     if (!n) return;
     this.editingId = id;
     document.getElementById('meetingsModalTitle').textContent = '編輯會議記錄';
@@ -2277,7 +2400,7 @@ const Meetings = {
 
   async doneItem(id) {
     await api('PATCH', { id, is_done: true });
-    const t = this.actionItems.find(x => x.id === id);
+    const t = this.actionItems.find(x => String(x.id) === String(id));
     if (t) t.is_done = true;
     this.render();
   },
@@ -2434,7 +2557,7 @@ const Links = {
 
   async toggleDone(id, is_done) {
     await api('PATCH', { id, is_done });
-    const n = this.items.find(x => x.id === id);
+    const n = this.items.find(x => String(x.id) === String(id));
     if (n) n.is_done = is_done;
     this.render();
   },
@@ -2487,11 +2610,11 @@ Tour.mount({
     { target: 'tabbar', title: '切換功能', text: '這排分頁可以切換：待辦、筆記、服事表、詩歌庫、敬拜順序、會議記錄、收藏、相簿。手機上先顯示常用的幾個，其他在「更多」裡。' },
     { target: 'notes-tab', title: '筆記', text: '沒有提醒、沒有待辦、沒有日期的記錄都在這裡，一則一張卡：第一行是標題，後面是預覽。\n上面搜尋框可以找內容或專案，專案按鈕點一下只看那個專案，再點一次回到全部。\n點卡片可以編輯，也能改成待辦或提醒；右上角「新增筆記」可以直接寫。收藏、詩歌、會議記錄、週報有各自的分頁，不在這裡。', before: () => switchTab('notes') },
     { target: 'worship-link', title: '服事表', text: '主日服事表在第二個分頁，點進去可以看整季班表。' },
-    { target: 'stats', title: '總覽', text: '最上面這排：左邊切「該做的事／已完成」，右邊切「列表／日曆」；有數字的小膠囊（過期、今天…）點了只看那一區。\n下面「卡片檢視」把事情分成過期（紅色）、今天、明天、這七天，一個時段一張卡，每張只放最近 3 筆；點「看全部」或「還有 N 筆」才展開那一區的完整列表，再點「回總覽」回來。\n之後、重複提醒、未排時間收成下方一排小按鈕。', before: () => switchTab('dashboard') },
-    { target: 'view-tabs', title: '列表或日曆', text: '可以切換成日曆，看每一天排了什麼。', before: () => switchTab('dashboard') },
-    { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n這裡只放「該做的事」（待辦和提醒），照到期時間分成過期、今天、明天、這七天、之後；做完的事在「已完成」。筆記和專案更新在旁邊的「筆記」分頁。「篩選」可以自己組合類型、狀態和排序，有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
-    { target: 'list-table', title: '每一筆都能直接操作', text: '點圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一筆可以編輯，刪除也在編輯面板裡。\n習慣條列的話，按搜尋列旁的「列表檢視」就切成完整列表（會記在這台裝置），再按一次回到卡片。搜尋、選專案、批次選取時也會自動用列表。\n有排到你服事時，上方會多一列「下一次服事」，點了直接到服事表。' },
-    { target: 'fab', title: '跟小秘書說一句話', text: '在最下面打一句話就好，例如「明天下午三點看牙醫」「午餐 120」「這週要幹嘛」，跟在 LINE 傳給小秘書一模一樣。\n要設定專案或提前提醒，按左邊的＋用表單新增。', before: () => switchTab('dashboard') },
+    { target: 'stats', title: '總覽', text: '最上面是小秘書的一句話：過期幾件、今天還有幾件，全部做完時她會說一聲。\n下面的卡片把事情分成過期（紅框）、今天、明天、這七天，一個時段一張卡，每張只放最近 3 筆；點「看全部」或「還有 N 筆」才展開那一區的完整列表，再點「回總覽」回來。\n之後、重複提醒、未排時間收成下方一排小按鈕；做完的事在最下面的「已完成」。', before: () => switchTab('dashboard') },
+    { target: 'view-tabs', title: '卡片、列表或日曆', text: '這一組切換看法：卡片是總覽，列表是完整條列（會記在這台裝置），日曆看每一天排了什麼。', before: () => switchTab('dashboard') },
+    { target: 'filters', title: '找東西', text: '輸入關鍵字搜尋（電腦上按 / 就能直接打字）。\n這裡只放「該做的事」（待辦和提醒），照到期時間分成過期、今天、明天、這七天、之後；做完的事在最下面的「已完成」。筆記和專案更新在旁邊的「筆記」分頁。「篩選」可以自己組合類型、狀態和排序，也可以只看某個專案（手機上專案按鈕收在這裡），有改過時按鈕上會出現紅點。\n「選取」可以一次勾好幾筆，批次完成、改專案或刪除。', before: () => { switchTab('dashboard'); switchView('list'); } },
+    { target: 'list-table', title: '每一筆都能直接操作', text: '點圓圈就是完成；完成或刪除後下方會出現「復原」，5 秒內可以反悔。\n點那一筆可以編輯，刪除也在編輯面板裡。\n習慣條列的話，按搜尋列旁的「列表」就切成完整列表（會記在這台裝置），按「卡片」回來。搜尋、選專案、批次選取時也會自動用列表。\n有排到你服事時，上方會多一列「下一次服事」，點了直接到服事表。' },
+    { target: 'fab', title: '跟小秘書說一句話', text: '在最下面打一句話就好，例如「明天下午三點看牙醫」「午餐 120」「這週要幹嘛」，跟在 LINE 傳給小秘書一模一樣。\n想自己指定類型、時間或專案，先按左邊的＋選好再送出；要設提前提醒，按裡面的「更多欄位」。', before: () => switchTab('dashboard') },
   ],
 });
 </script>

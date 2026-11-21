@@ -19,7 +19,10 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     let query = supabase.from('worship_schedule').select('*').order('service_date').order('role');
     if (req.query.date) query = query.eq('service_date', req.query.date);
-    if (req.query.person) query = query.eq('person_name', req.query.person);
+    // 'me' lets the Dashboard ask for the deployer's own duties without knowing the name (fork-friendly)
+    const person = req.query.person === 'me' ? process.env.WORSHIP_MY_NAME : req.query.person;
+    if (req.query.person === 'me' && !person) return res.status(200).json([]);
+    if (person) query = query.eq('person_name', person);
     if (req.query.from) query = query.gte('service_date', req.query.from);
     const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });

@@ -44,6 +44,11 @@ button { cursor: pointer; background: none; border: none; }
 .chip { flex: none; height: 32px; padding: 0 14px; border-radius: 16px; background: var(--fill); font-size: 14px; color: var(--ink); white-space: nowrap; }
 .chip:hover { background: #e8e9ec; }
 .chip[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.chip .num { margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.chip[aria-pressed="true"] .num { color: rgba(255,255,255,.7); }
+/* Chips scroll sideways (wheel too); the edge fade says there is more */
+.chips { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); }
+.search kbd { font: 600 12px/1 var(--font); color: var(--ink-3); border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 3px 6px; }
 
 /* Shared list parts */
 .sep { display: flex; justify-content: center; padding: 6px 0 2px; }
@@ -60,6 +65,7 @@ button { cursor: pointer; background: none; border: none; }
 @media (min-width: 640px) { .scrim { align-items: center; } .sheet { border-radius: 16px; padding-bottom: 20px; box-shadow: 0 12px 40px rgba(0,0,0,.18); } }
 @keyframes sheet-in { from { transform: translateY(24px); } to { transform: none; } }
 .grabber { width: 36px; height: 5px; border-radius: 3px; background: #d9dbde; margin: 0 auto 12px; }
+@media (min-width: 640px) { .grabber { visibility: hidden; height: 0; margin-bottom: 8px; } }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .sheet-head h2 { font-size: 17px; font-weight: 700; }
 .field { display: block; margin-top: 14px; }
@@ -87,7 +93,9 @@ button { cursor: pointer; background: none; border: none; }
 .login .btn { width: 100%; }
 .login .err { color: var(--red); font-size: 14px; min-height: 20px; margin: -2px 0 8px; }
 
-.toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: rgba(17,17,17,.88); color: #fff; font-size: 14px; padding: 8px 14px; border-radius: 18px; z-index: 60; }
+.toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: rgba(17,17,17,.88); color: #fff; font-size: 14px; padding: 8px 14px; border-radius: 18px; z-index: 60; display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 32px); }
+.toast[hidden] { display: none; }
+.toast button { color: #7ee2a8; font-weight: 700; font-size: 14px; padding: 4px 2px; white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

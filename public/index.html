@@ -9,13 +9,23 @@
   <style>
     /* List */
     main { flex: 1; padding-bottom: 96px; }
+    main:focus { outline: none; }
     .row { display: flex; align-items: center; gap: 12px; padding: 6px 4px 6px 16px; transition: background-color .16s var(--ease), opacity .16s var(--ease); }
     .row:hover { background: #fafafb; }
-    .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; padding: 0; border-radius: 8px; }
-    .avatar.task { background: #eef0f2; color: #3d4247; }
-    .avatar.reminder { background: var(--t-reminder-bg); color: var(--t-reminder); }
-    .avatar.note { background: var(--t-note-bg); color: var(--t-note); }
-    .avatar.project_update { background: var(--t-project-bg); color: var(--t-project); }
+    .row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; padding: 0; border-radius: 8px; color: inherit; text-decoration: none; }
+    .avatar { position: relative; font-size: 15px; font-weight: 700; letter-spacing: -.02em; background: var(--a-bg); color: var(--a-fg); }
+    .avatar.task { --a-bg: #eef0f2; --a-fg: #3d4247; }
+    .avatar.reminder { --a-bg: var(--t-reminder-bg); --a-fg: var(--t-reminder); }
+    .avatar.note { --a-bg: var(--t-note-bg); --a-fg: var(--t-note); }
+    .avatar.project_update { --a-bg: var(--t-project-bg); --a-fg: var(--t-project); }
+    .avatar.serve { --a-bg: var(--ink); --a-fg: #fff; }
+    .avatar.latin { font-size: 13px; }
+    /* Type badge on a project avatar: the project is the identity, the type is a footnote */
+    .tbadge { position: absolute; right: -3px; bottom: -3px; width: 19px; height: 19px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--bg); }
+    .tbadge .icon { width: 12px; height: 12px; stroke-width: 2.25; }
+    .tbadge.reminder { background: var(--t-reminder-bg); color: var(--t-reminder); }
+    .tbadge.note { background: var(--t-note-bg); color: var(--t-note); }
+    .tbadge.project_update { background: var(--t-project-bg); color: var(--t-project); }
     .row-text { flex: 1; min-width: 0; }
     .row-title { font-size: 15px; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
     .row-sub { display: block; font-size: 13px; color: var(--ink-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -27,10 +37,16 @@
     .check i svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; transition: opacity .16s var(--ease); }
     .check:hover i { border-color: var(--green); }
     .row.done .check i { background: var(--green-btn); border-color: var(--green-btn); }
-    .row.done .check i svg { opacity: 1; }
+    .row.done .check i svg, .row.selected .check i svg { opacity: 1; }
     .row.done .row-title { color: var(--ink-3); font-weight: 400; }
+    .row.done .row-sub .late { color: inherit; font-weight: inherit; }
     .row.done .avatar { filter: grayscale(1); opacity: .55; }
+    .row.selected, .row.selected:hover { background: var(--fill); }
+    .row.selected .check i { background: var(--ink); border-color: var(--ink); }
+    .row.serve-row .row-meta { color: var(--ink-3); }
     .read { color: var(--green-ink); font-weight: 600; }
+    .cleared { padding: 28px 24px 20px; text-align: center; color: var(--ink-2); font-size: 13px; }
+    .cleared strong { display: block; color: var(--ink); font-size: 17px; margin-bottom: 2px; }
 
     /* Composer */
     .composer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; pointer-events: none; }
@@ -38,15 +54,21 @@
     @media (min-width: 800px) { .composer-inner { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
     .composer-extra { display: flex; gap: 8px; padding: 0 4px 8px; flex-wrap: wrap; }
     .composer-extra label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); flex: 1; min-width: 150px; }
-    .composer-extra input { flex: 1; min-width: 0; height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; background: var(--fill); font-size: 14px; }
-    .composer-row { display: flex; align-items: center; gap: 4px; }
-    .type-select { height: 40px; border: none; background: var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f6469' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center; border-radius: 20px; padding: 0 28px 0 12px; font-size: 14px; font-weight: 600; color: var(--ink); appearance: none; -webkit-appearance: none; cursor: pointer; }
-    .composer-input { flex: 1; min-width: 0; height: 40px; border: none; background: var(--fill); border-radius: 20px; padding: 0 16px; font-size: 15px; outline: none; }
+    .composer-extra input, .batch input { flex: 1; min-width: 0; height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; background: var(--fill); font-size: 15px; }
+    .composer-row, .batch { display: flex; align-items: center; gap: 4px; }
+    .type-select { height: 40px; border: none; background: var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f6469' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center; border-radius: 9999px; padding: 0 28px 0 12px; font-size: 15px; font-weight: 600; color: var(--ink); appearance: none; -webkit-appearance: none; cursor: pointer; }
+    .composer-input { flex: 1; min-width: 0; height: 40px; border: none; background: var(--fill); border-radius: 9999px; padding: 0 16px; font-size: 15px; outline: none; }
     .composer-input::placeholder { color: var(--ink-3); }
     .composer .icon-btn[aria-pressed="true"] { color: var(--green-ink); background: var(--green-tint); }
     .send { width: 40px; height: 40px; border-radius: 50%; background: var(--green-btn); color: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
     .send:hover { background: var(--green-press); }
     .send:disabled { background: #c9ccd0; cursor: default; }
+    /* Batch bar replaces the composer row while rows are selected */
+    .batch { flex-wrap: wrap; padding: 0 4px; }
+    .batch .count { font-weight: 700; margin-right: 4px; }
+    .batch .btn { height: 36px; padding: 0 14px; border-radius: 10px; font-size: 15px; }
+    .batch .btn-primary { flex: none; }
+    .batch input { flex: 0 1 180px; }
   </style>
 </head>
 <body>
@@ -69,8 +91,8 @@
 <div class="login" id="login">
   <form class="login-box" onsubmit="event.preventDefault(); doLogin()">
     <h2>EmmArk 小秘書</h2>
-    <p>輸入 Dashboard 密碼</p>
-    <input type="password" id="tokenInput" placeholder="密碼" autocomplete="current-password" aria-label="Dashboard 密碼" />
+    <p>輸入密碼，看看小秘書幫你整理的事</p>
+    <input type="password" id="tokenInput" placeholder="密碼" autocomplete="current-password" aria-label="密碼" />
     <div class="err" id="loginErr" role="alert"></div>
     <button class="btn btn-primary" type="submit">進入</button>
   </form>
@@ -80,33 +102,43 @@
   <div class="topbar">
     <div class="titlebar">
       <h1>小秘書<span class="sub num" id="summary"></span></h1>
-      <label class="search"><svg class="icon" style="width:18px;height:18px"><use href="#i-search"/></svg><input type="search" id="search" placeholder="搜尋內容或專案" oninput="render()" /></label>
+      <label class="search"><svg class="icon" style="width:18px;height:18px"><use href="#i-search"/></svg><input type="search" id="search" placeholder="搜尋內容或專案" oninput="render()" /><kbd class="wide-only" aria-hidden="true">/</kbd></label>
       <button class="icon-btn" onclick="loadNotes()" title="重新整理" aria-label="重新整理"><svg class="icon"><use href="#i-refresh"/></svg></button>
       <a class="icon-btn" id="worshipLink" href="#" onclick="event.preventDefault(); goWorship()" title="服事表" aria-label="服事表"><svg class="icon"><use href="#i-calendar"/></svg></a>
     </div>
-    <div class="tabs" role="tablist" id="tabs"></div>
-    <div class="chips" id="projectTags" aria-label="專案"></div>
+    <div class="tabs" role="tablist" id="tabs" aria-label="分類"></div>
+    <div class="chips" id="projectTags" role="group" aria-label="專案"></div>
   </div>
-  <main id="list" aria-live="polite"></main>
+  <main id="list" role="tabpanel" tabindex="-1"></main>
 </div>
 
 <form class="composer" id="composer" hidden onsubmit="event.preventDefault(); submitNote()">
   <div class="composer-inner">
-    <div class="composer-extra" id="composerExtra" hidden>
-      <label><svg class="icon" style="width:18px;height:18px"><use href="#i-clock"/></svg><input type="datetime-local" id="newDueDate" aria-label="到期時間" /></label>
-      <label>專案<input type="text" id="newProject" list="projectList" placeholder="可留空" /></label>
-      <datalist id="projectList"></datalist>
+    <div class="batch" id="batchBar" hidden>
+      <span class="count num" id="batchCount"></span>
+      <button class="btn btn-primary" type="button" onclick="batchDone()">完成</button>
+      <input type="text" id="batchProject" list="projectList" placeholder="移到專案…" aria-label="移到專案" />
+      <button class="btn btn-ghost" type="button" onclick="batchMove()">移動</button>
+      <button class="btn btn-danger" type="button" onclick="deleteNotes([...selected])">刪除</button>
+      <button class="icon-btn" type="button" onclick="clearSelection()" aria-label="取消選取" title="取消選取（Esc）"><svg class="icon"><use href="#i-close"/></svg></button>
     </div>
-    <div class="composer-row">
-      <select class="type-select" id="newType" aria-label="類型">
-        <option value="task">待辦</option>
-        <option value="reminder">提醒</option>
-        <option value="note">筆記</option>
-        <option value="project_update">專案更新</option>
-      </select>
-      <input class="composer-input" id="newContent" placeholder="記一件事…" autocomplete="off" oninput="syncSend()" aria-label="內容" />
-      <button class="icon-btn" type="button" id="extraBtn" aria-pressed="false" onclick="toggleExtra()" title="時間與專案" aria-label="時間與專案"><svg class="icon"><use href="#i-clock"/></svg></button>
-      <button class="send" type="submit" id="sendBtn" disabled aria-label="新增"><svg class="icon"><use href="#i-send"/></svg></button>
+    <div id="composeBox">
+      <div class="composer-extra" id="composerExtra" hidden>
+        <label><svg class="icon" style="width:18px;height:18px"><use href="#i-clock"/></svg><input type="datetime-local" id="newDueDate" aria-label="到期時間" /></label>
+        <label>專案<input type="text" id="newProject" list="projectList" placeholder="可留空" /></label>
+        <datalist id="projectList"></datalist>
+      </div>
+      <div class="composer-row">
+        <select class="type-select" id="newType" aria-label="類型">
+          <option value="task">待辦</option>
+          <option value="reminder">提醒</option>
+          <option value="note">筆記</option>
+          <option value="project_update">專案更新</option>
+        </select>
+        <input class="composer-input" id="newContent" placeholder="記一件事…" autocomplete="off" oninput="syncSend()" aria-label="內容" />
+        <button class="icon-btn" type="button" id="extraBtn" aria-pressed="false" onclick="toggleExtra()" title="時間與專案" aria-label="時間與專案"><svg class="icon"><use href="#i-clock"/></svg></button>
+        <button class="send" type="submit" id="sendBtn" disabled aria-label="新增"><svg class="icon"><use href="#i-send"/></svg></button>
+      </div>
     </div>
   </div>
 </form>
@@ -123,22 +155,28 @@
     <label class="field"><span>專案（可留空）</span><input type="text" id="editProject" list="projectList" /></label>
     <label class="field"><span>到期時間（可留空）</span><input type="datetime-local" id="editDueDate" /></label>
     <div class="sheet-actions">
-      <button class="btn btn-danger" type="button" onclick="deleteNote(editingNoteId)">刪除</button>
+      <button class="btn btn-danger" type="button" onclick="deleteNotes([editingNoteId])">刪除</button>
       <button class="btn btn-primary" type="submit">儲存</button>
     </div>
   </form>
 </div>
 
-<div class="toast" id="toast" role="status" hidden></div>
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button type="button" id="toastAction" hidden></button></div>
 
 <script>
 let token = '';
 let allNotes = [];
+let nextServe = null;       // { date, roles[] } — the deployer's next duty within a week
 let activeProject = '';
 let activeTab = 'todo';
 let showDone = false;
 let editingNoteId = null;
 let editType = 'task';
+let lastFocus = null;       // element to return to when the edit sheet closes
+let focusId = null;         // row to keep focused across re-renders
+let focusIdx = -1;          // its position, used when the row itself left the list
+const selected = new Set(); // row ids picked for a batch action (desktop shift-click / X)
+let pendingDelete = null;   // { notes, timer } — deletes wait out the undo window before hitting the API
 
 const TYPE_LABEL = { task: '待辦', reminder: '提醒', note: '筆記', project_update: '專案更新' };
 const TABS = [
@@ -147,7 +185,10 @@ const TABS = [
   { id: 'project_update', label: '專案更新', types: ['project_update'] },
   { id: 'all', label: '全部', types: null },
 ];
+// Project avatar tints: no green (action only) and no red (overdue only)
+const TINTS = [['#eaf0fa', '#3f67a8'], ['#fff3e0', '#a34f00'], ['#f1ecfb', '#6b46c1'], ['#e8f6f8', '#126c7a'], ['#eef0f2', '#3d4247']];
 const TZ = 'Asia/Taipei';
+const UNDO_MS = 5000;
 
 function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -158,11 +199,32 @@ function hm(d) { return new Date(d).toLocaleTimeString('zh-TW', { timeZone: TZ, 
 function md(d) { return new Date(d).toLocaleDateString('zh-TW', { timeZone: TZ, month: 'numeric', day: 'numeric' }); }
 function weekday(d) { return '日一二三四五六'[new Date(new Date(d).toLocaleString('en-US', { timeZone: TZ })).getDay()]; }
 function addDays(key, n) { const d = new Date(key + 'T12:00:00+08:00'); d.setDate(d.getDate() + n); return dayKey(d); }
+// Unknown type values fall back to 待辦 instead of disappearing from every tab
+function kind(n) { return TYPE_LABEL[n.type] ? n.type : 'task'; }
+function isTodo(n) { return kind(n) === 'task' || kind(n) === 'reminder'; }
+function isLate(n) { return !n.is_done && n.due_date && new Date(n.due_date).getTime() < Date.now(); }
+function short(s) { s = String(s); return s.length > 14 ? s.slice(0, 14) + '…' : s; }
+function tint(name) {
+  let h = 0; for (const ch of name) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+  return TINTS[h % TINTS.length];
+}
+// 天父日記 → 天；Cell Reporter → CR；PitchPal → PP
+function monogram(name) {
+  const first = [...name.trim()][0] || '?';
+  if (!/[A-Za-z0-9]/.test(first)) return first;
+  const words = name.trim().split(/\s+/);
+  if (words.length > 1) return (words[0][0] + words[1][0]).toUpperCase();
+  const caps = name.replace(/[^A-Z]/g, '');
+  return (caps.length >= 2 ? caps.slice(0, 2) : name.slice(0, 2)).replace(/^./, c => c.toUpperCase());
+}
 
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.hidden = false;
-  clearTimeout(toast.timer); toast.timer = setTimeout(() => { t.hidden = true; }, 2400);
+function toast(msg, { action, onAction, ms = 2400 } = {}) {
+  const t = document.getElementById('toast'), btn = document.getElementById('toastAction');
+  document.getElementById('toastMsg').textContent = msg;
+  btn.hidden = !action; btn.textContent = action || '';
+  btn.onclick = () => { t.hidden = true; clearTimeout(toast.timer); onAction(); };
+  t.hidden = false;
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => { t.hidden = true; }, ms);
 }
 
 function doLogin() {
@@ -171,28 +233,36 @@ function doLogin() {
   loadNotes();
 }
 
-async function api(method, body) {
-  const res = await fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (res.status === 401) {
-    document.getElementById('login').hidden = false;
-    document.getElementById('main').hidden = true;
-    document.getElementById('composer').hidden = true;
-    document.getElementById('loginErr').textContent = '密碼錯誤，請再試一次';
+function showLogin(msg) {
+  document.getElementById('login').hidden = false;
+  document.getElementById('main').hidden = true;
+  document.getElementById('composer').hidden = true;
+  document.getElementById('loginErr').textContent = msg;
+}
+
+async function api(method, body, path = '/api/dashboard/notes', qs = '') {
+  let res;
+  try {
+    res = await fetch(`${path}?token=${encodeURIComponent(token)}${qs}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    toast('連不上伺服器，檢查網路後再試一次', { ms: 5000 });
     return null;
   }
-  const data = await res.json();
-  if (data && data.error) { toast('發生錯誤：' + data.error); return null; }
+  if (res.status === 401) { showLogin('密碼錯誤，請再試一次'); return null; }
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data || data.error) { toast(`沒有存到，請再試一次（${(data && data.error) || res.status}）`, { ms: 5000 }); return null; }
   return data;
 }
 
 async function loadNotes() {
-  const data = await api('GET');
+  const [data] = await Promise.all([api('GET'), loadServe()]);
   if (!data) return;
-  allNotes = data;
+  const hidden = new Set((pendingDelete ? pendingDelete.notes : []).map(n => String(n.id)));
+  allNotes = data.filter(n => !hidden.has(String(n.id)));
   document.getElementById('login').hidden = true;
   document.getElementById('main').hidden = false;
   document.getElementById('composer').hidden = false;
@@ -200,31 +270,74 @@ async function loadNotes() {
   render();
 }
 
+// The deployer's next 服事 (name comes from WORSHIP_MY_NAME on the server)
+async function loadServe() {
+  try {
+    const today = dayKey(Date.now());
+    const res = await fetch(`/api/worship/schedule?token=${encodeURIComponent(token)}&person=me&from=${today}`);
+    const rows = res.ok ? await res.json() : [];
+    if (!Array.isArray(rows) || !rows.length) { nextServe = null; return; }
+    const date = rows.map(r => r.service_date).sort()[0];
+    const days = Math.round((new Date(date + 'T12:00:00+08:00') - new Date(today + 'T12:00:00+08:00')) / 864e5);
+    nextServe = days <= 7 ? { date, days, roles: rows.filter(r => r.service_date === date).map(r => r.role) } : null;
+  } catch { nextServe = null; }
+}
+
+function serveWhen(s) {
+  const d = s.date + 'T12:00:00+08:00';
+  return s.days === 0 ? '今天' : s.days === 1 ? '明天' : `${md(d)}（${weekday(d)}）`;
+}
+
+// One sentence in 小秘書's voice instead of a row of statistics
 function renderSummary() {
-  const todos = allNotes.filter(n => n.type === 'task' || n.type === 'reminder');
-  const done = todos.filter(n => n.is_done).length;
-  const rate = todos.length ? Math.round(done / todos.length * 100) : 0;
-  document.getElementById('summary').innerHTML =
-    `未完成 ${todos.length - done}<span class="wide-only">・已完成 ${done}（${rate}%）・共 ${allNotes.length} 筆</span>・更新 ${hm(new Date())}`;
+  const open = allNotes.filter(n => isTodo(n) && !n.is_done);
+  const late = open.filter(isLate).length;
+  const today = dayKey(Date.now());
+  const dueToday = open.filter(n => !isLate(n) && n.due_date && dayKey(n.due_date) === today).length;
+  const parts = [];
+  if (!open.length) parts.push('待辦都清掉了');
+  else {
+    if (late) parts.push(`過期 ${late} 件先處理`);
+    parts.push(dueToday ? `今天還有 ${dueToday} 件` : late ? '今天沒有其他到期的' : `今天沒有到期的，共 ${open.length} 件待辦`);
+  }
+  if (nextServe && nextServe.days <= 1) parts.push(`${serveWhen(nextServe)}服事${nextServe.roles.join('、')}`);
+  document.getElementById('summary').innerHTML = esc(parts.join('，')) + `<span class="wide-only">・${hm(new Date())} 更新</span>`;
 }
 
 function renderTabs() {
   document.getElementById('tabs').innerHTML = TABS.map(t => {
-    const items = allNotes.filter(n => !t.types || t.types.includes(n.type));
+    const items = allNotes.filter(n => !t.types || t.types.includes(kind(n)));
     const count = t.id === 'todo' ? items.filter(n => !n.is_done).length : items.length;
-    const late = t.id === 'todo' ? items.filter(n => !n.is_done && n.due_date && new Date(n.due_date).getTime() < Date.now()).length : 0;
-    return `<button class="tab" role="tab" aria-selected="${activeTab === t.id}" onclick="setTab('${t.id}')">${t.label}<span class="count num">${count}</span>${late ? `<span class="badge num" aria-label="過期 ${late}">${late}</span>` : ''}</button>`;
+    const late = t.id === 'todo' ? items.filter(isLate).length : 0;
+    const on = activeTab === t.id;
+    return `<button class="tab" role="tab" id="tab-${t.id}" aria-controls="list" aria-selected="${on}" tabindex="${on ? 0 : -1}" data-tab="${t.id}">${t.label}<span class="count num" aria-label="${count} 筆">${count}</span>${late ? `<span class="badge num" aria-label="過期 ${late}">${late}</span>` : ''}</button>`;
   }).join('');
+  document.getElementById('list').setAttribute('aria-labelledby', 'tab-' + activeTab);
 }
+document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) setTab(b.dataset.tab); });
+document.getElementById('tabs').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const i = TABS.findIndex(t => t.id === activeTab) + (e.key === 'ArrowRight' ? 1 : -1);
+  setTab(TABS[(i + TABS.length) % TABS.length].id);
+  document.getElementById('tab-' + activeTab).focus();
+});
 
 function renderProjectTags() {
+  const tab = TABS.find(t => t.id === activeTab);
+  const inTab = allNotes.filter(n => (!tab.types || tab.types.includes(kind(n))) && (activeTab !== 'todo' || !n.is_done));
   const projects = [...new Set(allNotes.map(n => n.project).filter(Boolean))];
   const box = document.getElementById('projectTags');
   box.hidden = projects.length === 0;
-  box.innerHTML = [''].concat(projects).map(p =>
-    `<button class="chip" aria-pressed="${activeProject === p}" data-project="${esc(p)}">${p ? esc(p) : '全部專案'}</button>`
-  ).join('');
+  box.innerHTML = [''].concat(projects).map(p => {
+    const c = p ? inTab.filter(n => n.project === p).length : 0;
+    return `<button class="chip" aria-pressed="${activeProject === p}" data-project="${esc(p)}">${p ? esc(p) : '全部專案'}${p && c ? `<span class="num">${c}</span>` : ''}</button>`;
+  }).join('');
 }
+// A mouse wheel scrolls the chip row sideways, so every project stays reachable without wrapping the header
+document.getElementById('projectTags').addEventListener('wheel', e => {
+  const el = e.currentTarget;
+  if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) { el.scrollLeft += e.deltaY; e.preventDefault(); }
+}, { passive: false });
 document.getElementById('projectTags').addEventListener('click', e => {
   const b = e.target.closest('.chip'); if (b) setProject(b.dataset.project);
 });
@@ -236,9 +349,9 @@ function filtered() {
   const tab = TABS.find(t => t.id === activeTab);
   const q = document.getElementById('search').value.trim().toLowerCase();
   return allNotes.filter(n => {
-    if (tab.types && !tab.types.includes(n.type)) return false;
+    if (tab.types && !tab.types.includes(kind(n))) return false;
     if (activeProject && n.project !== activeProject) return false;
-    if (q && !n.content.toLowerCase().includes(q) && !(n.project || '').toLowerCase().includes(q)) return false;
+    if (q && !String(n.content).toLowerCase().includes(q) && !(n.project || '').toLowerCase().includes(q)) return false;
     return true;
   });
 }
@@ -287,49 +400,93 @@ function groupByDay(items) {
 function dueText(n) {
   if (!n.due_date) return '';
   const k = dayKey(n.due_date), today = dayKey(Date.now());
-  const late = !n.is_done && new Date(n.due_date).getTime() < Date.now();
   const when = k === today ? '今天' : k === dayKey(Date.now() + 864e5) ? '明天' : `${md(n.due_date)}（${weekday(n.due_date)}）`;
-  return late ? `<span class="late">逾期・${when} ${hm(n.due_date)}</span>` : `${when} ${hm(n.due_date)}`;
+  return isLate(n) ? `<span class="late">逾期・${when} ${hm(n.due_date)}</span>` : `${when} ${hm(n.due_date)}`;
 }
 
+function avatarHtml(n) {
+  const t = kind(n);
+  if (!n.project) return `<span class="avatar ${t}" title="${TYPE_LABEL[t]}">${icon(t)}</span>`;
+  const [bg, fg] = tint(n.project), m = monogram(n.project);
+  const badge = t === 'task' ? '' : `<span class="tbadge ${t}">${icon(t)}</span>`;
+  return `<span class="avatar ${/^[A-Za-z0-9]/.test(m) ? 'latin' : ''}" style="--a-bg:${bg};--a-fg:${fg}" title="${esc(n.project)}・${TYPE_LABEL[t]}" aria-hidden="true">${esc(m)}${badge}</span>`;
+}
+
+function doneWord(n) { return isTodo(n) ? '已完成' : '已讀'; }
+
 function rowHtml(n) {
-  const sub = [n.project ? esc(n.project) : '', dueText(n), activeTab === 'all' ? TYPE_LABEL[n.type] : ''].filter(Boolean).join('・') || TYPE_LABEL[n.type];
-  const meta = n.is_done ? '<span class="read">已完成</span>' : '';
-  return `<div class="row ${n.is_done ? 'done' : ''}" data-id="${esc(n.id)}">
+  const t = kind(n);
+  const sub = [n.project && !activeProject ? esc(n.project) : '', dueText(n), activeTab === 'all' ? TYPE_LABEL[t] : ''].filter(Boolean).join('・') || TYPE_LABEL[t];
+  const meta = n.is_done ? `<span class="read">${doneWord(n)}</span>` : '';
+  const sel = selected.has(String(n.id));
+  const label = sel ? '取消選取' : n.is_done ? (isTodo(n) ? '標為未完成' : '標為未讀') : (isTodo(n) ? '標為完成' : '標為已讀');
+  return `<div class="row ${n.is_done ? 'done' : ''} ${sel ? 'selected' : ''}" data-id="${esc(n.id)}">
     <button class="row-main" data-act="edit" aria-label="編輯：${esc(n.content)}">
-      <span class="avatar ${esc(n.type)}" title="${TYPE_LABEL[n.type] || ''}">${icon(n.type)}</span>
+      ${avatarHtml(n)}
       <span class="row-text"><span class="row-title">${esc(n.content)}</span><span class="row-sub num">${sub}</span></span>
       ${meta ? `<span class="row-meta">${meta}</span>` : ''}
     </button>
-    <button class="check" data-act="toggle" aria-pressed="${!!n.is_done}" aria-label="${n.is_done ? '標為未完成' : '標為完成'}"><i>${icon('check')}</i></button>
+    <button class="check" data-act="toggle" aria-pressed="${sel || !!n.is_done}" aria-label="${label}" title="Shift＋點一下可多選"><i>${icon('check')}</i></button>
   </div>`;
+}
+
+function serveHtml() {
+  const s = nextServe;
+  return `<div class="sep"><span>服事</span></div><div class="row serve-row">
+    <a class="row-main" href="#" data-act="serve">
+      <span class="avatar serve" aria-hidden="true">${icon('calendar')}</span>
+      <span class="row-text"><span class="row-title">${esc(s.roles.join('、'))}</span><span class="row-sub num">${s.days <= 1 ? serveWhen(s) + '・' : ''}${md(s.date + 'T12:00:00+08:00')}（${weekday(s.date + 'T12:00:00+08:00')}）</span></span>
+      <span class="row-meta">${icon('chevron')}</span>
+    </a></div>`;
 }
 
 function render() {
   renderSummary();
   renderTabs();
   renderProjectTags();
+  renderBatch();
   const items = filtered();
   const list = document.getElementById('list');
+  const q = document.getElementById('search').value.trim();
+  const plain = !q && !activeProject;
+  const serve = activeTab === 'todo' && plain && nextServe ? serveHtml() : '';
   if (items.length === 0) {
-    const q = document.getElementById('search').value.trim();
-    list.innerHTML = `<div class="empty"><strong>${q || activeProject ? '沒有符合的記錄' : '這裡還是空的'}</strong>${q || activeProject ? '換個關鍵字或專案看看。' : '在下方輸入列打一句話，或直接傳給 LINE 小秘書。'}</div>`;
+    list.innerHTML = serve + `<div class="empty"><strong>${plain ? '這裡還是空的' : '沒有符合的記錄'}</strong>${plain ? '在下方輸入列打一句話，或直接傳給 LINE 小秘書。' : '換個關鍵字或專案看看。'}</div>`;
     return;
   }
   const groups = activeTab === 'todo' ? groupTodos(items) : groupByDay(items);
-  list.innerHTML = groups.filter(g => g[2].length).map(([key, label, rows]) => {
+  const anyOpen = items.some(n => !n.is_done);
+  const cleared = activeTab === 'todo' && plain && !anyOpen
+    ? '<div class="cleared"><strong>都清掉了</strong>有新的事，在下面打一句，或直接傳給 LINE 小秘書。</div>' : '';
+  list.innerHTML = serve + cleared + groups.filter(g => g[2].length).map(([key, label, rows]) => {
     if (key === 'done') {
-      return `<div class="sep"><button onclick="showDone = !showDone; render()" aria-expanded="${showDone}">已完成 <span class="num">${rows.length}</span><svg class="icon" style="width:14px;height:14px;transform:rotate(${showDone ? 90 : 0}deg)"><use href="#i-chevron"/></svg></button></div>` +
+      return `<div class="sep"><button data-act="done-group" aria-expanded="${showDone}">已完成 <span class="num">${rows.length}</span><svg class="icon" style="width:14px;height:14px;transform:rotate(${showDone ? 90 : 0}deg)"><use href="#i-chevron"/></svg></button></div>` +
         (showDone ? rows.map(rowHtml).join('') : '');
     }
     return `<div class="sep ${key === 'overdue' ? 'overdue' : ''}"><span>${label}</span></div>` + rows.map(rowHtml).join('');
   }).join('');
+  // innerHTML dropped the focused row; put focus back on the same record so j/k and x keep working
+  if (focusId && document.activeElement === document.body) {
+    const rows = list.querySelectorAll('.row[data-id] .row-main');
+    const r = list.querySelector(`.row[data-id="${CSS.escape(focusId)}"] .row-main`) || rows[Math.min(focusIdx, rows.length - 1)];
+    if (r) r.focus();
+  }
 }
 
-document.getElementById('list').addEventListener('click', e => {
+const list = document.getElementById('list');
+list.addEventListener('focusin', e => {
+  const r = e.target.closest('.row[data-id]');
+  focusId = r ? r.dataset.id : null;
+  focusIdx = r ? [...list.querySelectorAll('.row[data-id]')].indexOf(r) : -1;
+});
+list.addEventListener('click', e => {
   const btn = e.target.closest('[data-act]'); if (!btn) return;
+  const act = btn.dataset.act;
+  if (act === 'serve') { e.preventDefault(); goWorship(); return; }
+  if (act === 'done-group') { showDone = !showDone; render(); return; }
   const id = btn.closest('.row').dataset.id;
-  if (btn.dataset.act === 'toggle') {
+  if (act === 'toggle') {
+    if (e.shiftKey || selected.size) { toggleSelect(id); return; }
     const note = allNotes.find(n => String(n.id) === id);
     if (note) toggleDone(note.id, !note.is_done);
   } else {
@@ -337,26 +494,89 @@ document.getElementById('list').addEventListener('click', e => {
   }
 });
 
-async function toggleDone(id, is_done) {
+async function toggleDone(id, is_done, { quiet = false } = {}) {
   const note = allNotes.find(n => n.id === id);
   if (!note) return;
   note.is_done = is_done;
   const row = document.querySelector(`.row[data-id="${CSS.escape(String(id))}"]`);
   if (row) row.classList.toggle('done', is_done);
   const res = await api('PATCH', { id, is_done });
-  if (!res) { note.is_done = !is_done; }
+  if (!res) { note.is_done = !is_done; render(); return; }
   setTimeout(render, row && is_done ? 420 : 0);
+  if (quiet) return;
+  if (is_done) {
+    const left = allNotes.filter(n => isTodo(n) && !n.is_done).length;
+    const msg = isTodo(note) && left === 0 ? '最後一件也完成了，待辦清空' : `${doneWord(note)}：${short(note.content)}`;
+    toast(msg, { action: '復原', onAction: () => toggleDone(id, false, { quiet: true }), ms: UNDO_MS });
+  }
 }
 
-async function deleteNote(id) {
-  if (!confirm('確定刪除這筆記錄？')) return;
-  const res = await api('DELETE', { id });
-  if (!res) return;
-  allNotes = allNotes.filter(n => n.id !== id);
-  closeEditModal();
+// Delete with an undo window: rows vanish now, the API call waits UNDO_MS
+function deleteNotes(ids) {
+  flushDelete();
+  const keys = new Set(ids.map(String));
+  const notes = allNotes.filter(n => keys.has(String(n.id)));
+  if (!notes.length) return;
+  allNotes = allNotes.filter(n => !keys.has(String(n.id)));
+  keys.forEach(k => selected.delete(k));
+  if (!document.getElementById('editModal').hidden) closeEditModal();
   updateProjectList();
   render();
-  toast('已刪除');
+  pendingDelete = { notes, timer: setTimeout(flushDelete, UNDO_MS) };
+  toast(notes.length > 1 ? `已刪除 ${notes.length} 筆` : `已刪除：${short(notes[0].content)}`, {
+    action: '復原', ms: UNDO_MS,
+    onAction: () => {
+      clearTimeout(pendingDelete.timer);
+      allNotes = allNotes.concat(pendingDelete.notes);
+      pendingDelete = null;
+      updateProjectList(); render();
+    },
+  });
+}
+
+async function flushDelete() {
+  if (!pendingDelete) return;
+  const { notes, timer } = pendingDelete;
+  pendingDelete = null; clearTimeout(timer);
+  const failed = [];
+  for (const n of notes) { if (!(await api('DELETE', { id: n.id }))) failed.push(n); }
+  if (failed.length) { allNotes = allNotes.concat(failed); updateProjectList(); render(); }
+}
+// Leaving the page inside the undo window still deletes
+window.addEventListener('pagehide', () => {
+  if (!pendingDelete) return;
+  for (const n of pendingDelete.notes) {
+    fetch(`/api/dashboard/notes?token=${encodeURIComponent(token)}`, { method: 'DELETE', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n.id }) });
+  }
+  pendingDelete = null;
+});
+
+/* Batch selection (desktop) */
+function toggleSelect(id) {
+  id = String(id);
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  render();
+}
+function clearSelection() { selected.clear(); render(); }
+function renderBatch() {
+  for (const id of [...selected]) if (!allNotes.some(n => String(n.id) === id)) selected.delete(id);
+  const on = selected.size > 0;
+  document.getElementById('batchBar').hidden = !on;
+  document.getElementById('composeBox').hidden = on;
+  document.getElementById('batchCount').textContent = `已選 ${selected.size} 筆`;
+}
+async function batchPatch(fields, msg) {
+  const ids = [...selected];
+  const results = await Promise.all(ids.map(id => api('PATCH', { id: allNotes.find(n => String(n.id) === id).id, ...fields })));
+  ids.forEach((id, i) => { if (results[i]) Object.assign(allNotes.find(n => String(n.id) === id), fields); });
+  selected.clear(); updateProjectList(); render();
+  if (results.every(Boolean)) toast(msg);
+}
+function batchDone() { batchPatch({ is_done: true }, `${selected.size} 筆標為完成`); }
+function batchMove() {
+  const project = document.getElementById('batchProject').value.trim();
+  document.getElementById('batchProject').value = '';
+  batchPatch({ project: project || null }, project ? `已移到「${project}」` : '已移出專案');
 }
 
 function syncSend() { document.getElementById('sendBtn').disabled = !document.getElementById('newContent').value.trim(); }
@@ -398,8 +618,9 @@ function renderEditSeg() {
 function openEditModal(id) {
   const n = allNotes.find(x => String(x.id) === String(id));
   if (!n) return;
+  lastFocus = document.activeElement;
   editingNoteId = n.id;
-  editType = n.type;
+  editType = kind(n);
   document.getElementById('editContent').value = n.content;
   document.getElementById('editProject').value = n.project || '';
   if (n.due_date) {
@@ -415,10 +636,24 @@ function openEditModal(id) {
 }
 
 function closeEditModal() {
+  const id = editingNoteId;
   document.getElementById('editModal').hidden = true;
   editingNoteId = null;
+  // Return focus to the row that opened the sheet (it may have been re-rendered)
+  const again = id != null && document.querySelector(`.row[data-id="${CSS.escape(String(id))}"] .row-main`);
+  const target = again || (lastFocus && document.contains(lastFocus) ? lastFocus : document.getElementById('list'));
+  target.focus();
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('editModal').hidden) closeEditModal(); });
+
+// Keep Tab inside the open sheet
+document.getElementById('editModal').addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const f = [...e.currentTarget.querySelectorAll('button, input, textarea, select')].filter(el => !el.disabled && el.offsetParent);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 
 async function saveEdit() {
   const content = document.getElementById('editContent').value.trim();
@@ -430,14 +665,40 @@ async function saveEdit() {
   if (!updated) return;
   const n = allNotes.find(x => x.id === editingNoteId);
   if (n) Object.assign(n, { content, type: editType, project: project || null, due_date });
-  closeEditModal();
   updateProjectList();
   render();
+  closeEditModal();
   toast('已儲存');
 }
 
-// Auto refresh every 60s (skip while editing)
-setInterval(() => { if (token && document.getElementById('editModal').hidden) loadNotes(); }, 60000);
+/* Keyboard: / search · n new · j/k move · x done · X select · e edit · ? help */
+const HELP = 'j／k 上下・x 完成・Shift＋X 多選・e 編輯・n 新增・/ 搜尋';
+document.addEventListener('keydown', e => {
+  const modalOpen = !document.getElementById('editModal').hidden;
+  if (e.key === 'Escape') {
+    if (modalOpen) closeEditModal();
+    else if (selected.size) clearSelection();
+    return;
+  }
+  if (modalOpen || e.metaKey || e.ctrlKey || e.altKey || !token) return;
+  if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+  const rows = [...document.querySelectorAll('#list .row[data-id] .row-main')];
+  const cur = document.activeElement.closest('.row[data-id]');
+  const idx = cur ? rows.indexOf(cur.querySelector('.row-main')) : -1;
+  switch (e.key) {
+    case '/': e.preventDefault(); document.getElementById('search').focus(); break;
+    case 'n': e.preventDefault(); document.getElementById('newContent').focus(); break;
+    case 'j': if (rows.length) rows[Math.min(idx + 1, rows.length - 1)].focus(); break;
+    case 'k': if (rows.length) rows[Math.max(idx - 1, 0)].focus(); break;
+    case 'x': if (cur) { const n = allNotes.find(x => String(x.id) === cur.dataset.id); if (n) toggleDone(n.id, !n.is_done); } break;
+    case 'X': if (cur) toggleSelect(cur.dataset.id); break;
+    case 'e': if (cur) openEditModal(cur.dataset.id); break;
+    case '?': toast(HELP, { ms: 6000 }); break;
+  }
+});
+
+// Auto refresh every 60s (skip while editing or selecting)
+setInterval(() => { if (token && document.getElementById('editModal').hidden && !selected.size) loadNotes(); }, 60000);
 
 function goWorship() {
   window.location.href = '/worship.html?token=' + encodeURIComponent(token);

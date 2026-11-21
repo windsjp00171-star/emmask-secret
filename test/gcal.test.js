@@ -60,3 +60,15 @@ test('normalizeUrl：只收 Google 日曆的 https／webcal 網址', () => {
   assert.throws(() => g.normalizeUrl('https://evil.example.com/x.ics'));
   assert.throws(() => g.normalizeUrl('http://calendar.google.com/x.ics'));
 });
+
+test('cleanUrl／describeUrl：貼上時夾帶的換行、空白、引號會被清掉；日誌只寫網址形狀', () => {
+  const good = 'https://calendar.google.com/calendar/ical/a%40gmail.com/private-0123abcd/basic.ics';
+  const messy = `"${good.slice(0, 40)}\n${good.slice(40)} "\n`;
+  assert.equal(g.cleanUrl(messy), good);
+  assert.equal(g.normalizeUrl(messy), good);
+  const d = g.describeUrl(messy);
+  assert.match(d, /開頭 OK、private- 有、結尾 OK/);
+  assert.match(d, /清掉空白／引號後/);
+  assert.ok(!d.includes('0123abcd')); // 不能把鑰匙寫進日誌
+  assert.match(g.describeUrl('https://calendar.google.com/calendar/ical/a%40gmail.com/public/basic.ics'), /private- 沒有/);
+});

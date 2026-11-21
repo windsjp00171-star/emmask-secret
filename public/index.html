@@ -70,6 +70,25 @@
     .project-tag:hover { background: var(--fill-hover); }
     .project-tag.active { background: var(--ink); color: var(--on-ink); }
     .filters { margin-bottom: 10px; }
+    /* 手機第一屏（2026-11-21 改版）：標題列併進分頁列，一打開就先看到要做的事。
+       名稱只對螢幕閱讀器保留；「？ 教學」縮成圓形問號，放在分頁列最右邊。電腦版不變。 */
+    @media (max-width: 640px) {
+      #main > header { flex-wrap: nowrap; padding: 4px 12px 0 4px; gap: 4px; }
+      #main > header h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      #main > header .tabbar { order: 1; flex: 1 1 auto; min-width: 0; margin: 0; padding: 0 20px 0 0; }
+      #main > header .tabbar .tab-btn { padding: 0 10px; }
+      #main > header .tabbar .tab-btn.active::after { left: 8px; right: 8px; }
+      #main > header .tour-btn { order: 2; flex: none; align-self: flex-start; margin-top: 3px; width: 36px; height: 36px; padding: 0 !important; border-radius: 50% !important; font-size: 0; display: inline-flex; align-items: center; justify-content: center; }
+      #main > header .tour-btn::before { content: "?"; font-size: 17px; font-weight: 700; }
+      #panel-dashboard.container { padding-top: 10px; }
+      .overview, .list-head, .filters { margin-bottom: 8px; }
+    }
+    /* 小手機（SE 320）：五個分頁剛好放得下，拿掉右緣淡出，「更多」才不會被蓋掉 */
+    @media (max-width: 360px) {
+      #main > header .tabbar:not(.show-extra) { padding-right: 0; -webkit-mask-image: none; mask-image: none; }
+      #main > header .tabbar .tab-btn { padding: 0 7px; }
+      #main > header .tabbar .tab-btn.active::after { left: 5px; right: 5px; }
+    }
     .filter-row { display: flex; gap: 6px; align-items: center; }
     .filter-row input[type=search] { flex: 1; min-width: 0; height: 38px; min-height: 38px; border-radius: 9999px; padding: 0 14px; font-size: 14px; }
     .chip-btn { flex: none; position: relative; height: 38px; padding: 0 12px; border-radius: 9999px; border: none; background: var(--fill); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
@@ -456,7 +475,7 @@
 
 <div id="main">
   <header>
-    <h1><img src="/img/mascot.png" alt="" width="32" height="32" style="vertical-align:middle;margin-right:6px">小秘書 <span id="lastRefresh" class="num"></span></h1>
+    <h1><img class="brand-cat" src="/img/mascot.png" alt="" width="32" height="32" style="vertical-align:middle;margin-right:6px"><span class="brand-name">小秘書</span> <span id="lastRefresh" class="num"></span></h1>
     <nav class="tabbar" id="tabbar" data-tour="tabbar">
       <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">待辦</button>
       <button class="tab-btn" id="tabBtn-notes" data-tour="notes-tab" onclick="switchTab('notes')">筆記</button>
